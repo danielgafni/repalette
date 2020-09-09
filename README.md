@@ -35,3 +35,7 @@ set NODE_OPTIONS=
 # Download dataset
 
 Run `scrap_design_seeds.ipynb`
+
+# TODO
+
+* Use image augmentations (`torchvision.transforms.RandomWhatever`)
