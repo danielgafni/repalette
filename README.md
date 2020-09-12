@@ -1,6 +1,6 @@
 # Installation
 ```bash
-conda install -n repalette python pytorch torchvision scikit-learn scikit-image requests beautifulsoup4 jupyterlab ipywidgets opencv pandas tqdm -c conda-forge -c pytorch
+conda create -n repalette python pytorch torchvision scikit-learn scikit-image requests beautifulsoup4 jupyterlab ipywidgets opencv pandas tqdm nodejs -c conda-forge -c pytorch
 ```
 
 ## Install Jupyter Lab plugins
