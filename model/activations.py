@@ -7,4 +7,5 @@ activation_shortcuts = {
     'sigmoid': nn.Sigmoid(),
     'elu': nn.ELU(),
     'selu': nn.SELU(),
+    None: nn.Identity(),
 }
