@@ -2,9 +2,48 @@
 import torch.nn as nn
 # import torch.nn.functional as F
 
-from collections import OrderedDict
-
 from activations import activation_shortcuts
+
+
+class ResnetLayer(nn.Module):
+    def __init__(self, block, in_channels, out_channels, n_blocks=2, activation='leaky_relu', stride=2):
+        super().__init__()
+        blocks = []
+        blocks.append(block(in_channels, out_channels, activation, stride))
+        for _ in range(1, n_blocks):
+            blocks.append(block(out_channels, out_channels, activation))
+
+        self.model = nn.Sequential(*blocks)
+
+    def forward(self, x):
+        return self.model(x)
+
+
+class ResidualBlock(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.residual = nn.Identity()
+        self.shortcut = nn.Identity()
+        self.activation = nn.Identity()
+
+    def forward(self, x):
+        residual = self.residual(x)
+        shortcut = self.shortcut(x)
+        return self.activation(residual + shortcut)
+
+
+class BasicBlock(ResidualBlock):
+    def __init__(self, in_channels, out_channels, activation='leaky_relu', stride=1):
+        super().__init__()
+
+        self.residual = nn.Sequential(
+            ConvBlock(in_channels, out_channels, stride=stride, activation=activation),
+            ConvBlock(out_channels, out_channels, activation=None),
+        )
+        if stride != 1 or in_channels != out_channels:
+            self.shortcut = ConvBlock(in_channels, out_channels, kernel_size=1, stride=stride, activation=None)
+        self.activation = activation_shortcuts[activation]
 
 
 class ConvBlock(nn.Module):
@@ -23,39 +62,18 @@ class ConvBlock(nn.Module):
         return x
 
 
-class ResidualBlock(nn.Module):
-    def __init__(self):
-        self.residual = nn.Identity()
-        self.shortcut = nn.Identity()
-        self.activation = nn.Identity()
-
-    def forward(self, x):
-        residual = self.residual(x)
-        shortcut = self.shortcut(x)
-        return self.activation(residual + shortcut)
-
-
-class BasicBlock(ResidualBlock):
-    def __init__(self, in_channels, out_channels, activation='leaky_relu', stride=1):
-        super().__init__()
-
-        self.residual = nn.Sequential(
-            ConvBlock(in_channels, out_channels, stride=stride),
-            ConvBlock(out_channels, out_channels, activation=None),
-        )
-        if stride != 1 or in_channels != out_channels:
-            self.shortcut = ConvBlock(in_channels, out_channels, kernel_size=1, stride=stride, activation=None)
-        self.activation = activation_shortcuts[activation]
-
-
-class ResnetLayer(nn.Module):
-    def __init__(self, block, in_channels, out_channels, n_blocks=2, activation='leaky_relu', stride=2):
-        blocks = []
-        blocks.append(block(in_channels, out_channels, activation, stride))
-        for _ in range(1, n_blocks):
-            blocks.append(block(out_channels, out_channels, activation))
-
-        self.model = nn.Sequential(*blocks)
+class DeconvBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3, activation='leaky_relu', upsample=True):
+        if upsample:
+            self.model = nn.Sequential(
+                nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+                nn.Conv2d(in_channels, out_channels, kernel_size),
+                nn.InstanceNorm2d(out_channels),
+                activation_shortcuts[activation],
+                nn.Conv2d(in_channels, out_channels, kernel_size),
+                nn.InstanceNorm2d(out_channels),
+                activation_shortcuts[activation],
+            )
 
     def forward(self, x):
         return self.model(x)
