@@ -1,8 +1,10 @@
 # Installation
 ```bash
-conda create -n repalette python pip pytorch torchvision scikit-learn scikit-image requests beautifulsoup4 jupyterlab ipywidgets opencv pandas tqdm nodejs -c conda-forge -c pytorch
+conda create -n repalette python pip setuptools wheel black pytorch torchvision scikit-learn scikit-image requests beautifulsoup4 jupyterlab ipywidgets opencv pandas tqdm nodejs -c conda-forge -c pytorch
 conda activate repalette
-pip isntall colorgram.py
+python setup.py sdist
+python setup.py bdist_wheel
+python setup.py develop
 ```
 
 ## Install Jupyter Lab plugins
