@@ -5,6 +5,8 @@ conda activate repalette
 pip install colorgram.py git+https://github.com/dylanaraps/pywal
 python setup.py sdist
 python setup.py bdist_wheel
+python setup.py build
+python setup.py install
 python setup.py develop
 ```
 
