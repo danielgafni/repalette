@@ -1,6 +1,6 @@
 data/
-data-raw/
 .idea/
+*/lightning_logs/
 
 # Created by .ignore support plugin (hsz.mobi)
 ### JupyterNotebooks template
@@ -168,3 +168,4 @@ docs/_book
 # TODO: where does this rule come from?
 test/
 
+/repalette/models/pytorch_models_checkpoints/

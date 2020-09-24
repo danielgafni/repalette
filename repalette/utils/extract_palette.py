@@ -5,6 +5,7 @@ from PIL import Image
 import numpy as np
 from sklearn.cluster import KMeans
 import cv2
+import pywal
 
 
 def extract_palette(filepath: str, num_colors: int = 6, backend="colorgram", *args, **kwargs) -> np.ndarray:
@@ -14,7 +15,7 @@ def extract_palette(filepath: str, num_colors: int = 6, backend="colorgram", *ar
     :type filepath: str
     :param num_colors: number of colors in the palette
     :type num_colors: int
-    :param backend: supported backends: `colorgram`, `kmeans`
+    :param backend: supported backends: `colorgram`, `kmeans`, `pywal/{pywal_backend}`.
     :type backend: str
     :param args: args go into backend
     :param kwargs: kwargs go into backend
@@ -38,7 +39,16 @@ def extract_palette(filepath: str, num_colors: int = 6, backend="colorgram", *ar
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).reshape(-1, 3)
         cl.fit(image)
         return cl.cluster_centers_.reshape(1, 6, 3).astype(np.int64)
+    elif "pywal" in backend:
+        backend = backend.split("/")[1]
 
+        if backend not in ["wal", "colorthief", "colorz", "haishoku", "schemer"]:
+            raise NotImplemented(f"Backend pywal/{backend} is not implemented.")
+
+        color_dict = pywal.colors.get(filepath, color_count=num_colors, backend=backend, *args, **kwargs)
+        palette = []
+        for key in color_dict:
+            palette.append(color_dict["key"])
     else:
         raise NotImplemented(f"Backend {backend} is not implemented.")
 
