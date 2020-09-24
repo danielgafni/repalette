@@ -3,17 +3,21 @@ from matplotlib import pyplot as plt
 import colorgram
 from PIL import Image
 import numpy as np
+from sklearn.cluster import KMeans
+import cv2
 
 
-def extract_palette(filepath: str, num_colors: int = 6, backend="colorgram") -> np.ndarray:
+def extract_palette(filepath: str, num_colors: int = 6, backend="colorgram", *args, **kwargs) -> np.ndarray:
     """
     Extracts palette from image.
     :param filepath: path to image
     :type filepath: str
     :param num_colors: number of colors in the palette
     :type num_colors: int
-    :param backend: supported backends: `colorgram`
+    :param backend: supported backends: `colorgram`, `kmeans`
     :type backend: str
+    :param args: args go into backend
+    :param kwargs: kwargs go into backend
     :return: RGB color palette with shape [1, num_colors, 3]
     :rtype: np.ndarray
     """
@@ -28,6 +32,13 @@ def extract_palette(filepath: str, num_colors: int = 6, backend="colorgram") -> 
             ), 0
         )
         return palette
+    elif backend == "kmeans":
+        cl = KMeans(n_clusters=num_colors, *args, **kwargs)
+        image = cv2.imread(filepath)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).reshape(-1, 3)
+        cl.fit(image)
+        return cl.cluster_centers_.reshape(1, 6, 3).astype(np.int64)
+
     else:
         raise NotImplemented(f"Backend {backend} is not implemented.")
 
