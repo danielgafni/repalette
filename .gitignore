@@ -1,6 +1,8 @@
 data/
+data-raw/
 .idea/
 */lightning_logs/
+*.csv
 
 # Created by .ignore support plugin (hsz.mobi)
 ### JupyterNotebooks template
