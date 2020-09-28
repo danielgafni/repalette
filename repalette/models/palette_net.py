@@ -1,9 +1,46 @@
 import torch
 import torch.nn as nn
+import pytorch_lightning as pl
 
 from collections import OrderedDict
 
-from blocks import ConvBlock, DeconvBlock, ResnetLayer
+from repalette.model_common.blocks import ConvBlock, DeconvBlock, ResnetLayer
+from repalette.constants import LR, BETAS
+
+
+class PaletteNet(pl.LightningModule):
+    def __init__(self):
+        self.feature_extractor = FeatureExtractor()
+        self.recoloring_decoder = RecoloringDecoder()
+        self.loss_fn = nn.MSELoss()
+
+    def forward(self, img, palette):
+        luminance = img[0, :, :]
+        content_features = self.feature_extractor(img)
+        recolored_img_ab = self.recoloring_decoder(content_features, palette, luminance)
+        return recolored_img_ab
+
+    def training_step(self, batch, batch_idx):
+        original_img, target_palette, target_img = batch
+        target_palette = nn.Flatten()(target_palette)
+        recolored_img = self(original_img, target_palette)
+        loss = self.loss_fn(recolored_img, target_img[1:, :, :])
+        result = pl.TrainResult(minimize=loss)
+        result.log("train_loss", loss, prog_bar=True)
+        return result
+
+    def validation_step(self, batch, batch_idx):
+        original_img, target_palette, target_img = batch
+        target_palette = nn.Flatten()(target_palette)
+        recolored_img = self(original_img, target_palette)
+        loss = self.loss_fn(recolored_img, target_img[1:, :, :])
+        result = pl.EvalResult(checkpoint_on=loss)
+        result.log('val_loss', loss, prog_bar=True)
+        return result
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=LR, betas=BETAS)
+        return optimizer
 
 
 class FeatureExtractor(nn.Module):
@@ -39,7 +76,7 @@ class RecoloringDecoder(nn.Module):
     def forward(self, content_features, palette, luminance):
         c1, c2, c3, c4 = content_features
         batch_size, _, height, width = c1.size()
-        palette = palette[None, :, None, None] * torch.ones(batch_size, 18, height, width)
+        palette = palette[:, :, None, None] * torch.ones(batch_size, 18, height, width)
 
         x = torch.cat([c1, palette], dim=1)
         x = self.deconv1(x)
@@ -56,7 +93,6 @@ class RecoloringDecoder(nn.Module):
         x = torch.cat([x, luminance], dim=1)
         x = self.final_conv(x)
 
-        x = torch.cat([x, luminance], dim=1)
         return x
 
 
