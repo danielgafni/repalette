@@ -8,5 +8,5 @@ activation_shortcuts = nn.ModuleDict([
     ('tanh', nn.Tanh()),
     ('elu', nn.ELU()),
     ('selu', nn.SELU()),
-    (None, nn.Identity()),
+    ('none', nn.Identity()),
 ])

@@ -2,7 +2,7 @@
 import torch.nn as nn
 # import torch.nn.functional as F
 
-from activations import activation_shortcuts
+from repalette.activations import activation_shortcuts
 
 
 class ResnetLayer(nn.Module):
@@ -42,10 +42,10 @@ class BasicBlock(ResidualBlock):
 
         self.residual = nn.Sequential(
             ConvBlock(in_channels, out_channels, stride=stride, activation=activation),
-            ConvBlock(out_channels, out_channels, activation=None),
+            ConvBlock(out_channels, out_channels, activation='none'),
         )
         if stride != 1 or in_channels != out_channels:
-            self.shortcut = ConvBlock(in_channels, out_channels, kernel_size=1, stride=stride, activation=None)
+            self.shortcut = ConvBlock(in_channels, out_channels, kernel_size=1, stride=stride, activation='none')
         self.activation = activation_shortcuts[activation]
 
 
