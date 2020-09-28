@@ -1,9 +1,13 @@
+import numpy as np
+import torch
+import torchvision.transforms.functional as TF
+
+from torchvision.transforms import Resize
 from torch.utils.data import Dataset
 from PIL import Image
-import torchvision.transforms.functional as TF
-from torchvision.transforms import Resize
-import numpy as np
 from pandas import DataFrame
+from skimage.color import rgb2lab
+
 from repalette.constants import ROOT_DIR
 from repalette.utils.color import smart_hue_adjust
 
@@ -15,6 +19,7 @@ class RecolorDataset(Dataset):
         :param data: DataFrame containing columns `image_path` and `palette_path`
         :param multiplier: an odd multiplier for color augmentation
         :param path_prefix: full path prefix to add before relative paths in data
+        :param lab: if True, returns images in LAB format
         :param resize: size to which the image will be resized with `torhvision.trainsforms.Resize`
         """
         if multiplier % 2 == 0:
@@ -23,6 +28,7 @@ class RecolorDataset(Dataset):
         self.path_prefix = path_prefix
         self.resize = resize
         self.data = data
+        self.lab = lab
 
     def __getitem__(self, index):
         """
@@ -31,6 +37,8 @@ class RecolorDataset(Dataset):
         """
         hue_shift = (index % self.multiplier - (self.multiplier - 1) / 2) / (self.multiplier - 1)
         i = index // self.multiplier  # actual image index (from design-seeds-data directory)
+        random_hue_shift = (np.random.randint(self.multiplier) % self.multiplier
+                            - (self.multiplier - 1) / 2) / (self.multiplier - 1)  # pick original image at random
 
         image = Image.open(self.path_prefix + self.data["image_path"].iloc[i])
         image_aug = TF.to_tensor(smart_hue_adjust(image, hue_shift))
@@ -50,4 +58,3 @@ class RecolorDataset(Dataset):
         :return:
         """
         return len(self.data) * self.multiplier
-
