@@ -6,7 +6,7 @@ import torch
 
 class PaletteExctractorNet(pl.LightningModule):
     """
-    Don't use this. Bad batchnorms. TODO: improve
+    Small fully connected network.
     """
     def __init__(self, hparams):
         super(PaletteExctractorNet, self).__init__()
@@ -15,22 +15,10 @@ class PaletteExctractorNet(pl.LightningModule):
         self.hparams = hparams
         dropout = self.hparams["dropout"]
 
-        # self.c1 = nn.Conv2d(3, 3 * 16, 1, 2, 1)
-        # self.batchnorm1 = nn.BatchNorm2d(3 * 16)
-        # self.act1 = nn.ReLU()
-        # self.c2 = nn.Conv2d(3 * 8, 3 * 8 * 8, 1, 2, 1, 3)
-        # self.batchnorm2 = nn.BatchNorm2d(3 * 8 * 8)
-        # self.act2 = nn.ReLU()
-        # self.c3 = nn.Conv2d(3 * 8 * 8, 3 * 8 * 8 * 8, 1, 2, 1, 3)
-        # self.batchnorm3 = nn.BatchNorm2d(3 * 8 * 8 * 8)
-        # self.act3 = nn.ReLU()
-        # self.final_pool = nn.AdaptiveAvgPool2d(output_size=(1, 1))
         self.flatten = nn.Flatten()
         self.dropout = nn.Dropout(dropout)
-        self.act2 = nn.ReLU()
-        self.linear_features = nn.Linear(128 * 128 * 3, 128*3)
-        self.act3 = nn.ReLU()
-        self.palette_mapper = nn.Linear(128*3, 18)
+        self.act = nn.ReLU()
+        self.linear = nn.Linear(128 * 128 * 3, 18)
         self.sigmoid = nn.Sigmoid()
 
         self.loss_fn = F.mse_loss
@@ -41,10 +29,8 @@ class PaletteExctractorNet(pl.LightningModule):
         # x = self.final_pool(x)
         x = self.flatten(x)
         x = self.dropout(x)
-        x = self.act2(x)
-        x = self.linear_features(x)
-        x = self.act3(x)
-        x = self.palette_mapper(x).view(-1, 3, 1, 6)
+        x = self.act(x)
+        x = self.linear(x).view(-1, 3, 1, 6)
         x = self.sigmoid(x)
 
         return x

@@ -1,6 +1,6 @@
 # Installation
 ```bash
-conda create -n repalette --file conda-requirements -c conda-forge -c pytorch
+conda create -n repalette --file conda-requirements -c conda-forge -c pytorch-nightly
 conda activate repalette
 pip install colorgram.py git+https://github.com/dylanaraps/pywal
 python setup.py sdist
