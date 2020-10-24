@@ -4,13 +4,14 @@ from PIL import Image
 import numpy as np
 
 
-def smart_hue_adjust(img, hue_shift: float) -> np.float32:
+def smart_hue_adjust(img, hue_shift: float, lab=True) -> np.float32:
     """
     Shifts hue for an image, preserving its luminance
     :param img: Input image
     :type img: a `PIL` image or `numpy.ndarray`
     :param hue_shift: hue shift in [-0.5, 0.5] interval
     :type hue_shift: float
+    :param lab: if True, returns image in LAB format
     :return: hue-shifted image with original luminance
     :rtype: np.float32
     """
@@ -38,6 +39,8 @@ def smart_hue_adjust(img, hue_shift: float) -> np.float32:
     img_shifted = np.array(TF.adjust_hue(pil_img, hue_shift)).astype(np.float) / 255.0
     img_shifted_LAB = rgb2lab(img_shifted)
     img_shifted_LAB[:, :, 0] = luminance  # restore original luminance
+    if lab:
+        return img_shifted_LAB
     img_augmented = (lab2rgb(img_shifted_LAB) * 255.0).astype(int)
 
     return img_augmented
