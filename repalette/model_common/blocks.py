@@ -69,6 +69,7 @@ class ConvBlock(nn.Module):
 class DeconvBlock(nn.Module):
     """Upsampling block consisting of 2 convolutional blocks."""
     def __init__(self, in_channels, out_channels, kernel_size=3, activation='leaky_relu', upsample=True):
+        super().__init__()
         if upsample:
             self.model = nn.Sequential(
                 nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
