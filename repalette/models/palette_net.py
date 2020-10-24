@@ -1,18 +1,21 @@
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
+import pandas as pd
 
 from collections import OrderedDict
 
 from repalette.model_common.blocks import ConvBlock, DeconvBlock, ResnetLayer
 from repalette.constants import LR, BETAS
+from repalette.utils import NaiveRecolorDataset
 
 
 class PaletteNet(pl.LightningModule):
-    def __init__(self):
+    def __init__(self, multiplier=21):
         self.feature_extractor = FeatureExtractor()
         self.recoloring_decoder = RecoloringDecoder()
         self.loss_fn = nn.MSELoss()
+        self.multiplier = multiplier
 
     def forward(self, img, palette):
         luminance = img[0, :, :]
@@ -41,6 +44,10 @@ class PaletteNet(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=LR, betas=BETAS)
         return optimizer
+
+    def train_dataloader(self):
+        data = pd.read_csv("design-seeds.csv")
+        return NaiveRecolorDataset(data, multiplier=self.multiplier)
 
 
 class FeatureExtractor(nn.Module):
