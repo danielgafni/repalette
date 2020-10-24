@@ -11,13 +11,14 @@ from repalette.utils import RecolorDataset
 
 
 class PaletteNet(pl.LightningModule):
-    def __init__(self, multiplier=21, val_ratio=0.04):
+    def __init__(self, multiplier=21, val_ratio=0.04, hparams={'lr': LR, 'betas': BETAS}):
         self.feature_extractor = FeatureExtractor()
         self.recoloring_decoder = RecoloringDecoder()
         self.loss_fn = nn.MSELoss()
         self.multiplier = multiplier
         self.data = pd.read_csv("design-seeds.csv")
         self.val_elems = int(self.data.shape[0] * val_ratio)
+        self.hparams = hparams
 
     def forward(self, img, palette):
         luminance = img[0, :, :]
@@ -40,11 +41,11 @@ class PaletteNet(pl.LightningModule):
         recolored_img = self(original_img, target_palette)
         loss = self.loss_fn(recolored_img, target_img[1:, :, :])
         result = pl.EvalResult(checkpoint_on=loss)
-        result.log('val_loss', loss, prog_bar=True)
+        result.log("val_loss", loss, prog_bar=True)
         return result
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=LR, betas=BETAS)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams['lr'], betas=self.hparams['betas'])
         return optimizer
 
     def train_dataloader(self):
