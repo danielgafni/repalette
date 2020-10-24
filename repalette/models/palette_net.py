@@ -5,19 +5,21 @@ import pandas as pd
 
 from collections import OrderedDict
 
-from repalette.model_common.blocks import ConvBlock, DeconvBlock, ResnetLayer
+from repalette.model_common.blocks import ConvBlock, DeconvBlock, ResnetLayer, BasicBlock
 from repalette.constants import LR, BETAS
 from repalette.utils import RecolorDataset
 
 
 class PaletteNet(pl.LightningModule):
-    def __init__(self, multiplier=21, val_ratio=0.04):
+    def __init__(self, multiplier=21, val_ratio=0.04, hparams={'lr': LR, 'betas': BETAS}):
+        super().__init__()
         self.feature_extractor = FeatureExtractor()
         self.recoloring_decoder = RecoloringDecoder()
         self.loss_fn = nn.MSELoss()
         self.multiplier = multiplier
         self.data = pd.read_csv("design-seeds.csv")
         self.val_elems = int(self.data.shape[0] * val_ratio)
+        self.hparams = hparams
 
     def forward(self, img, palette):
         luminance = img[0, :, :]
@@ -26,7 +28,7 @@ class PaletteNet(pl.LightningModule):
         return recolored_img_ab
 
     def training_step(self, batch, batch_idx):
-        original_img, target_palette, target_img = batch
+        (original_img, _), (target_img, target_palette) = batch
         target_palette = nn.Flatten()(target_palette)
         recolored_img = self(original_img, target_palette)
         loss = self.loss_fn(recolored_img, target_img[1:, :, :])
@@ -35,16 +37,16 @@ class PaletteNet(pl.LightningModule):
         return result
 
     def validation_step(self, batch, batch_idx):
-        original_img, target_palette, target_img = batch
+        (original_img, _), (target_img, target_palette) = batch
         target_palette = nn.Flatten()(target_palette)
         recolored_img = self(original_img, target_palette)
         loss = self.loss_fn(recolored_img, target_img[1:, :, :])
         result = pl.EvalResult(checkpoint_on=loss)
-        result.log('val_loss', loss, prog_bar=True)
+        result.log("val_loss", loss, prog_bar=True)
         return result
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=LR, betas=BETAS)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams['lr'], betas=self.hparams['betas'])
         return optimizer
 
     def train_dataloader(self):
@@ -61,9 +63,9 @@ class FeatureExtractor(nn.Module):
         self.conv = ConvBlock(3, 64)
         self.pool = nn.MaxPool2d(2)
 
-        self.res1 = ResnetLayer(64, 128)
-        self.res2 = ResnetLayer(128, 256)
-        self.res3 = ResnetLayer(256, 512)
+        self.res1 = ResnetLayer(BasicBlock, 64, 128)
+        self.res2 = ResnetLayer(BasicBlock, 128, 256)
+        self.res3 = ResnetLayer(BasicBlock, 256, 512)
 
     def forward(self, x):
         x = self.conv(x)
@@ -82,7 +84,7 @@ class RecoloringDecoder(nn.Module):
         self.deconv2 = DeconvBlock(256 + 256, 128)
         self.deconv3 = DeconvBlock(128 + 128 + 18, 64)
         self.deconv4 = DeconvBlock(64 + 64 + 18, 64)
-        self.final_conv = ConvBlock(64 + 1, 2, activation=None)
+        self.final_conv = ConvBlock(64 + 1, 2, activation='none')
 
     def forward(self, content_features, palette, luminance):
         c1, c2, c3, c4 = content_features
