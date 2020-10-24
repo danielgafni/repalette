@@ -197,4 +197,3 @@ class PaletteExctractorConvNet(pl.LightningModule):
 #         # OPTIONAL
 #         # can also return a list of test dataloaders
 #         return DataLoader(test_dataset, batch_size=32)
-
