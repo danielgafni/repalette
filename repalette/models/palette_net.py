@@ -48,12 +48,10 @@ class PaletteNet(pl.LightningModule):
         return optimizer
 
     def train_dataloader(self):
-        data = pd.read_csv("design-seeds.csv")
-        return RecolorDataset(data.iloc[:-self.val_elems], multiplier=self.multiplier)
+        return RecolorDataset(self.data.iloc[:-self.val_elems], multiplier=self.multiplier)
 
     def val_dataloader(self):
-        data = pd.read_csv("design-seeds.csv")
-        return RecolorDataset(data.iloc[-self.val_elems:], multiplier=self.multiplier)
+        return RecolorDataset(self.data.iloc[-self.val_elems:], multiplier=self.multiplier)
 
 
 class FeatureExtractor(nn.Module):
