@@ -4,7 +4,7 @@ import torchvision.transforms.functional as TF
 from torchvision.transforms import Resize
 import numpy as np
 from pandas import DataFrame
-from repalette.constants import ROOT_DIR
+from repalette.constants import ROOT_DIR, IMAGE_SIZE
 from repalette.utils.color import smart_hue_adjust
 from itertools import combinations
 
@@ -52,7 +52,7 @@ class RecolorDataset(Dataset):
 
 
 class PairRecolorDataset(Dataset):
-    def __init__(self, data: DataFrame, multiplier: int, path_prefix: str = ROOT_DIR, resize=None):
+    def __init__(self, data: DataFrame, multiplier: int, path_prefix: str = ROOT_DIR, resize: tuple = IMAGE_SIZE):
         """
         Dataset constructor.
         :param data: DataFrame containing columns `image_path` and `palette_path`
