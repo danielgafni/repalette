@@ -11,7 +11,7 @@ def pied(x: torch.Tensor, y: torch.Tensor):
     :return: permutation invariant euclidean distance
     :rtype: torch.FloatTensor
     """
-    x = x.unsqueeze(-1).float()
-    y = y.unsqueeze(-2).float()
+    x = x.unsqueeze(-2).float()
+    y = y.unsqueeze(-3).float()
 
     return torch.sqrt(((x - y) ** 2).sum())
