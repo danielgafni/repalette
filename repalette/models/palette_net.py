@@ -7,15 +7,17 @@ from collections import OrderedDict
 
 from repalette.model_common.blocks import ConvBlock, DeconvBlock, ResnetLayer
 from repalette.constants import LR, BETAS
-from repalette.utils import NaiveRecolorDataset
+from repalette.utils import RecolorDataset
 
 
 class PaletteNet(pl.LightningModule):
-    def __init__(self, multiplier=21):
+    def __init__(self, multiplier=21, val_ratio=0.04):
         self.feature_extractor = FeatureExtractor()
         self.recoloring_decoder = RecoloringDecoder()
         self.loss_fn = nn.MSELoss()
         self.multiplier = multiplier
+        self.data = pd.read_csv("design-seeds.csv")
+        self.val_elems = int(self.data.shape[0] * val_ratio)
 
     def forward(self, img, palette):
         luminance = img[0, :, :]
@@ -47,7 +49,11 @@ class PaletteNet(pl.LightningModule):
 
     def train_dataloader(self):
         data = pd.read_csv("design-seeds.csv")
-        return NaiveRecolorDataset(data, multiplier=self.multiplier)
+        return RecolorDataset(data.iloc[:-self.val_elems], multiplier=self.multiplier)
+
+    def val_dataloader(self):
+        data = pd.read_csv("design-seeds.csv")
+        return RecolorDataset(data.iloc[-self.val_elems:], multiplier=self.multiplier)
 
 
 class FeatureExtractor(nn.Module):
