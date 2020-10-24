@@ -40,7 +40,7 @@ class RecolorDataset(Dataset):
         image_aug = TF.to_tensor(smart_hue_adjust(image, hue_shift))
 
         palette = Image.fromarray(np.load(self.path_prefix + self.data["palette_path"].iloc[i]).astype(np.uint8))
-        palette_aug = TF.to_tensor(smart_hue_adjust(palette, hue_shift, lab=False))
+        palette_aug = TF.to_tensor(smart_hue_adjust(palette, hue_shift))
 
         return image_aug, palette_aug
 
@@ -88,8 +88,8 @@ class PairRecolorDataset(Dataset):
         image_aug_2 = TF.to_tensor(smart_hue_adjust(image, hue_shift_2))
 
         palette = Image.fromarray(np.load(self.path_prefix + self.data["palette_path"].iloc[i]).astype(np.uint8))
-        palette_aug_1 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_1, lab=False))
-        palette_aug_2 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_2, lab=False))
+        palette_aug_1 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_1))
+        palette_aug_2 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_2))
 
         return (image_aug_1, palette_aug_1), (image_aug_2, palette_aug_2)
 
