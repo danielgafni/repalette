@@ -28,7 +28,7 @@ class PaletteNet(pl.LightningModule):
         return recolored_img_ab
 
     def training_step(self, batch, batch_idx):
-        original_img, target_palette, target_img = batch
+        (original_img, _), (target_img, target_palette) = batch
         target_palette = nn.Flatten()(target_palette)
         recolored_img = self(original_img, target_palette)
         loss = self.loss_fn(recolored_img, target_img[1:, :, :])
@@ -37,7 +37,7 @@ class PaletteNet(pl.LightningModule):
         return result
 
     def validation_step(self, batch, batch_idx):
-        original_img, target_palette, target_img = batch
+        (original_img, _), (target_img, target_palette) = batch
         target_palette = nn.Flatten()(target_palette)
         recolored_img = self(original_img, target_palette)
         loss = self.loss_fn(recolored_img, target_img[1:, :, :])
