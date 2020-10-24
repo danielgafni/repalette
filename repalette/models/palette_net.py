@@ -3,35 +3,39 @@ import torch.nn as nn
 import pytorch_lightning as pl
 import pandas as pd
 
+from torch.utils.data import DataLoader
+
 from collections import OrderedDict
 
 from repalette.model_common.blocks import ConvBlock, DeconvBlock, ResnetLayer, BasicBlock
 from repalette.constants import LR, BETAS
-from repalette.utils import RecolorDataset
+from repalette.utils import PairRecolorDataset
 
 
 class PaletteNet(pl.LightningModule):
-    def __init__(self, multiplier=21, val_ratio=0.04, hparams={'lr': LR, 'betas': BETAS}):
+    def __init__(self, multiplier=21, val_ratio=0.04, hparams={'lr': LR, 'betas': BETAS},
+                 path: str = "../../design-seeds.csv"):
         super().__init__()
         self.feature_extractor = FeatureExtractor()
         self.recoloring_decoder = RecoloringDecoder()
         self.loss_fn = nn.MSELoss()
         self.multiplier = multiplier
-        self.data = pd.read_csv("design-seeds.csv")
+        self.data = pd.read_csv(path)
         self.val_elems = int(self.data.shape[0] * val_ratio)
         self.hparams = hparams
 
     def forward(self, img, palette):
-        luminance = img[0, :, :]
+        luminance = img[:, 0:1, :, :]
         content_features = self.feature_extractor(img)
         recolored_img_ab = self.recoloring_decoder(content_features, palette, luminance)
         return recolored_img_ab
 
     def training_step(self, batch, batch_idx):
         (original_img, _), (target_img, target_palette) = batch
+        # print(original_img.shape)
         target_palette = nn.Flatten()(target_palette)
         recolored_img = self(original_img, target_palette)
-        loss = self.loss_fn(recolored_img, target_img[1:, :, :])
+        loss = self.loss_fn(recolored_img, target_img[:, 1:, :, :])
         result = pl.TrainResult(minimize=loss)
         result.log("train_loss", loss, prog_bar=True)
         return result
@@ -40,7 +44,7 @@ class PaletteNet(pl.LightningModule):
         (original_img, _), (target_img, target_palette) = batch
         target_palette = nn.Flatten()(target_palette)
         recolored_img = self(original_img, target_palette)
-        loss = self.loss_fn(recolored_img, target_img[1:, :, :])
+        loss = self.loss_fn(recolored_img, target_img[:, 1:, :, :])
         result = pl.EvalResult(checkpoint_on=loss)
         result.log("val_loss", loss, prog_bar=True)
         return result
@@ -50,10 +54,12 @@ class PaletteNet(pl.LightningModule):
         return optimizer
 
     def train_dataloader(self):
-        return RecolorDataset(self.data.iloc[:-self.val_elems], multiplier=self.multiplier)
+        dataset = torch.PairRecolorDataset(self.data.iloc[:-self.val_elems], multiplier=self.multiplier)
+        return DataLoader(dataset, batch_size=8, shuffle=True)
 
     def val_dataloader(self):
-        return RecolorDataset(self.data.iloc[-self.val_elems:], multiplier=self.multiplier)
+        dataset = PairRecolorDataset(self.data.iloc[-self.val_elems:], multiplier=self.multiplier)
+        return DataLoader(dataset, batch_size=8, shuffle=True)
 
 
 class FeatureExtractor(nn.Module):
