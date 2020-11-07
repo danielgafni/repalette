@@ -11,7 +11,13 @@ from itertools import combinations
 
 
 class RecolorDataset(Dataset):
-    def __init__(self, data: DataFrame, multiplier: int, path_prefix: str = ROOT_DIR, resize=IMAGE_SIZE):
+    def __init__(
+        self,
+        data: DataFrame,
+        multiplier: int,
+        path_prefix: str = ROOT_DIR,
+        resize=IMAGE_SIZE,
+    ):
         """
         Dataset constructor.
         :param data: DataFrame containing columns `image_path` and `palette_path`
@@ -31,16 +37,26 @@ class RecolorDataset(Dataset):
         :param index: index of item to get from the dataset
         :return: image of shape [3, self.resize] and palette of shape [3, 1, 6]
         """
-        hue_shift = (index % self.multiplier - (self.multiplier - 1) / 2) / (self.multiplier - 1)
-        i = index // self.multiplier  # actual image index (from design-seeds-data directory)
+        hue_shift = (index % self.multiplier - (self.multiplier - 1) / 2) / (
+            self.multiplier - 1
+        )
+        i = (
+            index // self.multiplier
+        )  # actual image index (from design-seeds-data directory)
 
         image = Image.open(self.path_prefix + self.data["image_path"].iloc[i])
         if self.resize:
             resize = Resize(self.resize)
             image = resize(image)
-        image_aug = TF.to_tensor(smart_hue_adjust(image, hue_shift), )
+        image_aug = TF.to_tensor(
+            smart_hue_adjust(image, hue_shift),
+        )
 
-        palette = Image.fromarray(np.load(self.path_prefix + self.data["palette_path"].iloc[i]).astype(np.uint8))
+        palette = Image.fromarray(
+            np.load(self.path_prefix + self.data["palette_path"].iloc[i]).astype(
+                np.uint8
+            )
+        )
         palette_aug = TF.to_tensor(smart_hue_adjust(palette, hue_shift))
 
         return image_aug, palette_aug
@@ -53,7 +69,13 @@ class RecolorDataset(Dataset):
 
 
 class PairRecolorDataset(Dataset):
-    def __init__(self, data: DataFrame, multiplier: int, path_prefix: str = ROOT_DIR, resize: tuple = IMAGE_SIZE):
+    def __init__(
+        self,
+        data: DataFrame,
+        multiplier: int,
+        path_prefix: str = ROOT_DIR,
+        resize: tuple = IMAGE_SIZE,
+    ):
         """
         Dataset constructor.
         :param data: DataFrame containing columns `image_path` and `palette_path`
@@ -79,7 +101,9 @@ class PairRecolorDataset(Dataset):
         """
         pair_index = index % self.n_pairs
         hue_shift_1, hue_shift_2 = self.hue_pairs[pair_index]
-        i = index // self.n_pairs  # actual image index (from design-seeds-data directory)
+        i = (
+            index // self.n_pairs
+        )  # actual image index (from design-seeds-data directory)
 
         image = Image.open(self.path_prefix + self.data["image_path"].iloc[i])
         if self.resize:
@@ -88,9 +112,17 @@ class PairRecolorDataset(Dataset):
         image_aug_1 = TF.to_tensor(smart_hue_adjust(image, hue_shift_1)).to(torch.float)
         image_aug_2 = TF.to_tensor(smart_hue_adjust(image, hue_shift_2)).to(torch.float)
 
-        palette = Image.fromarray(np.load(self.path_prefix + self.data["palette_path"].iloc[i]).astype(np.uint8))
-        palette_aug_1 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_1)).to(torch.float)
-        palette_aug_2 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_2)).to(torch.float)
+        palette = Image.fromarray(
+            np.load(self.path_prefix + self.data["palette_path"].iloc[i]).astype(
+                np.uint8
+            )
+        )
+        palette_aug_1 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_1)).to(
+            torch.float
+        )
+        palette_aug_2 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_2)).to(
+            torch.float
+        )
 
         return (image_aug_1, palette_aug_1), (image_aug_2, palette_aug_2)
 
@@ -99,3 +131,16 @@ class PairRecolorDataset(Dataset):
         :return:
         """
         return len(self.data) * self.n_pairs
+
+    def shuffle(self, set_shuffle=True):
+        """
+        Shuffles data.
+        :param set_shuffle: set data to shuffled or unshuffled state
+        """
+        if set_shuffle:
+            self.data = self.data.sample(frac=1)
+
+        else:
+            self.data = self.data.reindex(list(range(len(self.data))))
+
+        return self

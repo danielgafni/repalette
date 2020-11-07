@@ -8,7 +8,9 @@ import cv2
 import pywal
 
 
-def extract_palette(filepath: str, num_colors: int = 6, backend="colorgram", *args, **kwargs) -> np.ndarray:
+def extract_palette(
+    filepath: str, num_colors: int = 6, backend="colorgram", *args, **kwargs
+) -> np.ndarray:
     """
     Extracts palette from image.
     :param filepath: path to image
@@ -28,9 +30,11 @@ def extract_palette(filepath: str, num_colors: int = 6, backend="colorgram", *ar
         palette = np.expand_dims(
             np.array(
                 [
-                    [getattr(color.rgb, channel) for channel in channels] for color in colors
+                    [getattr(color.rgb, channel) for channel in channels]
+                    for color in colors
                 ]
-            ), 0
+            ),
+            0,
         )
         return palette
     elif backend == "kmeans":
@@ -45,7 +49,9 @@ def extract_palette(filepath: str, num_colors: int = 6, backend="colorgram", *ar
         if backend not in ["wal", "colorthief", "colorz", "haishoku", "schemer"]:
             raise NotImplemented(f"Backend pywal/{backend} is not implemented.")
 
-        color_dict = pywal.colors.get(filepath, color_count=num_colors, backend=backend, *args, **kwargs)
+        color_dict = pywal.colors.get(
+            filepath, color_count=num_colors, backend=backend, *args, **kwargs
+        )
         palette = []
         for key in color_dict:
             palette.append(color_dict["key"])
@@ -71,6 +77,6 @@ def viz_image(filepath: str, num_colors: int = 6, backend="colorgram") -> None:
 
 def main(filepath=None, directorypath=None, num_colors=6, destination_path=None):
     if filepath and directorypath:
-        raise ValueError("Only one of \"filepath\" or \"directorypath\" can be specified.")
+        raise ValueError('Only one of "filepath" or "directorypath" can be specified.')
 
     pass

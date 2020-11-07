@@ -1,5 +1,6 @@
 # import torch
 import torch.nn as nn
+
 # import torch.nn.functional as F
 
 from repalette.model_common.activations import activation_shortcuts
@@ -7,7 +8,16 @@ from repalette.model_common.activations import activation_shortcuts
 
 class ResnetLayer(nn.Module):
     """Resnet layer consisting of several residual blocks."""
-    def __init__(self, block, in_channels, out_channels, n_blocks=2, activation='leaky_relu', stride=2):
+
+    def __init__(
+        self,
+        block,
+        in_channels,
+        out_channels,
+        n_blocks=2,
+        activation="leaky_relu",
+        stride=2,
+    ):
         super().__init__()
         blocks = []
         blocks.append(block(in_channels, out_channels, activation, stride))
@@ -22,6 +32,7 @@ class ResnetLayer(nn.Module):
 
 class ResidualBlock(nn.Module):
     """Parent class for residual blocks in ResNet. Inherit from it to define custom architecture."""
+
     def __init__(self):
         super().__init__()
 
@@ -37,26 +48,44 @@ class ResidualBlock(nn.Module):
 
 class BasicBlock(ResidualBlock):
     """Basic block for ResNet consisting of 2 convolutional layers."""
-    def __init__(self, in_channels, out_channels, activation='leaky_relu', stride=1):
+
+    def __init__(self, in_channels, out_channels, activation="leaky_relu", stride=1):
         super().__init__()
 
         self.residual = nn.Sequential(
             ConvBlock(in_channels, out_channels, stride=stride, activation=activation),
-            ConvBlock(out_channels, out_channels, activation='none'),
+            ConvBlock(out_channels, out_channels, activation="none"),
         )
         if stride != 1 or in_channels != out_channels:
-            self.shortcut = ConvBlock(in_channels, out_channels, kernel_size=1, padding=0,
-                                      stride=stride, activation='none')
+            self.shortcut = ConvBlock(
+                in_channels,
+                out_channels,
+                kernel_size=1,
+                padding=0,
+                stride=stride,
+                activation="none",
+            )
         self.activation = activation_shortcuts[activation]
 
 
 class ConvBlock(nn.Module):
     """Convolution layer followed by instance normalization and activation function."""
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1,
-                 padding=1, dilation=1, activation='leaky_relu'):
+
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size=3,
+        stride=1,
+        padding=1,
+        dilation=1,
+        activation="leaky_relu",
+    ):
         super().__init__()
 
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, dilation)
+        self.conv = nn.Conv2d(
+            in_channels, out_channels, kernel_size, stride, padding, dilation
+        )
         self.norm = nn.InstanceNorm2d(out_channels)
         self.activ = activation_shortcuts[activation]
 
@@ -69,11 +98,19 @@ class ConvBlock(nn.Module):
 
 class DeconvBlock(nn.Module):
     """Upsampling block consisting of 2 convolutional blocks."""
-    def __init__(self, in_channels, out_channels, kernel_size=3, activation='leaky_relu', upsample=True):
+
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size=3,
+        activation="leaky_relu",
+        upsample=True,
+    ):
         super().__init__()
         if upsample:
             self.model = nn.Sequential(
-                nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+                nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True),
                 ConvBlock(in_channels, out_channels, kernel_size),
                 ConvBlock(out_channels, out_channels, kernel_size),
             )

@@ -8,6 +8,7 @@ class PaletteExctractorNet(pl.LightningModule):
     """
     Small fully connected network.
     """
+
     def __init__(self, hparams):
         super(PaletteExctractorNet, self).__init__()
 
@@ -51,14 +52,14 @@ class PaletteExctractorNet(pl.LightningModule):
         y_pred = self.forward(x)
         loss = self.loss_fn(y_pred, y_true)
         result = pl.EvalResult(checkpoint_on=loss)
-        result.log('val_loss', loss, prog_bar=True)
+        result.log("val_loss", loss, prog_bar=True)
         return result
 
     def validation_end(self, outputs):
         # OPTIONAL
         avg_val_loss = outputs["val_loss"].mean()
         result = pl.EvalResult(checkpoint_on=avg_val_loss)
-        result.log('avg_val_loss', avg_val_loss, prog_bar=True)
+        result.log("avg_val_loss", avg_val_loss, prog_bar=True)
         return result
 
     def test_step(self, batch, batch_nb):
@@ -68,14 +69,14 @@ class PaletteExctractorNet(pl.LightningModule):
         y_pred = self.forward(x)
         loss = self.loss_fn(y_pred, y_true)
         result = pl.EvalResult()
-        result.log('test_loss', loss, prog_bar=True)
+        result.log("test_loss", loss, prog_bar=True)
         return result
 
     def test_end(self, outputs):
         # OPTIONAL
         avg_loss = outputs["test_loss"].mean().item()
         result = pl.EvalResult()
-        result.log('test_loss', avg_loss, prog_bar=True)
+        result.log("test_loss", avg_loss, prog_bar=True)
         return result
 
     def configure_optimizers(self):
@@ -87,6 +88,7 @@ class PaletteExctractorConvNet(pl.LightningModule):
     """
     Don't use this. Bad batchnorms. TODO: improve
     """
+
     def __init__(self, hparams):
         super(PaletteExctractorNet, self).__init__()
 
@@ -149,14 +151,14 @@ class PaletteExctractorConvNet(pl.LightningModule):
         y_pred = self.forward(x)
         loss = self.loss_fn(y_pred, y_true)
         result = pl.EvalResult(checkpoint_on=loss)
-        result.log('val_loss', loss, prog_bar=True)
+        result.log("val_loss", loss, prog_bar=True)
         return result
 
     def validation_end(self, outputs):
         # OPTIONAL
         avg_val_loss = outputs["val_loss"].mean()
         result = pl.EvalResult(checkpoint_on=avg_val_loss)
-        result.log('avg_val_loss', avg_val_loss, prog_bar=True)
+        result.log("avg_val_loss", avg_val_loss, prog_bar=True)
         return result
 
     def test_step(self, batch, batch_nb):
@@ -166,19 +168,20 @@ class PaletteExctractorConvNet(pl.LightningModule):
         y_pred = self.forward(x)
         loss = self.loss_fn(y_pred, y_true)
         result = pl.EvalResult()
-        result.log('test_loss', loss, prog_bar=True)
+        result.log("test_loss", loss, prog_bar=True)
         return result
 
     def test_end(self, outputs):
         # OPTIONAL
         avg_loss = outputs["test_loss"].mean().item()
         result = pl.EvalResult()
-        result.log('test_loss', avg_loss, prog_bar=True)
+        result.log("test_loss", avg_loss, prog_bar=True)
         return result
 
     def configure_optimizers(self):
         # REQUIRED
         return torch.optim.Adam(self.parameters(), lr=self.hparams["learning_rate"])
+
 
 # AttributeError: module 'pytorch_lightning' has no attribute 'data_loader' ???
 
