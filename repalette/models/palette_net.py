@@ -13,7 +13,7 @@ from repalette.utils import PairRecolorDataset
 
 
 class PaletteNet(pl.LightningModule):
-    def __init__(self, train_dataset, val_dataset, test_dataset,
+    def __init__(self, train_dataset, val_dataset=None, test_dataset=None,
                  hparams={
                      'lr': LR, 'betas': BETAS,
                      "batch_size": 32, "num_workers": 8
@@ -21,6 +21,9 @@ class PaletteNet(pl.LightningModule):
         super().__init__()
         self.feature_extractor = FeatureExtractor()
         self.recoloring_decoder = RecoloringDecoder()
+        self.train_dataset = train_dataset
+        self.val_dataset = val_dataset
+        self.test_dataset = test_dataset
         self.loss_fn = nn.MSELoss()
         self.hparams = hparams
 
@@ -112,19 +115,24 @@ class RecoloringDecoder(nn.Module):
 
     def forward(self, content_features, palette, luminance):
         c1, c2, c3, c4 = content_features
-        batch_size, _, height, width = c1.size()
-        palette = palette[:, :, None, None] * torch.ones(batch_size, 18, height, width)
 
-        x = torch.cat([c1, palette], dim=1)
+        batch_size, _, height, width = c1.size()
+        palette_c1 = palette[:, :, None, None] * torch.ones(batch_size, 18, height, width)
+        batch_size, _, height, width = c3.size()
+        palette_c3 = palette[:, :, None, None] * torch.ones(batch_size, 18, height, width)
+        batch_size, _, height, width = c4.size()
+        palette_c4 = palette[:, :, None, None] * torch.ones(batch_size, 18, height, width)
+
+        x = torch.cat([c1, palette_c1], dim=1)
         x = self.deconv1(x)
 
         x = torch.cat([x, c2], dim=1)
         x = self.deconv2(x)
 
-        x = torch.cat([x, c3, palette], dim=1)
+        x = torch.cat([x, c3, palette_c3], dim=1)
         x = self.deconv3(x)
 
-        x = torch.cat([x, c4, palette], dim=1)
+        x = torch.cat([x, c4, palette_c4], dim=1)
         x = self.deconv4(x)
 
         x = torch.cat([x, luminance], dim=1)

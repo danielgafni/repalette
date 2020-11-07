@@ -45,7 +45,8 @@ class BasicBlock(ResidualBlock):
             ConvBlock(out_channels, out_channels, activation='none'),
         )
         if stride != 1 or in_channels != out_channels:
-            self.shortcut = ConvBlock(in_channels, out_channels, kernel_size=1, stride=stride, activation='none')
+            self.shortcut = ConvBlock(in_channels, out_channels, kernel_size=1, padding=0,
+                                      stride=stride, activation='none')
         self.activation = activation_shortcuts[activation]
 
 
