@@ -1,16 +1,17 @@
 from torch.utils.data import Dataset
 from PIL import Image
 import torchvision.transforms.functional as TF
+import torch
 from torchvision.transforms import Resize
 import numpy as np
 from pandas import DataFrame
-from repalette.constants import ROOT_DIR
+from repalette.constants import ROOT_DIR, IMAGE_SIZE
 from repalette.utils.color import smart_hue_adjust
 from itertools import combinations
 
 
 class RecolorDataset(Dataset):
-    def __init__(self, data: DataFrame, multiplier: int, path_prefix: str = ROOT_DIR, resize=None):
+    def __init__(self, data: DataFrame, multiplier: int, path_prefix: str = ROOT_DIR, resize=IMAGE_SIZE):
         """
         Dataset constructor.
         :param data: DataFrame containing columns `image_path` and `palette_path`
@@ -37,7 +38,7 @@ class RecolorDataset(Dataset):
         if self.resize:
             resize = Resize(self.resize)
             image = resize(image)
-        image_aug = TF.to_tensor(smart_hue_adjust(image, hue_shift))
+        image_aug = TF.to_tensor(smart_hue_adjust(image, hue_shift), )
 
         palette = Image.fromarray(np.load(self.path_prefix + self.data["palette_path"].iloc[i]).astype(np.uint8))
         palette_aug = TF.to_tensor(smart_hue_adjust(palette, hue_shift))
@@ -52,7 +53,7 @@ class RecolorDataset(Dataset):
 
 
 class PairRecolorDataset(Dataset):
-    def __init__(self, data: DataFrame, multiplier: int, path_prefix: str = ROOT_DIR, resize=None):
+    def __init__(self, data: DataFrame, multiplier: int, path_prefix: str = ROOT_DIR, resize: tuple = IMAGE_SIZE):
         """
         Dataset constructor.
         :param data: DataFrame containing columns `image_path` and `palette_path`
@@ -84,12 +85,12 @@ class PairRecolorDataset(Dataset):
         if self.resize:
             resize = Resize(self.resize)
             image = resize(image)
-        image_aug_1 = TF.to_tensor(smart_hue_adjust(image, hue_shift_1))
-        image_aug_2 = TF.to_tensor(smart_hue_adjust(image, hue_shift_2))
+        image_aug_1 = TF.to_tensor(smart_hue_adjust(image, hue_shift_1)).to(torch.float)
+        image_aug_2 = TF.to_tensor(smart_hue_adjust(image, hue_shift_2)).to(torch.float)
 
         palette = Image.fromarray(np.load(self.path_prefix + self.data["palette_path"].iloc[i]).astype(np.uint8))
-        palette_aug_1 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_1))
-        palette_aug_2 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_2))
+        palette_aug_1 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_1)).to(torch.float)
+        palette_aug_2 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_2)).to(torch.float)
 
         return (image_aug_1, palette_aug_1), (image_aug_2, palette_aug_2)
 
