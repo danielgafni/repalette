@@ -25,8 +25,10 @@ def smart_hue_adjust(img, hue_shift: float, lab=True) -> np.float32:
             pil_img = Image.fromarray(img)
             np_img = img.astype(np.float) / 255.0
         else:
-            raise ValueError("Numpy array dtype must be one of:\n"
-                             "np.float16, np.float32, np.float64, np.int16, np.int32, np.int64")
+            raise ValueError(
+                "Numpy array dtype must be one of:\n"
+                "np.float16, np.float32, np.float64, np.int16, np.int32, np.int64"
+            )
     else:
         pil_img = img
         np_img = np.array(img).astype(np.float) / 255.0

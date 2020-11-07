@@ -7,17 +7,24 @@ from torch.utils.data import DataLoader
 
 from collections import OrderedDict
 
-from repalette.model_common.blocks import ConvBlock, DeconvBlock, ResnetLayer, BasicBlock
+from repalette.model_common.blocks import (
+    ConvBlock,
+    DeconvBlock,
+    ResnetLayer,
+    BasicBlock,
+)
 from repalette.constants import LR, BETAS
 from repalette.utils import PairRecolorDataset
 
 
 class PaletteNet(pl.LightningModule):
-    def __init__(self, train_dataset, val_dataset=None, test_dataset=None,
-                 hparams={
-                     'lr': LR, 'betas': BETAS,
-                     "batch_size": 32, "num_workers": 8
-                 }):
+    def __init__(
+        self,
+        train_dataset,
+        val_dataset=None,
+        test_dataset=None,
+        hparams={"lr": LR, "betas": BETAS, "batch_size": 32, "num_workers": 8},
+    ):
         super().__init__()
         self.feature_extractor = FeatureExtractor()
         self.recoloring_decoder = RecoloringDecoder()
@@ -30,9 +37,7 @@ class PaletteNet(pl.LightningModule):
     def forward(self, img, palette):
         luminance = img[:, 0:1, :, :]
         content_features = self.feature_extractor(img)
-        recolored_img_ab = self.recoloring_decoder(
-            content_features, palette, luminance
-        )
+        recolored_img_ab = self.recoloring_decoder(content_features, palette, luminance)
         return recolored_img_ab
 
     def training_step(self, batch, batch_idx):
@@ -53,32 +58,36 @@ class PaletteNet(pl.LightningModule):
         return loss
 
     def train_dataloader(self):
+        self.train_dataset.shuffle(True)  # train dataset should be shuffled!
         train_dataloader = DataLoader(
-            self.train_dataset, shuffle=True,
+            self.train_dataset,
+            shuffle=False,
             batch_size=self.hparams["batch_size"],
-            num_workers=self.hparams["num_workers"]
+            num_workers=self.hparams["num_workers"],
         )
         return train_dataloader
 
     def val_dataloader(self):
         val_dataloader = DataLoader(
-            self.val_dataset, shuffle=True,
+            self.val_dataset,
+            shuffle=False,  # val dataset should not be shuffled!
             batch_size=self.hparams["batch_size"],
-            num_workers=self.hparams["num_workers"]
+            num_workers=self.hparams["num_workers"],
         )
         return val_dataloader
 
     def test_dataloader(self):
         test_dataloader = DataLoader(
-            self.test_dataset, shuffle=True,
+            self.test_dataset,
+            shuffle=False,  # test dataset should not be shuffled!
             batch_size=self.hparams["batch_size"],
-            num_workers=self.hparams["num_workers"]
+            num_workers=self.hparams["num_workers"],
         )
         return test_dataloader
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(
-            self.parameters(), lr=self.hparams['lr'], betas=self.hparams['betas']
+            self.parameters(), lr=self.hparams["lr"], betas=self.hparams["betas"]
         )
         return optimizer
 
@@ -111,17 +120,23 @@ class RecoloringDecoder(nn.Module):
         self.deconv2 = DeconvBlock(256 + 256, 128)
         self.deconv3 = DeconvBlock(128 + 128 + 18, 64)
         self.deconv4 = DeconvBlock(64 + 64 + 18, 64)
-        self.final_conv = ConvBlock(64 + 1, 2, activation='none')
+        self.final_conv = ConvBlock(64 + 1, 2, activation="none")
 
     def forward(self, content_features, palette, luminance):
         c1, c2, c3, c4 = content_features
 
         batch_size, _, height, width = c1.size()
-        palette_c1 = palette[:, :, None, None] * torch.ones(batch_size, 18, height, width)
+        palette_c1 = palette[:, :, None, None] * torch.ones(
+            batch_size, 18, height, width
+        )
         batch_size, _, height, width = c3.size()
-        palette_c3 = palette[:, :, None, None] * torch.ones(batch_size, 18, height, width)
+        palette_c3 = palette[:, :, None, None] * torch.ones(
+            batch_size, 18, height, width
+        )
         batch_size, _, height, width = c4.size()
-        palette_c4 = palette[:, :, None, None] * torch.ones(batch_size, 18, height, width)
+        palette_c4 = palette[:, :, None, None] * torch.ones(
+            batch_size, 18, height, width
+        )
 
         x = torch.cat([c1, palette_c1], dim=1)
         x = self.deconv1(x)
@@ -145,15 +160,19 @@ class Discriminator(nn.Module):
     def __init__(self, in_channels):
         super().__init__()
 
-        self.model = nn.Sequential(OrderedDict([
-            ('conv1', ConvBlock(in_channels, 64, kernel_size=4, stride=2)),
-            ('conv2', ConvBlock(64, 64, kernel_size=4, stride=2)),
-            ('conv3', ConvBlock(64, 64, kernel_size=4, stride=2)),
-            ('conv4', ConvBlock(64, 64, kernel_size=4, stride=2)),
-            ('flatten', nn.Flatten()),
-            ('fc', nn.Linear(25600, 1)),
-            ('activ', nn.Sigmoid())
-        ]))
+        self.model = nn.Sequential(
+            OrderedDict(
+                [
+                    ("conv1", ConvBlock(in_channels, 64, kernel_size=4, stride=2)),
+                    ("conv2", ConvBlock(64, 64, kernel_size=4, stride=2)),
+                    ("conv3", ConvBlock(64, 64, kernel_size=4, stride=2)),
+                    ("conv4", ConvBlock(64, 64, kernel_size=4, stride=2)),
+                    ("flatten", nn.Flatten()),
+                    ("fc", nn.Linear(25600, 1)),
+                    ("activ", nn.Sigmoid()),
+                ]
+            )
+        )
 
     def forward(self, x):
         return self.model(x)
