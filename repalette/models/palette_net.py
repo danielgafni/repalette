@@ -12,6 +12,7 @@ from repalette.model_common.blocks import (
     DeconvBlock,
     ResnetLayer,
     BasicBlock,
+    FinalConvBlock
 )
 from repalette.constants import DEFAULT_LR, DEFAULT_BETAS
 from repalette.utils import PairRecolorDataset
@@ -57,10 +58,10 @@ class PaletteNet(pl.LightningModule):
         self.log("Val/Loss", loss, prog_bar=True)
         return loss
 
-    def validation_epoch_end(self, outputs):
-        # OPTIONAL
-        avg_val_loss = torch.stack(outputs).mean()
-        self.log("Val/AvgLoss", avg_val_loss, on_epoch=True, on_step=False)
+    # def validation_epoch_end(self, outputs):
+    #     # OPTIONAL
+    #     avg_val_loss = torch.stack(outputs).mean()
+    #     self.log("Val/AvgLoss", avg_val_loss, on_epoch=True, on_step=False)
 
     def train_dataloader(self):
         self.train_dataloader_.shuffle(True)  # train dataloader should be shuffled!
@@ -107,7 +108,7 @@ class RecoloringDecoder(pl.LightningModule):
         self.deconv2 = DeconvBlock(256 + 256, 128)
         self.deconv3 = DeconvBlock(128 + 128 + 18, 64)
         self.deconv4 = DeconvBlock(64 + 64 + 18, 64)
-        self.final_conv = ConvBlock(64 + 1, 2, activation="none")
+        self.final_conv = FinalConvBlock(64 + 1, 2, activation="none")
 
     def forward(self, content_features, palette, luminance):
         c1, c2, c3, c4 = content_features
@@ -137,7 +138,7 @@ class RecoloringDecoder(pl.LightningModule):
         x = torch.cat([x, c4, palette_c4], dim=1)
         x = self.deconv4(x)
 
-        x = torch.cat([x, luminance], dim=1)
+        x = torch.cat([luminance, x], dim=1)
         x = self.final_conv(x)
 
         return x
