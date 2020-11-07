@@ -13,7 +13,7 @@ from repalette.model_common.blocks import (
     ResnetLayer,
     BasicBlock,
 )
-from repalette.constants import LR, BETAS
+from repalette.constants import DEFAULT_LR, DEFAULT_BETAS
 from repalette.utils import PairRecolorDataset
 
 
@@ -23,7 +23,7 @@ class PaletteNet(pl.LightningModule):
         train_dataloader,
         val_dataloader=None,
         test_dataloader=None,
-        hparams={"lr": LR, "betas": BETAS, "batch_size": 32, "num_workers": 8},
+        hparams={"lr": DEFAULT_LR, "betas": DEFAULT_BETAS, "batch_size": 32, "num_workers": 8},
     ):
         super().__init__()
         self.feature_extractor = FeatureExtractor()
@@ -56,6 +56,11 @@ class PaletteNet(pl.LightningModule):
         loss = self.loss_fn(recolored_img, target_img[:, 1:, :, :])
         self.log("Val/Loss", loss, prog_bar=True)
         return loss
+
+    def validation_epoch_end(self, outputs):
+        # OPTIONAL
+        avg_val_loss = torch.stack(outputs).mean()
+        self.log("Val/AvgLoss", avg_val_loss, on_epoch=True, on_step=False)
 
     def train_dataloader(self):
         self.train_dataloader_.shuffle(True)  # train dataloader should be shuffled!
