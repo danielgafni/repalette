@@ -1,6 +1,8 @@
 data/
+data-raw/
 .idea/
 */lightning_logs/
+*.csv
 
 # Created by .ignore support plugin (hsz.mobi)
 ### JupyterNotebooks template
@@ -169,3 +171,8 @@ docs/_book
 test/
 
 /repalette/models/pytorch_models_checkpoints/
+notebooks/dataset.ipynb
+*.yaml
+*.0
+notebooks/dataset.ipynb
+notebooks/dataset.ipynb
