@@ -83,8 +83,8 @@ class PairRecolorDataset(Dataset):
         :param path_prefix: full path prefix to add before relative paths in data
         :param resize: size to which the image will be resized with `torhvision.trainsforms.Resize`
         """
-        if multiplier % 2 == 0:
-            raise ValueError("Multiplier must be odd.")
+        # if multiplier % 2 == 0:
+        #     raise ValueError("Multiplier must be odd.")
         self.multiplier = multiplier
         self.path_prefix = path_prefix
         self.resize = resize
@@ -143,4 +143,13 @@ class PairRecolorDataset(Dataset):
         else:
             self.data = self.data.reindex(list(range(len(self.data))))
 
+        return self
+
+
+class ShuffleDataLoader(torch.utils.data.DataLoader):
+    def __init__(self, *args, **kwargs):
+        super(ShuffleDataLoader, self).__init__(*args, **kwargs)
+
+    def shuffle(self, set_shuffle=True):
+        self.dataset.shuffle(set_shuffle)
         return self

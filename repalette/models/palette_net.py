@@ -20,17 +20,17 @@ from repalette.utils import PairRecolorDataset
 class PaletteNet(pl.LightningModule):
     def __init__(
         self,
-        train_dataset,
-        val_dataset=None,
-        test_dataset=None,
+        train_dataloader,
+        val_dataloader=None,
+        test_dataloader=None,
         hparams={"lr": LR, "betas": BETAS, "batch_size": 32, "num_workers": 8},
     ):
         super().__init__()
         self.feature_extractor = FeatureExtractor()
         self.recoloring_decoder = RecoloringDecoder()
-        self.train_dataset = train_dataset
-        self.val_dataset = val_dataset
-        self.test_dataset = test_dataset
+        self.train_dataloader_ = train_dataloader
+        self.val_dataloader_ = val_dataloader
+        self.test_dataloader_ = test_dataloader
         self.loss_fn = nn.MSELoss()
         self.hparams = hparams
 
@@ -58,32 +58,14 @@ class PaletteNet(pl.LightningModule):
         return loss
 
     def train_dataloader(self):
-        self.train_dataset.shuffle(True)  # train dataset should be shuffled!
-        train_dataloader = DataLoader(
-            self.train_dataset,
-            shuffle=False,
-            batch_size=self.hparams["batch_size"],
-            num_workers=self.hparams["num_workers"],
-        )
-        return train_dataloader
+        self.train_dataloader_.shuffle(True)  # train dataloader should be shuffled!
+        return self.train_dataloader_
 
     def val_dataloader(self):
-        val_dataloader = DataLoader(
-            self.val_dataset,
-            shuffle=False,  # val dataset should not be shuffled!
-            batch_size=self.hparams["batch_size"],
-            num_workers=self.hparams["num_workers"],
-        )
-        return val_dataloader
+        return self.val_dataloader_
 
     def test_dataloader(self):
-        test_dataloader = DataLoader(
-            self.test_dataset,
-            shuffle=False,  # test dataset should not be shuffled!
-            batch_size=self.hparams["batch_size"],
-            num_workers=self.hparams["num_workers"],
-        )
-        return test_dataloader
+        return self.test_dataloader_
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(
@@ -92,7 +74,7 @@ class PaletteNet(pl.LightningModule):
         return optimizer
 
 
-class FeatureExtractor(nn.Module):
+class FeatureExtractor(pl.LightningModule):
     def __init__(self):
         super().__init__()
 
@@ -112,7 +94,7 @@ class FeatureExtractor(nn.Module):
         return c1, c2, c3, c4
 
 
-class RecoloringDecoder(nn.Module):
+class RecoloringDecoder(pl.LightningModule):
     def __init__(self):
         super().__init__()
 
@@ -128,15 +110,15 @@ class RecoloringDecoder(nn.Module):
         batch_size, _, height, width = c1.size()
         palette_c1 = palette[:, :, None, None] * torch.ones(
             batch_size, 18, height, width
-        )
+        ).to(self.device)
         batch_size, _, height, width = c3.size()
         palette_c3 = palette[:, :, None, None] * torch.ones(
             batch_size, 18, height, width
-        )
+        ).to(self.device)
         batch_size, _, height, width = c4.size()
         palette_c4 = palette[:, :, None, None] * torch.ones(
             batch_size, 18, height, width
-        )
+        ).to(self.device)
 
         x = torch.cat([c1, palette_c1], dim=1)
         x = self.deconv1(x)
@@ -156,7 +138,7 @@ class RecoloringDecoder(nn.Module):
         return x
 
 
-class Discriminator(nn.Module):
+class Discriminator(pl.LightningModule):
     def __init__(self, in_channels):
         super().__init__()
 
