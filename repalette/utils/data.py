@@ -7,7 +7,7 @@ import numpy as np
 from pandas import DataFrame
 from repalette.constants import ROOT_DIR, IMAGE_SIZE
 from repalette.utils.color import smart_hue_adjust
-from itertools import combinations
+from itertools import permutations
 
 
 class RecolorDataset(Dataset):
@@ -91,7 +91,7 @@ class PairRecolorDataset(Dataset):
         self.data = data
 
         hue_variants = np.linspace(-0.5, 0.5, self.multiplier)
-        self.hue_pairs = [comb for comb in combinations(hue_variants, 2)]
+        self.hue_pairs = [perm for perm in permutations(hue_variants, 2)]
         self.n_pairs = len(self.hue_pairs)
 
     def __getitem__(self, index):

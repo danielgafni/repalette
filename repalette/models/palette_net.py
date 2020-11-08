@@ -1,9 +1,8 @@
 import torch
 import torch.nn as nn
+from torchvision.utils import make_grid
 import pytorch_lightning as pl
-import pandas as pd
-
-from torch.utils.data import DataLoader
+from skimage.color import lab2rgb
 
 from collections import OrderedDict
 
@@ -12,10 +11,10 @@ from repalette.model_common.blocks import (
     DeconvBlock,
     ResnetLayer,
     BasicBlock,
-    FinalConvBlock
+    FinalConvBlock,
 )
+from repalette.utils.visualization import lab_batch_to_rgb_image_grid
 from repalette.constants import DEFAULT_LR, DEFAULT_BETAS
-from repalette.utils import PairRecolorDataset
 
 
 class PaletteNet(pl.LightningModule):
@@ -24,7 +23,12 @@ class PaletteNet(pl.LightningModule):
         train_dataloader,
         val_dataloader=None,
         test_dataloader=None,
-        hparams={"lr": DEFAULT_LR, "betas": DEFAULT_BETAS, "batch_size": 32, "num_workers": 8},
+        hparams={
+            "lr": DEFAULT_LR,
+            "betas": DEFAULT_BETAS,
+            "batch_size": 32,
+            "num_workers": 8,
+        },
     ):
         super().__init__()
         self.feature_extractor = FeatureExtractor()
@@ -58,10 +62,33 @@ class PaletteNet(pl.LightningModule):
         self.log("Val/Loss", loss, prog_bar=True)
         return loss
 
-    # def validation_epoch_end(self, outputs):
-    #     # OPTIONAL
-    #     avg_val_loss = torch.stack(outputs).mean()
-    #     self.log("Val/AvgLoss", avg_val_loss, on_epoch=True, on_step=False)
+    def validation_epoch_end(self, outputs):
+        # OPTIONAL
+        (original_img, _), (target_img, target_palette) = next(
+            iter(self.val_dataloader())
+        )
+
+        original_img = original_img.to(self.device)
+        target_img = target_img.to(self.device)
+        target_palette = target_palette.to(self.device)
+
+        with torch.no_grad():
+            target_palette = nn.Flatten()(target_palette)
+            recolored_img = self(original_img, target_palette)
+
+        original_grid = lab_batch_to_rgb_image_grid(original_img[0].unsqueeze(0))
+        target_grid = lab_batch_to_rgb_image_grid(target_img)
+
+        target_palette_img = target_palette.view(-1, 3, 6, 1)
+        target_palette_grid = lab_batch_to_rgb_image_grid(target_palette_img, pad_value=1., padding=1)
+
+        recolored_img_with_luminance = torch.cat((original_img[:, 0:1, :, :], recolored_img), axis=1)
+        recolored_grid = lab_batch_to_rgb_image_grid(recolored_img_with_luminance)
+
+        self.logger.experiment.add_image('Val/Original', original_grid, self.current_epoch)
+        self.logger.experiment.add_image('Val/Target', target_grid, self.current_epoch)
+        self.logger.experiment.add_image("Val/Target_Palette", target_palette_grid, self.current_epoch)
+        self.logger.experiment.add_image('Val/Recolored', recolored_grid, self.current_epoch)
 
     def train_dataloader(self):
         self.train_dataloader_.shuffle(True)  # train dataloader should be shuffled!
