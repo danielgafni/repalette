@@ -31,8 +31,14 @@ class RawImage(Base):
 
     def set_palette(self, palette):
         """
-        Sets palette colors for an image
+        Sets palette colors
         :param palette: list of colors in HEX
         """
         for i, color in enumerate(palette):
             setattr(self, f"palette_{i}", color)
+
+    def get_palette(self):
+        """
+        Returns palette colors
+        """
+        return [getattr(self, f"palette_{i}") for i in range(6)]

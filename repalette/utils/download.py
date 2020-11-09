@@ -99,5 +99,7 @@ if __name__ == "__main__":
 
     with Pool(args.num_workers) as pool:
         with tqdm(desc="Downloading", total=len(image_urls)) as bar:
-            for _ in pool.imap_unordered(download_image_to_database, list(zip(image_urls, palettes))):
+            for _ in pool.imap_unordered(
+                download_image_to_database, list(zip(image_urls, palettes))
+            ):
                 bar.update(n=1)

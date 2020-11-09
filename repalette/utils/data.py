@@ -5,9 +5,13 @@ import torch
 from torchvision.transforms import Resize
 import numpy as np
 from pandas import DataFrame
-from repalette.constants import ROOT_DIR, IMAGE_SIZE
-from repalette.utils.color import smart_hue_adjust
 from itertools import permutations
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from repalette.constants import ROOT_DIR, IMAGE_SIZE, DATABASE_PATH
+from repalette.utils.color import smart_hue_adjust
+from repalette.utils.models import RawImage
 
 
 class RecolorDataset(Dataset):
@@ -75,7 +79,7 @@ class PairRecolorDataset(Dataset):
         multiplier: int,
         path_prefix: str = ROOT_DIR,
         resize: tuple = IMAGE_SIZE,
-        shuffle_palette=True
+        shuffle_palette=True,
     ):
         """
         Dataset constructor.
@@ -160,3 +164,36 @@ class ShuffleDataLoader(torch.utils.data.DataLoader):
     def shuffle(self, set_shuffle=True):
         self.dataset.shuffle(set_shuffle)
         return self
+
+
+class RawDataset(Dataset):
+    """
+    Dataset of images downloaded from https://www.design-seeds.com/blog/.
+    `repalette/utils/download.py` must be run before using this dataset
+    """
+
+    def __init__(self):
+        engine = create_engine(f"sqlite:///{DATABASE_PATH}")
+        # create a configured "Session" class
+        self.Session = sessionmaker(bind=engine)
+
+    def __getitem__(self, index):
+        session = self.Session()
+
+        raw_image = session.query(RawImage).get(index + 1)
+        image = Image.open(raw_image.path).convert("RGB")
+
+        palette = raw_image.get_palette()
+
+        session.close()
+
+        return (image, palette), raw_image
+
+    def __len__(self):
+        session = self.Session()
+
+        length = session.query(RawImage).count()
+
+        session.close()
+
+        return length

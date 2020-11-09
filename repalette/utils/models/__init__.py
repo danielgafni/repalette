@@ -6,3 +6,4 @@ meta = MetaData()
 Base = declarative_base()
 
 from .raw_image import RawImage  # import order matters!
+from .rgb_image import RGBImage
