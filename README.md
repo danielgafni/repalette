@@ -38,9 +38,9 @@ set NODE_OPTIONS=
 ```
 
 # Download dataset
-Run with desired number of workers (affects image download):
 ```bash
-python repalette/utils/download.py --num_workers 8
+python repalette/utils/download_data.py --num_workers 8  # adjust num_workers
+python repaletet/utils/build_data.py
 ```
 
 # TODO
