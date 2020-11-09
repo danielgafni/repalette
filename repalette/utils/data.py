@@ -5,9 +5,13 @@ import torch
 from torchvision.transforms import Resize
 import numpy as np
 from pandas import DataFrame
-from repalette.constants import ROOT_DIR, IMAGE_SIZE
+from itertools import permutations
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from repalette.constants import ROOT_DIR, IMAGE_SIZE, DATABASE_PATH
 from repalette.utils.color import smart_hue_adjust
-from itertools import combinations
+from repalette.utils.models import RawImage
 
 
 class RecolorDataset(Dataset):
@@ -75,6 +79,7 @@ class PairRecolorDataset(Dataset):
         multiplier: int,
         path_prefix: str = ROOT_DIR,
         resize: tuple = IMAGE_SIZE,
+        shuffle_palette=True,
     ):
         """
         Dataset constructor.
@@ -82,6 +87,7 @@ class PairRecolorDataset(Dataset):
         :param multiplier: an odd multiplier for color augmentation
         :param path_prefix: full path prefix to add before relative paths in data
         :param resize: size to which the image will be resized with `torhvision.trainsforms.Resize`
+        :param shuffle_palette: if to shuffle output palettes
         """
         # if multiplier % 2 == 0:
         #     raise ValueError("Multiplier must be odd.")
@@ -89,9 +95,10 @@ class PairRecolorDataset(Dataset):
         self.path_prefix = path_prefix
         self.resize = resize
         self.data = data
+        self.shuffle_palette = shuffle_palette
 
         hue_variants = np.linspace(-0.5, 0.5, self.multiplier)
-        self.hue_pairs = [comb for comb in combinations(hue_variants, 2)]
+        self.hue_pairs = [perm for perm in permutations(hue_variants, 2)]
         self.n_pairs = len(self.hue_pairs)
 
     def __getitem__(self, index):
@@ -105,7 +112,7 @@ class PairRecolorDataset(Dataset):
             index // self.n_pairs
         )  # actual image index (from design-seeds-data directory)
 
-        image = Image.open(self.path_prefix + self.data["image_path"].iloc[i])
+        image = Image.open(self.path_prefix + str(self.data["image_path"].iloc[i]))
         if self.resize:
             resize = Resize(self.resize)
             image = resize(image)
@@ -123,6 +130,10 @@ class PairRecolorDataset(Dataset):
         palette_aug_2 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_2)).to(
             torch.float
         )
+
+        if self.shuffle_palette:
+            palette_aug_1 = palette_aug_1[:, :, torch.randperm(6)]
+            palette_aug_2 = palette_aug_2[:, :, torch.randperm(6)]
 
         return (image_aug_1, palette_aug_1), (image_aug_2, palette_aug_2)
 
@@ -153,3 +164,36 @@ class ShuffleDataLoader(torch.utils.data.DataLoader):
     def shuffle(self, set_shuffle=True):
         self.dataset.shuffle(set_shuffle)
         return self
+
+
+class RawDataset(Dataset):
+    """
+    Dataset of images downloaded from https://www.design-seeds.com/blog/.
+    `repalette/utils/download_data.py` must be run before using this dataset
+    """
+
+    def __init__(self):
+        engine = create_engine(f"sqlite:///{DATABASE_PATH}")
+        # create a configured "Session" class
+        self.Session = sessionmaker(bind=engine)
+
+    def __getitem__(self, index):
+        session = self.Session()
+
+        raw_image = session.query(RawImage).get(index + 1)
+        image = Image.open(raw_image.path).convert("RGB")
+
+        palette = raw_image.get_palette()
+
+        session.close()
+
+        return (image, palette), raw_image
+
+    def __len__(self):
+        session = self.Session()
+
+        length = session.query(RawImage).count() - 1
+
+        session.close()
+
+        return length

@@ -16,3 +16,4 @@ opencv
 pandas
 tqdm
 nodejs
+sqlalchemy
