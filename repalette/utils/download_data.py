@@ -11,9 +11,8 @@ from sqlalchemy.exc import IntegrityError
 from multiprocessing import Pool
 from PIL import Image
 
-from repalette.constants import BASE_DATA_DIR, RAW_DATA_DIR, DATA_DIR, DATABASE_PATH
-from repalette.utils.models import RawImage
-from repalette.utils.models import Base
+from repalette.constants import BASE_DATA_DIR, RAW_DATA_DIR, RGB_IMAGES_DIR, DATABASE_PATH
+from repalette.utils.models import RawImage, image_url_to_name, Base
 
 
 DESIGN_SEEDS_PAGES_ROOT = r"https://www.design-seeds.com/blog/page/"
@@ -24,7 +23,8 @@ def get_image_urls_and_palettes():
     palettes = []
 
     i = 0
-    bar = tqdm(desc="Parsing")
+    skipped = 0
+    bar = tqdm(desc=f"Parsing... skipped: [{skipped}]")
     response = requests.get(DESIGN_SEEDS_PAGES_ROOT + str(i))
     bar.update(n=1)
     while response.status_code != 404:
@@ -33,7 +33,12 @@ def get_image_urls_and_palettes():
 
         for post in posts:
             image_url = post.find_all(class_="attachment-full")[0]["src"]
-            palette = [header.text for header in post.find_all("h5")[1:]]
+            palette = [header.text for header in post.find_all("h5") if "#" in header.text]
+
+            if len(palette) != 6:  # this happens on "Anniversary posts" - they are duplicates anyway
+                skipped += 1
+                bar.desc = f"Parsing... skipped: [{skipped}]"
+                break
 
             image_urls.append(image_url)
             palettes.append(palette)
@@ -46,10 +51,6 @@ def get_image_urls_and_palettes():
     return image_urls, palettes
 
 
-def get_image_name(image_url):
-    return image_url.split("/")[-1]
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--num_workers", type=int, default=8)
@@ -59,8 +60,8 @@ if __name__ == "__main__":
         os.mkdir(BASE_DATA_DIR)
     if not os.path.exists(RAW_DATA_DIR):
         os.mkdir(RAW_DATA_DIR)
-    if not os.path.exists(DATA_DIR):
-        os.mkdir(DATA_DIR)
+    if not os.path.exists(RGB_IMAGES_DIR):
+        os.mkdir(RGB_IMAGES_DIR)
 
     engine = create_engine(f"sqlite:///{DATABASE_PATH}")
     # create a configured "Session" class
@@ -69,7 +70,7 @@ if __name__ == "__main__":
 
     def download_image_to_database(image_data):
         url, palette = image_data
-        name = get_image_name(url)
+        name = image_url_to_name(url)
         path = os.path.join(RAW_DATA_DIR, name)
 
         # create a database Session

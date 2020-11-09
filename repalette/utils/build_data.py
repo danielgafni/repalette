@@ -1,29 +1,20 @@
-from torch.utils.data import Dataset
-from PIL import Image
-import torchvision.transforms.functional as TF
-import torch
-from torchvision.transforms import Resize
-import numpy as np
-from pandas import DataFrame
-from itertools import permutations
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from repalette.constants import ROOT_DIR, IMAGE_SIZE, DATABASE_PATH
-from repalette.utils.color import smart_hue_adjust
-from repalette.utils.models import RawImage
-from multiprocessing import Pool
+from PIL import Image, ImageColor
 from tqdm import tqdm
 import os
-from repalette.constants import DATA_DIR
-from PIL import ImageColor
+import numpy as np
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
+
+from repalette.constants import RGB_IMAGES_DIR, DATABASE_PATH
+from repalette.utils.models import RGBImage, Base
 from repalette.utils.data import RawDataset
 
 
 def find_edges(array, edge_size=10):
     edges = []
     for i, idx in enumerate(array):
-        for delta in range(1, len(array) - i):
+        for delta in range(1, min(edge_size, len(array) - i)):
             if not array[i + delta] == idx + delta:
                 break
             edges.append(idx)
@@ -41,7 +32,8 @@ def cut_numpy_image(np_image):
     edges_y = find_edges(white_y, 10)
     edge_y = int(min(edges_y)) if edges_y else None
 
-    assert edge_x or edge_y, (edge_x, edge_y)
+    if not edge_x or edge_y:
+        return None
 
     if edge_x:
         np_image = np_image[: int(edge_x), :, :]
@@ -52,10 +44,13 @@ def cut_numpy_image(np_image):
 
 
 def validate_image(np_image):
-    if np.prod(np_image.shape) > 160000:
-        return True
+    if np_image is not None:
+        if np.prod(np_image.shape) > 160000:
+            return True
+        else:
+            return False
     else:
-        return False
+        return None
 
 
 def process_image_info(image, palette):
@@ -73,16 +68,36 @@ def process_image_info(image, palette):
 def main():
     raw_dataset = RawDataset()
 
+    engine = create_engine(f"sqlite:///{DATABASE_PATH}")
+    # create a configured "Session" class
+    Session = sessionmaker(bind=engine)
+    Base.metadata.create_all(engine)
+
     for (image, palette), raw_image in tqdm(
-        raw_dataset, desc="Processing", total=len(raw_dataset)
+        raw_dataset, desc="Processing...", total=len(raw_dataset)
     ):
         np_image, np_palette = process_image_info(image, palette)
         if np_image is not None:
             processed_image = Image.fromarray(np_image)
-            path = os.path.join(DATA_DIR, raw_image.name)
-            processed_image.save(path, "PNG")
+            path = os.path.join(RGB_IMAGES_DIR, raw_image.name)
+
+            rgb_image = RGBImage(path=path, name=raw_image.name, url=raw_image.url, height=raw_image.height, width=raw_image.width, np_palette=np_palette)
+
+            session = Session()
+            try:
+                session.add(rgb_image)
+                # if add successful (new image) - set palette
+                rgb_image.set_palette(np_palette)
+
+                session.commit()
+                # save image on disk
+                processed_image.save(path, "PNG")
+
+            except IntegrityError:  # image already in the database
+                pass
+
         else:
-            print(f"Dropping image {raw_image.path}...")
+            pass
 
 
 if __name__ == "__main__":

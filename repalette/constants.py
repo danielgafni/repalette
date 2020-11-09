@@ -3,7 +3,7 @@ import os
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))[:-9]
 BASE_DATA_DIR = os.path.join(ROOT_DIR, "data")
 RAW_DATA_DIR = os.path.join(BASE_DATA_DIR, "raw")
-DATA_DIR = os.path.join(BASE_DATA_DIR, "data")
+RGB_IMAGES_DIR = os.path.join(BASE_DATA_DIR, "rgb")
 MODELS_DIR = os.path.join(BASE_DATA_DIR, "models")
 PL_LOGS_DIR = os.path.join(BASE_DATA_DIR, "pl_logs")
 DATABASE_PATH = os.path.join(BASE_DATA_DIR, "sqlite.db")

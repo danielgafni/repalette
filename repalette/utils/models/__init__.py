@@ -7,3 +7,7 @@ Base = declarative_base()
 
 from .raw_image import RawImage  # import order matters!
 from .rgb_image import RGBImage
+
+
+def image_url_to_name(image_url):
+    return image_url.split("/")[-1]

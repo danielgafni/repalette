@@ -169,7 +169,7 @@ class ShuffleDataLoader(torch.utils.data.DataLoader):
 class RawDataset(Dataset):
     """
     Dataset of images downloaded from https://www.design-seeds.com/blog/.
-    `repalette/utils/download.py` must be run before using this dataset
+    `repalette/utils/download_data.py` must be run before using this dataset
     """
 
     def __init__(self):
@@ -192,7 +192,7 @@ class RawDataset(Dataset):
     def __len__(self):
         session = self.Session()
 
-        length = session.query(RawImage).count()
+        length = session.query(RawImage).count() - 1
 
         session.close()
 
