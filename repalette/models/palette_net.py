@@ -64,9 +64,11 @@ class PaletteNet(pl.LightningModule):
 
     def validation_epoch_end(self, outputs):
         # OPTIONAL
+        self.val_dataloader().shuffle(True)
         (original_img, _), (target_img, target_palette) = next(
             iter(self.val_dataloader())
         )
+        self.val_dataloader().shuffle(False)
 
         original_img = original_img.to(self.device)
         target_img = target_img.to(self.device)
@@ -80,15 +82,27 @@ class PaletteNet(pl.LightningModule):
         target_grid = lab_batch_to_rgb_image_grid(target_img)
 
         target_palette_img = target_palette.view(-1, 3, 6, 1)
-        target_palette_grid = lab_batch_to_rgb_image_grid(target_palette_img, pad_value=1., padding=1)
+        target_palette_grid = lab_batch_to_rgb_image_grid(
+            target_palette_img, pad_value=1.0, padding=1
+        )
 
-        recolored_img_with_luminance = torch.cat((original_img[:, 0:1, :, :], recolored_img), axis=1)
+        recolored_img_with_luminance = torch.cat(
+            (original_img[:, 0:1, :, :], recolored_img), axis=1
+        )
         recolored_grid = lab_batch_to_rgb_image_grid(recolored_img_with_luminance)
 
-        self.logger.experiment.add_image('Val/Original', original_grid, self.current_epoch)
-        self.logger.experiment.add_image('Val/Target', target_grid, self.current_epoch)
-        self.logger.experiment.add_image("Val/Target_Palette", target_palette_grid, self.current_epoch)
-        self.logger.experiment.add_image('Val/Recolored', recolored_grid, self.current_epoch)
+        self.logger.experiment.add_image(
+            "Val/Original", original_grid, self.current_epoch
+        )
+        self.logger.experiment.add_image("Val/Target", target_grid, self.current_epoch)
+        self.logger.experiment.add_image(
+            "Val/Target_Palette", target_palette_grid, self.current_epoch
+        )
+        self.logger.experiment.add_image(
+            "Val/Recolored", recolored_grid, self.current_epoch
+        )
+
+        self.logger.experiment.add_graph(self, (original_img, target_palette))
 
     def train_dataloader(self):
         self.train_dataloader_.shuffle(True)  # train dataloader should be shuffled!

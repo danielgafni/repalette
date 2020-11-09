@@ -37,11 +37,11 @@ unset NODE_OPTIONS
 set NODE_OPTIONS=
 ```
 
-
-
 # Download dataset
-
-Run `scrap_design_seeds.ipynb`
+Run with desired number of workers (affects image download):
+```bash
+python repalette/utils/download.py --num_workers 8
+```
 
 # TODO
 

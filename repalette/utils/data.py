@@ -75,6 +75,7 @@ class PairRecolorDataset(Dataset):
         multiplier: int,
         path_prefix: str = ROOT_DIR,
         resize: tuple = IMAGE_SIZE,
+        shuffle_palette=True
     ):
         """
         Dataset constructor.
@@ -82,6 +83,7 @@ class PairRecolorDataset(Dataset):
         :param multiplier: an odd multiplier for color augmentation
         :param path_prefix: full path prefix to add before relative paths in data
         :param resize: size to which the image will be resized with `torhvision.trainsforms.Resize`
+        :param shuffle_palette: if to shuffle output palettes
         """
         # if multiplier % 2 == 0:
         #     raise ValueError("Multiplier must be odd.")
@@ -89,6 +91,7 @@ class PairRecolorDataset(Dataset):
         self.path_prefix = path_prefix
         self.resize = resize
         self.data = data
+        self.shuffle_palette = shuffle_palette
 
         hue_variants = np.linspace(-0.5, 0.5, self.multiplier)
         self.hue_pairs = [perm for perm in permutations(hue_variants, 2)]
@@ -105,7 +108,7 @@ class PairRecolorDataset(Dataset):
             index // self.n_pairs
         )  # actual image index (from design-seeds-data directory)
 
-        image = Image.open(self.path_prefix + self.data["image_path"].iloc[i])
+        image = Image.open(self.path_prefix + str(self.data["image_path"].iloc[i]))
         if self.resize:
             resize = Resize(self.resize)
             image = resize(image)
@@ -123,6 +126,10 @@ class PairRecolorDataset(Dataset):
         palette_aug_2 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_2)).to(
             torch.float
         )
+
+        if self.shuffle_palette:
+            palette_aug_1 = palette_aug_1[:, :, torch.randperm(6)]
+            palette_aug_2 = palette_aug_2[:, :, torch.randperm(6)]
 
         return (image_aug_1, palette_aug_1), (image_aug_2, palette_aug_2)
 
