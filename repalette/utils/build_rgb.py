@@ -26,13 +26,13 @@ def cut_numpy_image(np_image):
     white_x = np.argwhere((np_image.mean(axis=2).mean(axis=1) == 255))
     white_y = np.argwhere((np_image.mean(axis=2).mean(axis=0) == 255))
 
-    edges_x = find_edges(white_x, 10)
+    edges_x = find_edges(white_x, 15)
     edge_x = int(min(edges_x)) if edges_x else None
 
-    edges_y = find_edges(white_y, 10)
+    edges_y = find_edges(white_y, 15)
     edge_y = int(min(edges_y)) if edges_y else None
 
-    if not edge_x or edge_y:
+    if not edge_x and not edge_y:
         return None
 
     if edge_x:
@@ -73,9 +73,9 @@ def main():
     Session = sessionmaker(bind=engine)
     Base.metadata.create_all(engine)
 
-    for (image, palette), raw_image in tqdm(
-        raw_dataset, desc="Processing...", total=len(raw_dataset)
-    ):
+    dropped = 0
+    bar = tqdm(desc=f"Processing... Dropped: [{dropped}]", total=len(raw_dataset))
+    for (image, palette), raw_image in raw_dataset:
         np_image, np_palette = process_image_info(image, palette)
         if np_image is not None:
             processed_image = Image.fromarray(np_image)
@@ -94,7 +94,10 @@ def main():
                 pass
 
         else:
-            pass
+            dropped += 1
+            bar.desc = f"Processing... Dropped: [{dropped}]"
+
+        bar.update(n=1)
 
 
 if __name__ == "__main__":

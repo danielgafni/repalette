@@ -37,7 +37,8 @@ class RawImage(Base):
         for i, color in enumerate(palette):
             setattr(self, f"palette_{i}", color)
 
-    def get_palette(self):
+    @property
+    def palette(self):
         """
         Returns palette colors
         """
