@@ -58,7 +58,8 @@ class RGBImage(Base):
             for value, c in zip(color, "rgb"):
                 setattr(self, f"color_{i}_{c}", int(value))
 
-    def get_palette(self):
+    @property
+    def palette(self):
         """
         Returns numpy rgb palette with shape of [1, 6, 3]
         """

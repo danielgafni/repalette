@@ -176,28 +176,26 @@ class RawDataset(Dataset):
     def __init__(self):
         engine = create_engine(f"sqlite:///{DATABASE_PATH}")
         # create a configured "Session" class
-        self.Session = sessionmaker(bind=engine)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        self.query = session.query(RawImage)
+        self.length = self.query.count()
+
+        session.close()
 
     def __getitem__(self, index):
-        session = self.Session()
+        raw_image = self.query.get(index + 1)
 
-        raw_image = session.query(RawImage).get(index + 1)
+        if not raw_image:
+            raise IndexError
+
         image = Image.open(raw_image.path).convert("RGB")
 
-        palette = raw_image.get_palette()
-
-        session.close()
-
-        return (image, palette), raw_image
+        return (image, raw_image.palette), raw_image
 
     def __len__(self):
-        session = self.Session()
-
-        length = session.query(RawImage).count()
-
-        session.close()
-
-        return length
+        return self.length
 
 
 class RGBDataset(Dataset):
@@ -209,28 +207,26 @@ class RGBDataset(Dataset):
     def __init__(self):
         engine = create_engine(f"sqlite:///{DATABASE_PATH}")
         # create a configured "Session" class
-        self.Session = sessionmaker(bind=engine)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        self.query = session.query(RGBImage)
+        self.length = self.query.count()
+
+        session.close()
 
     def __getitem__(self, index):
-        session = self.Session()
+        rgb_image = self.query.get(index + 1)
 
-        rgb_image = session.query(RGBImage).get(index + 1)
+        if not rgb_image:
+            raise IndexError
+
         image = Image.open(rgb_image.path).convert("RGB")
 
-        palette = rgb_image.get_palette()
-
-        session.close()
-
-        return (image, palette), rgb_image
+        return (image, rgb_image.palette), rgb_image
 
     def __len__(self):
-        session = self.Session()
-
-        length = session.query(RGBImage).count()
-
-        session.close()
-
-        return length
+        return self.length
 
 
 class PairRecolorDataset(Dataset):
