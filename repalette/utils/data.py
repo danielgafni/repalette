@@ -192,7 +192,7 @@ class RawDataset(Dataset):
     def __len__(self):
         session = self.Session()
 
-        length = session.query(RawImage).count() - 1
+        length = session.query(RawImage).count()
 
         session.close()
 
@@ -224,7 +224,7 @@ class RGBDataset(Dataset):
     def __len__(self):
         session = self.Session()
 
-        length = session.query(RGBImage).count() - 1
+        length = session.query(RGBImage).count()
 
         session.close()
 

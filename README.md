@@ -2,7 +2,6 @@
 ```bash
 conda create -n repalette --file conda-requirements -c conda-forge -c pytorch-nightly
 conda activate repalette
-pip install colorgram.py git+https://github.com/dylanaraps/pywal
 python setup.py sdist
 python setup.py bdist_wheel
 python setup.py build
@@ -21,10 +20,10 @@ set NODE_OPTIONS=--max-old-space-size=4096
 # Jupyter widgets extension
 jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build
 
-# jupyterlab renderer support
+# jupyterlab plotly renderer support
 jupyter labextension install jupyterlab-plotly --no-build
 
-# FigureWidget support
+# Plotly FigureWidget support
 jupyter labextension install plotlywidget --no-build
 
 # Build extensions (must be done to activate extensions since --no-build is used above)
@@ -43,6 +42,16 @@ python repalette/utils/download_data.py --num_workers 8  # adjust num_workers
 python repaletet/utils/build_data.py
 ```
 
-# TODO
+# Project structure
+## data
+* `data` - root data directory
+* `data/sqlite.db` - database file
+* `data/raw` - raw images downloaded from [Design Seeds](https://www.design-seeds.com/blog/page/")
+* `data/rgb` - cropped images without palettes in RGB
+* `data/models` - `pytorch-lightning` models checkpoints
+* `data/pl_logs` - `pytorch-lightning` logs to use with `tensorboard`
+## Code
+* `repalette` - main python package
 
+# TODO
 * Use image augmentations (`torchvision.transforms.RandomWhatever`)
