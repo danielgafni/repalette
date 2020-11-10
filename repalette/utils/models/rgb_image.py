@@ -56,7 +56,7 @@ class RGBImage(Base):
         """
         for i, color in enumerate(np_palette.reshape(6, 3)):
             for value, c in zip(color, "rgb"):
-                setattr(self, f"color_{i}_{c}", value)
+                setattr(self, f"color_{i}_{c}", int(value))
 
     def get_palette(self):
         """

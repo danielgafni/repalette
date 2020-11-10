@@ -86,9 +86,6 @@ def main():
             session = Session()
             try:
                 session.add(rgb_image)
-                # if add successful (new image) - set palette
-                rgb_image.set_palette(np_palette)
-
                 session.commit()
                 # save image on disk
                 processed_image.save(path, "PNG")
