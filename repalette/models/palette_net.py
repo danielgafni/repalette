@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
-from torchvision.utils import make_grid
 import pytorch_lightning as pl
-from skimage.color import lab2rgb
 
 from collections import OrderedDict
 
@@ -11,7 +9,6 @@ from repalette.model_common.blocks import (
     DeconvBlock,
     ResnetLayer,
     BasicBlock,
-    FinalConvBlock,
 )
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
 from repalette.constants import DEFAULT_LR, DEFAULT_BETAS
@@ -19,18 +16,20 @@ from repalette.constants import DEFAULT_LR, DEFAULT_BETAS
 
 class PaletteNet(pl.LightningModule):
     def __init__(
-        self,
-        train_dataloader,
-        val_dataloader=None,
-        test_dataloader=None,
-        hparams={
-            "lr": DEFAULT_LR,
-            "betas": DEFAULT_BETAS,
-            "batch_size": 32,
-            "num_workers": 8,
-        },
+            self,
+            train_dataloader,
+            val_dataloader=None,
+            test_dataloader=None,
+            hparams=None,
     ):
         super().__init__()
+        if hparams is None:
+            hparams = {
+                "lr": DEFAULT_LR,
+                "betas": DEFAULT_BETAS,
+                "batch_size": 32,
+                "num_workers": 8,
+            }
         self.feature_extractor = FeatureExtractor()
         self.recoloring_decoder = RecoloringDecoder()
         self.train_dataloader_ = train_dataloader
@@ -86,9 +85,7 @@ class PaletteNet(pl.LightningModule):
             target_palette_img, pad_value=1.0, padding=1
         )
 
-        recolored_img_with_luminance = torch.cat(
-            (original_img[:, 0:1, :, :], recolored_img), axis=1
-        )
+        recolored_img_with_luminance = torch.cat((original_img[:, 0:1, :, :], recolored_img), dim=1)
         recolored_grid = lab_batch_to_rgb_image_grid(recolored_img_with_luminance)
 
         self.logger.experiment.add_image(
@@ -149,7 +146,7 @@ class RecoloringDecoder(pl.LightningModule):
         self.deconv2 = DeconvBlock(256 + 256, 128)
         self.deconv3 = DeconvBlock(128 + 128 + 18, 64)
         self.deconv4 = DeconvBlock(64 + 64 + 18, 64)
-        self.final_conv = FinalConvBlock(64 + 1, 2, activation="none")
+        self.final_conv = FinalConvBlock(64 + 1, 2, activation="none", normalize=False)
 
     def forward(self, content_features, palette, luminance):
         c1, c2, c3, c4 = content_features

@@ -17,3 +17,4 @@ pandas
 tqdm
 nodejs
 sqlalchemy
+PIL

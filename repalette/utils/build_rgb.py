@@ -59,13 +59,13 @@ def process_image_info(image, palette):
     if validate_image(np_image):
         np_palette = np.array(
             [ImageColor.getcolor(color, "RGB") for color in reversed(palette)]
-        ).reshape(1, 6, 3)
+        ).reshape((1, 6, 3))
         return np_image, np_palette
     else:
         return None, None
 
 
-def main():
+if __name__ == "__main__":
     raw_dataset = RawDataset()
 
     engine = create_engine(f"sqlite:///{DATABASE_PATH}")
@@ -74,14 +74,16 @@ def main():
     Base.metadata.create_all(engine)
 
     for (image, palette), raw_image in tqdm(
-        raw_dataset, desc="Processing...", total=len(raw_dataset)
+            raw_dataset, desc="Processing...", total=len(raw_dataset)
     ):
         np_image, np_palette = process_image_info(image, palette)
         if np_image is not None:
             processed_image = Image.fromarray(np_image)
             path = os.path.join(RGB_IMAGES_DIR, raw_image.name)
 
-            rgb_image = RGBImage(path=path, name=raw_image.name, url=raw_image.url, height=raw_image.height, width=raw_image.width, np_palette=np_palette)
+            rgb_image = RGBImage(path=path, name=raw_image.name, url=raw_image.url,
+                                 height=raw_image.height,
+                                 width=raw_image.width, np_palette=np_palette)
 
             session = Session()
             try:
@@ -95,7 +97,3 @@ def main():
 
         else:
             pass
-
-
-if __name__ == "__main__":
-    main()

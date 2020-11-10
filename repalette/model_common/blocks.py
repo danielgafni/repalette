@@ -1,8 +1,6 @@
 # import torch
 import torch.nn as nn
 
-# import torch.nn.functional as F
-
 from repalette.model_common.activations import activation_shortcuts
 
 
@@ -80,44 +78,22 @@ class ConvBlock(nn.Module):
         padding=1,
         dilation=1,
         activation="leaky_relu",
+        normalize=True
     ):
         super().__init__()
 
         self.conv = nn.Conv2d(
             in_channels, out_channels, kernel_size, stride, padding, dilation
         )
-        self.norm = nn.InstanceNorm2d(out_channels)
+        if normalize:
+            self.norm = nn.InstanceNorm2d(out_channels)
+        else:
+            self.norm = nn.Identity()
         self.activ = activation_shortcuts[activation]
 
     def forward(self, x):
         x = self.conv(x)
         x = self.norm(x)
-        x = self.activ(x)
-        return x
-
-
-class FinalConvBlock(nn.Module):
-    """Convolution layer followed by activation function."""
-
-    def __init__(
-        self,
-        in_channels,
-        out_channels,
-        kernel_size=3,
-        stride=1,
-        padding=1,
-        dilation=1,
-        activation="leaky_relu",
-    ):
-        super().__init__()
-
-        self.conv = nn.Conv2d(
-            in_channels, out_channels, kernel_size, stride, padding, dilation
-        )
-        self.activ = activation_shortcuts[activation]
-
-    def forward(self, x):
-        x = self.conv(x)
         x = self.activ(x)
         return x
 

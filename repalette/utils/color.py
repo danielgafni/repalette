@@ -1,7 +1,25 @@
 import torchvision.transforms.functional as TF
+import torch
 from skimage.color import rgb2lab, lab2rgb
 from PIL import Image
 import numpy as np
+
+
+class PairHueAdjust:
+    """Wrapping class for user `torchvision.transforms` transformation followed by hue adjustment
+    and casting to torch tensor. Returns a pair of augmented images."""
+
+    def __init__(self, transform=None):
+        self.transform = transform
+
+    def __call__(self, img, hue_shift_first, hue_shift_second: float):
+        if self.transform is not None:
+            img = self.transform(img)
+        img_first = smart_hue_adjust(img, hue_shift_first)
+        img_second = smart_hue_adjust(img, hue_shift_second)
+        img_first = TF.to_tensor(img_first).to(torch.float)
+        img_second = TF.to_tensor(img_second).to(torch.float)
+        return img_first, img_second
 
 
 def smart_hue_adjust(img, hue_shift: float, lab=True) -> np.float32:

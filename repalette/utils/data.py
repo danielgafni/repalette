@@ -2,7 +2,7 @@ from torch.utils.data import Dataset
 from PIL import Image
 import torchvision.transforms.functional as TF
 import torch
-from torchvision.transforms import Resize
+from torchvision import transforms
 import numpy as np
 from pandas import DataFrame
 from itertools import permutations
@@ -10,24 +10,24 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from repalette.constants import ROOT_DIR, IMAGE_SIZE, DATABASE_PATH
-from repalette.utils.color import smart_hue_adjust
+from repalette.utils.color import smart_hue_adjust, PairHueAdjust
 from repalette.utils.models import RawImage, RGBImage
 
 
 class RecolorDataset(Dataset):
     def __init__(
-        self,
-        data: DataFrame,
-        multiplier: int,
-        path_prefix: str = ROOT_DIR,
-        resize=IMAGE_SIZE,
+            self,
+            data: DataFrame,
+            multiplier: int,
+            path_prefix: str = ROOT_DIR,
+            resize=IMAGE_SIZE,
     ):
         """
         Dataset constructor.
         :param data: DataFrame containing columns `image_path` and `palette_path`
         :param multiplier: an odd multiplier for color augmentation
         :param path_prefix: full path prefix to add before relative paths in data
-        :param resize: size to which the image will be resized with `torhvision.trainsforms.Resize`
+        :param resize: size to which the image will be resized with `torсhvision.transforms.Resize`
         """
         if multiplier % 2 == 0:
             raise ValueError("Multiplier must be odd.")
@@ -42,15 +42,15 @@ class RecolorDataset(Dataset):
         :return: image of shape [3, self.resize] and palette of shape [3, 1, 6]
         """
         hue_shift = (index % self.multiplier - (self.multiplier - 1) / 2) / (
-            self.multiplier - 1
+                self.multiplier - 1
         )
         i = (
-            index // self.multiplier
+                index // self.multiplier
         )  # actual image index (from design-seeds-data directory)
 
         image = Image.open(self.path_prefix + self.data["image_path"].iloc[i])
         if self.resize:
-            resize = Resize(self.resize)
+            resize = transforms.Resize(self.resize)
             image = resize(image)
         image_aug = TF.to_tensor(
             smart_hue_adjust(image, hue_shift),
@@ -86,7 +86,8 @@ class RecolorDataset(Dataset):
 #         :param data: DataFrame containing columns `image_path` and `palette_path`
 #         :param multiplier: an odd multiplier for color augmentation
 #         :param path_prefix: full path prefix to add before relative paths in data
-#         :param resize: size to which the image will be resized with `torhvision.trainsforms.Resize`
+#         :param resize: size to which the image will be resized with
+#         `torhvision.trainsforms.Resize`
 #         :param shuffle_palette: if to shuffle output palettes
 #         """
 #         # if multiplier % 2 == 0:
@@ -114,7 +115,7 @@ class RecolorDataset(Dataset):
 #
 #         image = Image.open(self.path_prefix + str(self.data["image_path"].iloc[i]))
 #         if self.resize:
-#             resize = Resize(self.resize)
+#             resize = transforms.Resize(self.resize)
 #             image = resize(image)
 #         image_aug_1 = TF.to_tensor(smart_hue_adjust(image, hue_shift_1)).to(torch.float)
 #         image_aug_2 = TF.to_tensor(smart_hue_adjust(image, hue_shift_2)).to(torch.float)
@@ -204,6 +205,7 @@ class RGBDataset(Dataset):
     Dataset of RGB images.
     `repalette/utils/build_rgb.py` must be run before using this dataset
     """
+
     def __init__(self):
         engine = create_engine(f"sqlite:///{DATABASE_PATH}")
         # create a configured "Session" class
@@ -233,26 +235,25 @@ class RGBDataset(Dataset):
 
 class PairRecolorDataset(Dataset):
     def __init__(
-        self,
-        data: DataFrame,
-        multiplier: int,
-        path_prefix: str = ROOT_DIR,
-        resize: tuple = IMAGE_SIZE,
-        shuffle_palette=True,
+            self,
+            data: DataFrame,
+            multiplier: int,
+            path_prefix: str = ROOT_DIR,
+            shuffle_palette=True,
+            transform=None
     ):
         """
         Dataset constructor.
         :param data: DataFrame containing columns `image_path` and `palette_path`
         :param multiplier: an odd multiplier for color augmentation
         :param path_prefix: full path prefix to add before relative paths in data
-        :param resize: size to which the image will be resized with `torhvision.trainsforms.Resize`
         :param shuffle_palette: if to shuffle output palettes
+        :param transform: optional transform to be applied on a sample
         """
         # if multiplier % 2 == 0:
         #     raise ValueError("Multiplier must be odd.")
         self.multiplier = multiplier
         self.path_prefix = path_prefix
-        self.resize = resize
         self.data = data
         self.shuffle_palette = shuffle_palette
 
@@ -260,41 +261,41 @@ class PairRecolorDataset(Dataset):
         self.hue_pairs = [perm for perm in permutations(hue_variants, 2)]
         self.n_pairs = len(self.hue_pairs)
 
+        self.transform = transform
+        if transform is None:
+            self.transform = transforms.Compose([
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomRotation(180),
+            ])
+
     def __getitem__(self, index):
         """
         :param index: index of item to get from the dataset
         :return: image of shape [3, self.resize] and palette of shape [3, 1, 6]
         """
         pair_index = index % self.n_pairs
-        hue_shift_1, hue_shift_2 = self.hue_pairs[pair_index]
-        i = (
-            index // self.n_pairs
-        )  # actual image index (from design-seeds-data directory)
+        hue_shift_first, hue_shift_second = self.hue_pairs[pair_index]
+        i = index // self.n_pairs  # actual image index (from design-seeds-data directory)
+
+        img_transform = PairHueAdjust(self.transform)
+        palette_transform = PairHueAdjust()
 
         image = Image.open(self.path_prefix + str(self.data["image_path"].iloc[i]))
-        if self.resize:
-            resize = Resize(self.resize)
-            image = resize(image)
-        image_aug_1 = TF.to_tensor(smart_hue_adjust(image, hue_shift_1)).to(torch.float)
-        image_aug_2 = TF.to_tensor(smart_hue_adjust(image, hue_shift_2)).to(torch.float)
+        img_aug_first, img_aug_second = img_transform(image, hue_shift_first, hue_shift_second)
 
         palette = Image.fromarray(
             np.load(self.path_prefix + self.data["palette_path"].iloc[i]).astype(
                 np.uint8
             )
         )
-        palette_aug_1 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_1)).to(
-            torch.float
-        )
-        palette_aug_2 = TF.to_tensor(smart_hue_adjust(palette, hue_shift_2)).to(
-            torch.float
-        )
+        palette_aug_first, palette_aug_second = palette_transform(palette, hue_shift_first,
+                                                                  hue_shift_second)
 
         if self.shuffle_palette:
-            palette_aug_1 = palette_aug_1[:, :, torch.randperm(6)]
-            palette_aug_2 = palette_aug_2[:, :, torch.randperm(6)]
+            palette_aug_first = palette_aug_first[:, :, torch.randperm(6)]
+            palette_aug_second = palette_aug_second[:, :, torch.randperm(6)]
 
-        return (image_aug_1, palette_aug_1), (image_aug_2, palette_aug_2)
+        return (img_aug_first, palette_aug_first), (img_aug_second, palette_aug_second)
 
     def __len__(self):
         """
