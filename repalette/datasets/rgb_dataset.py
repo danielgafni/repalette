@@ -16,7 +16,7 @@ class RGBDataset(Dataset):
     """
 
     def __init__(self, query=None):
-        if query is not None:
+        if query is None:
             engine = create_engine(f"sqlite:///{DATABASE_PATH}")
             # create a configured "Session" class
             Session = sessionmaker(bind=engine)
