@@ -4,7 +4,7 @@ import torchvision.transforms.functional as TF
 import torch
 from torchvision.transforms import Resize
 import numpy as np
-from pandas import DataFrame
+import random
 from itertools import permutations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -18,21 +18,19 @@ class PairRecolorDataset(Dataset):
     def __init__(
         self,
         multiplier: int,
-        path_prefix: str = ROOT_DIR,
+        query=None,
         resize: tuple = IMAGE_SIZE,
         shuffle_palette=True,
     ):
         """
         Dataset constructor.
         :param multiplier: an odd multiplier for color augmentation
-        :param path_prefix: full path prefix to add before relative paths in data
         :param resize: size to which the image will be resized with `torhvision.trainsforms.Resize`
         :param shuffle_palette: if to shuffle output palettes
         """
         # if multiplier % 2 == 0:
         #     raise ValueError("Multiplier must be odd.")
         self.multiplier = multiplier
-        self.path_prefix = path_prefix
         self.resize = resize
         self.shuffle_palette = shuffle_palette
 
@@ -40,14 +38,15 @@ class PairRecolorDataset(Dataset):
         self.hue_pairs = [perm for perm in permutations(hue_variants, 2)]
         self.n_pairs = len(self.hue_pairs)
 
-        engine = create_engine(f"sqlite:///{DATABASE_PATH}")
-        # create a configured "Session" class
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        self.query = session.query(RGBImage)
-
-        session.close()
+        if query is None:
+            engine = create_engine(f"sqlite:///{DATABASE_PATH}")
+            # create a configured "Session" class
+            Session = sessionmaker(bind=engine)
+            session = Session()
+            self.query = session.query(RGBImage)
+            session.close()
+        else:
+            self.query = query
 
     def __getitem__(self, index):
         """
@@ -91,6 +90,23 @@ class PairRecolorDataset(Dataset):
         :return:
         """
         return self.query.count() * self.n_pairs
+
+    def split(self, test_size=0.2, shuffle=True):
+        all_indices = list(range(1, self.query.count() + 1))
+
+        if shuffle:
+            random.shuffle(all_indices)
+
+        train_indices = all_indices[:int(len(all_indices) * (1-test_size))]
+        test_indices = all_indices[int(len(all_indices) * (1-test_size)):]
+
+        train_query = self.query.filter(RGBImage.id.in_(train_indices))
+        test_query = self.query.filter(RGBImage.id.in_(test_indices))
+
+        train = PairRecolorDataset(multiplier=self.multiplier, query=train_query)
+        test = PairRecolorDataset(multiplier=self.multiplier, query=test_query)
+
+        return train, test
 
     def shuffle(self, set_shuffle=True):
         """
