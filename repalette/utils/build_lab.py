@@ -69,7 +69,9 @@ if __name__ == "__main__":
 
     with Pool(args.num_workers) as pool:
         with tqdm(desc="Building LAB", total=len(indices)) as bar:
-            for _ in pool.imap_unordered(download_lab_image_and_palette_to_database, indices):
+            for _ in pool.imap_unordered(
+                download_lab_image_and_palette_to_database, indices
+            ):
                 bar.update(n=1)
 
     session.commit()
