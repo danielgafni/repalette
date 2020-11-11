@@ -11,7 +11,12 @@ from sqlalchemy.exc import IntegrityError
 from multiprocessing import Pool
 from PIL import Image
 
-from repalette.constants import BASE_DATA_DIR, RAW_DATA_DIR, RGB_IMAGES_DIR, DATABASE_PATH
+from repalette.constants import (
+    BASE_DATA_DIR,
+    RAW_DATA_DIR,
+    RGB_IMAGES_DIR,
+    DEFAULT_DATABASE,
+)
 from repalette.utils.models import RawImage, image_url_to_name, Base
 
 
@@ -33,9 +38,13 @@ def get_image_urls_and_palettes():
 
         for post in posts:
             image_url = post.find_all(class_="attachment-full")[0]["src"]
-            palette = [header.text for header in post.find_all("h5") if "#" in header.text]
+            palette = [
+                header.text for header in post.find_all("h5") if "#" in header.text
+            ]
 
-            if len(palette) != 6:  # this happens on "Anniversary posts" - they are duplicates anyway
+            if (
+                len(palette) != 6
+            ):  # this happens on "Anniversary posts" - they are duplicates anyway
                 skipped += 1
                 bar.desc = f"Parsing... skipped: [{skipped}]"
                 break
@@ -57,13 +66,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not os.path.exists(BASE_DATA_DIR):
-        os.mkdir(BASE_DATA_DIR)
+        os.makedirs(BASE_DATA_DIR)
     if not os.path.exists(RAW_DATA_DIR):
-        os.mkdir(RAW_DATA_DIR)
+        os.makedirs(RAW_DATA_DIR)
     if not os.path.exists(RGB_IMAGES_DIR):
-        os.mkdir(RGB_IMAGES_DIR)
+        os.makedirs(RGB_IMAGES_DIR)
 
-    engine = create_engine(f"sqlite:///{DATABASE_PATH}")
+    engine = create_engine(DEFAULT_DATABASE)
     # create a configured "Session" class
     Session = sessionmaker(bind=engine)
     Base.metadata.create_all(engine)

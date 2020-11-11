@@ -166,68 +166,6 @@ class ShuffleDataLoader(torch.utils.data.DataLoader):
         return self
 
 
-class RawDataset(Dataset):
-    """
-    Dataset of images downloaded from https://www.design-seeds.com/blog/.
-    `repalette/utils/download_data.py` must be run before using this dataset
-    """
-
-    def __init__(self):
-        engine = create_engine(f"sqlite:///{DATABASE_PATH}")
-        # create a configured "Session" class
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        self.query = session.query(RawImage)
-        self.length = self.query.count()
-
-        session.close()
-
-    def __getitem__(self, index):
-        raw_image = self.query.get(index + 1)
-
-        if not raw_image:
-            raise IndexError
-
-        image = Image.open(raw_image.path).convert("RGB")
-
-        return (image, raw_image.palette), raw_image
-
-    def __len__(self):
-        return self.length
-
-
-class RGBDataset(Dataset):
-    """
-    Dataset of RGB images.
-    `repalette/utils/build_rgb.py` must be run before using this dataset
-    """
-
-    def __init__(self):
-        engine = create_engine(f"sqlite:///{DATABASE_PATH}")
-        # create a configured "Session" class
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        self.query = session.query(RGBImage)
-        self.length = self.query.count()
-
-        session.close()
-
-    def __getitem__(self, index):
-        rgb_image = self.query.get(index + 1)
-
-        if not rgb_image:
-            raise IndexError
-
-        image = Image.open(rgb_image.path).convert("RGB")
-
-        return (image, rgb_image.palette), rgb_image
-
-    def __len__(self):
-        return self.length
-
-
 class PairRecolorDataset(Dataset):
     def __init__(
         self,

@@ -13,31 +13,6 @@ class RGBImage(Base):
     name = Column("name", String, default="")
     height = Column("height", Integer, default=0)
     width = Column("width", Integer, default=0)
-
-    # color_1_r = Column("color_1_r", Integer=0)
-    # color_1_g = Column("color_1_g", Integer=0)
-    # color_1_b = Column("color_1_b", Integer=0)
-    #
-    # color_2_r = Column("color_1_r", Integer=0)
-    # color_2_g = Column("color_1_g", Integer=0)
-    # color_2_b = Column("color_1_b", Integer=0)
-    #
-    # color_3_r = Column("color_1_r", Integer=0)
-    # color_3_g = Column("color_1_g", Integer=0)
-    # color_3_b = Column("color_1_b", Integer=0)
-    #
-    # color_4_r = Column("color_1_r", Integer=0)
-    # color_4_g = Column("color_1_g", Integer=0)
-    # color_4_b = Column("color_1_b", Integer=0)
-    #
-    # color_4_r = Column("color_1_r", Integer=0)
-    # color_4_g = Column("color_1_g", Integer=0)
-    # color_4_b = Column("color_1_b", Integer=0)
-    #
-    # color_4_r = Column("color_1_r", Integer=0)
-    # color_4_g = Column("color_1_g", Integer=0)
-    # color_4_b = Column("color_1_b", Integer=0)
-
     created_at = Column("created_at", DateTime, default=datetime.datetime.utcnow)
 
     def __init__(self, path, np_palette, url="", name="", height=0, width=0):
@@ -69,10 +44,12 @@ class RGBImage(Base):
             for c in "rgb":
                 color.append(getattr(self, f"color_{i}_{c}"))
             palette.append(color)
-        return np.array(palette).reshape(1, 6, 3)
+        return np.array(palette).reshape(1, 6, 3).astype(np.uint8)
 
 
 # add 18 columns for 6 RGB colors - don't want to do it manually :)
 for i in range(6):
     for c in "rgb":
-        setattr(RGBImage, f"color_{i}_{c}", Column(f"color_{i}_{c}", Integer, default=0))
+        setattr(
+            RGBImage, f"color_{i}_{c}", Column(f"color_{i}_{c}", Integer, default=0)
+        )
