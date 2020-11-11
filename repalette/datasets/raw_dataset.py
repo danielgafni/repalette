@@ -20,7 +20,6 @@ class RawDataset(Dataset):
         session = Session()
 
         self.query = session.query(RawImage)
-        self.length = self.query.count()
 
         session.close()
 
@@ -35,4 +34,4 @@ class RawDataset(Dataset):
         return (image, raw_image.palette), raw_image
 
     def __len__(self):
-        return self.length
+        return self.query.count()

@@ -20,7 +20,6 @@ class LABDataset(Dataset):
         session = Session()
 
         self.query = session.query(LABTensor)
-        self.length = self.query.count()
 
         self.images = [torch.load(lab_tensor.image_path) for lab_tensor in self.query]
         self.palettes = [
@@ -41,4 +40,4 @@ class LABDataset(Dataset):
         return (image, palette), lab_tensor
 
     def __len__(self):
-        return self.length
+        return self.query.count()

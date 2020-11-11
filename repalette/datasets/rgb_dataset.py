@@ -21,7 +21,6 @@ class RGBDataset(Dataset):
         session = Session()
 
         self.query = session.query(RGBImage)
-        self.length = self.query.count()
 
         session.close()
 
@@ -36,4 +35,4 @@ class RGBDataset(Dataset):
         return (image, rgb_image.palette), rgb_image
 
     def __len__(self):
-        return self.length
+        return self.query.count()
