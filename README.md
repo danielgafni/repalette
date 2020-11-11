@@ -39,7 +39,7 @@ set NODE_OPTIONS=
 # Download dataset
 ```bash
 python repalette/utils/download_data.py --num_workers 8  # adjust num_workers
-python repaletet/utils/build_data.py
+python repaletet/utils/build_rgb.py
 ```
 
 # Project structure

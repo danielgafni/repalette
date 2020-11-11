@@ -1,6 +1,5 @@
 import datetime
 from sqlalchemy import Column, Integer, String, DateTime
-import numpy as np
 
 from repalette.utils.models import Base
 
