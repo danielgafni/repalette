@@ -8,6 +8,8 @@ import random
 from itertools import permutations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql.expression import func
+from sqlalchemy.orm.query import Query
 
 from repalette.constants import ROOT_DIR, IMAGE_SIZE, DATABASE_PATH
 from repalette.utils.color import smart_hue_adjust
@@ -18,7 +20,7 @@ class PairRecolorDataset(Dataset):
     def __init__(
         self,
         multiplier: int,
-        query=None,
+        query: Query = None,
         resize: tuple = IMAGE_SIZE,
         shuffle_palette=True,
     ):
@@ -48,6 +50,8 @@ class PairRecolorDataset(Dataset):
         else:
             self.query = query
 
+        self.query_mapping = list(range(self.query.count()))  # use this for shuffling
+
     def __getitem__(self, index):
         """
         :param index: index of item to get from the dataset
@@ -58,6 +62,9 @@ class PairRecolorDataset(Dataset):
         i = (
             index // self.n_pairs
         )  # actual image index (from design-seeds-data directory)
+
+        # user query mapping
+        i = self.query_mapping[i]
 
         rgb_image = self.query[i]
 
@@ -92,31 +99,33 @@ class PairRecolorDataset(Dataset):
         return self.query.count() * self.n_pairs
 
     def split(self, test_size=0.2, shuffle=True):
-        all_indices = list(range(1, self.query.count() + 1))
+        all_ids = [item.id for item in self.query]
 
         if shuffle:
-            random.shuffle(all_indices)
+            random.shuffle(all_ids)
 
-        train_indices = all_indices[:int(len(all_indices) * (1-test_size))]
-        test_indices = all_indices[int(len(all_indices) * (1-test_size)):]
+        train_ids = all_ids[:int(len(all_ids) * (1-test_size))]
+        test_ids = all_ids[int(len(all_ids) * (1-test_size)):]
 
-        train_query = self.query.filter(RGBImage.id.in_(train_indices))
-        test_query = self.query.filter(RGBImage.id.in_(test_indices))
+        train_query = self.query.filter(RGBImage.id.in_(train_ids))
+        test_query = self.query.filter(RGBImage.id.in_(test_ids))
 
         train = PairRecolorDataset(multiplier=self.multiplier, query=train_query)
         test = PairRecolorDataset(multiplier=self.multiplier, query=test_query)
 
+        train.shuffle(shuffle)
+        test.shuffle(shuffle)
+
         return train, test
 
-    def shuffle(self, set_shuffle=True):
+    def shuffle(self, to_shuffle=True):
         """
         Shuffles data.
-        :param set_shuffle: set data to shuffled or unshuffled state
+        :param to_shuffle: if to shuffle
         """
-        if set_shuffle:
-            self.data = self.data.sample(frac=1)
-
+        if to_shuffle:
+            random.shuffle(self.query_mapping)
         else:
-            self.data = self.data.reindex(list(range(len(self.data))))
+            self.query_mapping = list(range(self.query.count()))
 
         return self
