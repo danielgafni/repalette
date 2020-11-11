@@ -6,9 +6,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 
-from repalette.constants import RGB_IMAGES_DIR, DATABASE_PATH
+from repalette.constants import RGB_IMAGES_DIR, DEFAULT_DATABASE
 from repalette.utils.models import RGBImage, Base
-from repalette.utils.data import RawDataset
+from repalette.datasets import RawDataset
 
 
 def find_edges(array, edge_size=10):
@@ -68,7 +68,10 @@ def process_image_info(image, palette):
 if __name__ == "__main__":
     raw_dataset = RawDataset()
 
-    engine = create_engine(f"sqlite:///{DATABASE_PATH}")
+    if not os.path.exists(RGB_IMAGES_DIR):
+        os.makedirs(RGB_IMAGES_DIR)
+
+    engine = create_engine(DEFAULT_DATABASE)
     # create a configured "Session" class
     Session = sessionmaker(bind=engine)
     Base.metadata.create_all(engine)
@@ -81,9 +84,14 @@ if __name__ == "__main__":
             processed_image = Image.fromarray(np_image)
             path = os.path.join(RGB_IMAGES_DIR, raw_image.name)
 
-            rgb_image = RGBImage(path=path, name=raw_image.name, url=raw_image.url,
-                                 height=raw_image.height,
-                                 width=raw_image.width, np_palette=np_palette)
+            rgb_image = RGBImage(
+                path=path,
+                name=raw_image.name,
+                url=raw_image.url,
+                height=raw_image.height,
+                width=raw_image.width,
+                np_palette=np_palette,
+            )
 
             session = Session()
             try:
