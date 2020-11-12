@@ -20,13 +20,13 @@ class RawDataset(Dataset):
             # create a configured "Session" class
             Session = sessionmaker(bind=engine)
             session = Session()
-            self.query = session.query(RawImage)
+            self.query = session.query(RawImage).all()
             session.close()
         else:
             self.query = query
 
     def __getitem__(self, index):
-        raw_image = self.query.get(index + 1)
+        raw_image = self.query[index]
 
         if not raw_image:
             raise IndexError
@@ -36,19 +36,16 @@ class RawDataset(Dataset):
         return (image, raw_image.palette), raw_image
 
     def __len__(self):
-        return self.query.count()
+        return len(self.query)
 
     def split(self, test_size=0.2, shuffle=True):
-        all_indices = list(range(1, self.query.count() + 1))
+        query = self.query
 
         if shuffle:
-            random.shuffle(all_indices)
+            random.shuffle(query)
 
-        train_indices = all_indices[:int(len(all_indices) * (1 - test_size))]
-        test_indices = all_indices[int(len(all_indices) * (1 - test_size)):]
-
-        train_query = self.query.filter(RawImage.id.in_(train_indices))
-        test_query = self.query.filter(RawImage.id.in_(test_indices))
+        train_query = query[:int(len(query) * (1 - test_size))]
+        test_query = query[int(len(query) * (1 - test_size)):]
 
         train = RawDataset(query=train_query)
         test = RawDataset(query=test_query)

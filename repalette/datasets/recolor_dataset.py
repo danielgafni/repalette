@@ -15,7 +15,6 @@ from repalette.utils.models import RawImage, RGBImage
 class RecolorDataset(Dataset):
     def __init__(
         self,
-        data: DataFrame,
         multiplier: int,
         query=None,
         resize=IMAGE_SIZE,
@@ -29,14 +28,13 @@ class RecolorDataset(Dataset):
             raise ValueError("Multiplier must be odd.")
         self.multiplier = multiplier
         self.resize = resize
-        self.data = data
 
         if query is None:
             engine = create_engine(f"sqlite:///{DATABASE_PATH}")
             # create a configured "Session" class
             Session = sessionmaker(bind=engine)
             session = Session()
-            self.query = session.query(RGBImage)
+            self.query = session.query(RGBImage).all()
             session.close()
         else:
             self.query = query
@@ -72,22 +70,16 @@ class RecolorDataset(Dataset):
         return image_aug, palette_aug
 
     def __len__(self):
-        """
-        :return:
-        """
-        return self.query.count() * self.multiplier
+        return len(self.query)
 
     def split(self, test_size=0.2, shuffle=True):
-        all_indices = list(range(1, self.query.count() + 1))
+        query = self.query * self.multiplier
 
         if shuffle:
-            random.shuffle(all_indices)
+            random.shuffle(query)
 
-        train_indices = all_indices[:int(len(all_indices) * (1 - test_size))]
-        test_indices = all_indices[int(len(all_indices) * (1 - test_size)):]
-
-        train_query = self.query.filter(RawImage.id.in_(train_indices))
-        test_query = self.query.filter(RawImage.id.in_(test_indices))
+        train_query = query[:int(len(query) * (1 - test_size))]
+        test_query = query[int(len(query) * (1 - test_size)):]
 
         train = RecolorDataset(query=train_query)
         test = RecolorDataset(query=test_query)
