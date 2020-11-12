@@ -45,12 +45,12 @@ class PairRecolorDataset(Dataset):
             # create a configured "Session" class
             Session = sessionmaker(bind=engine)
             session = Session()
-            self.query = session.query(RGBImage)
+            self.query = session.query(RGBImage).all()
             session.close()
         else:
             self.query = query
 
-        self.query_mapping = list(range(self.query.count()))  # use this for shuffling
+        self.correct_order_query = self.query
 
     def __getitem__(self, index):
         """
@@ -62,9 +62,6 @@ class PairRecolorDataset(Dataset):
         i = (
             index // self.n_pairs
         )  # actual image index (from design-seeds-data directory)
-
-        # user query mapping
-        i = self.query_mapping[i]
 
         rgb_image = self.query[i]
 
@@ -96,25 +93,19 @@ class PairRecolorDataset(Dataset):
         """
         :return:
         """
-        return self.query.count() * self.n_pairs
+        return len(self.query) * self.n_pairs
 
     def split(self, test_size=0.2, shuffle=True):
-        all_ids = [item.id for item in self.query]
+        query = self.query
 
         if shuffle:
-            random.shuffle(all_ids)
+            random.shuffle(query)
 
-        train_ids = all_ids[:int(len(all_ids) * (1-test_size))]
-        test_ids = all_ids[int(len(all_ids) * (1-test_size)):]
-
-        train_query = self.query.filter(RGBImage.id.in_(train_ids))
-        test_query = self.query.filter(RGBImage.id.in_(test_ids))
+        train_query = query[:int(len(query) * (1-test_size))]
+        test_query = query[int(len(query) * (1-test_size)):]
 
         train = PairRecolorDataset(multiplier=self.multiplier, query=train_query)
         test = PairRecolorDataset(multiplier=self.multiplier, query=test_query)
-
-        train.shuffle(shuffle)
-        test.shuffle(shuffle)
 
         return train, test
 
@@ -124,8 +115,8 @@ class PairRecolorDataset(Dataset):
         :param to_shuffle: if to shuffle
         """
         if to_shuffle:
-            random.shuffle(self.query_mapping)
+            random.shuffle(self.query)
         else:
-            self.query_mapping = list(range(self.query.count()))
+            self.query = self.correct_order_query
 
         return self

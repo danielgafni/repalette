@@ -21,7 +21,7 @@ class RGBDataset(Dataset):
             # create a configured "Session" class
             Session = sessionmaker(bind=engine)
             session = Session()
-            self.query = session.query(RGBImage)
+            self.query = session.query(RGBImage).all()
             session.close()
         else:
             self.query = query
@@ -37,19 +37,16 @@ class RGBDataset(Dataset):
         return (image, rgb_image.palette), rgb_image
 
     def __len__(self):
-        return self.query.count()
+        return len(self.query)
 
     def split(self, test_size=0.2, shuffle=True):
-        all_indices = list(range(1, self.query.count() + 1))
+        query = self.query * self.multiplier
 
         if shuffle:
-            random.shuffle(all_indices)
+            random.shuffle(query)
 
-        train_indices = all_indices[:int(len(all_indices) * (1 - test_size))]
-        test_indices = all_indices[int(len(all_indices) * (1 - test_size)):]
-
-        train_query = self.query.filter(RGBImage.id.in_(train_indices))
-        test_query = self.query.filter(RGBImage.id.in_(test_indices))
+        train_query = query[:int(len(query) * (1 - test_size))]
+        test_query = query[int(len(query) * (1 - test_size)):]
 
         train = RGBDataset(query=train_query)
         test = RGBDataset(query=test_query)
