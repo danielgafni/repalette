@@ -9,6 +9,7 @@ from repalette.model_common.blocks import (
     DeconvBlock,
     ResnetLayer,
     BasicBlock,
+    FinalConvBlock
 )
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
 from repalette.constants import DEFAULT_LR, DEFAULT_BETAS
@@ -146,7 +147,7 @@ class RecoloringDecoder(pl.LightningModule):
         self.deconv2 = DeconvBlock(256 + 256, 128)
         self.deconv3 = DeconvBlock(128 + 128 + 18, 64)
         self.deconv4 = DeconvBlock(64 + 64 + 18, 64)
-        self.final_conv = ConvBlock(64 + 1, 2, activation="none", normalize=False)
+        self.final_conv = FinalConvBlock(64 + 1, 2, activation="none")
 
     def forward(self, content_features, palette, luminance):
         c1, c2, c3, c4 = content_features

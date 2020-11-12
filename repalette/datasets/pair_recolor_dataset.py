@@ -8,12 +8,11 @@ import random
 from itertools import permutations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql.expression import func
 from sqlalchemy.orm.query import Query
 
-from repalette.constants import ROOT_DIR, IMAGE_SIZE, DATABASE_PATH
+from repalette.constants import IMAGE_SIZE, DATABASE_PATH
 from repalette.utils.color import smart_hue_adjust
-from repalette.utils.models import RawImage, RGBImage
+from repalette.utils.models import RGBImage
 
 
 class PairRecolorDataset(Dataset):
