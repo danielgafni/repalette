@@ -164,19 +164,11 @@ class RecoloringDecoder(pl.LightningModule):
             batch_size, 18, height, width
         ).to(self.device)
 
-        print(c1.shape)
-
         x = torch.cat([c1, palette_c1], dim=1)
         x = self.deconv1(x, c2.shape[-2:])
 
-        print(c2.shape)
-        print(x.shape)
-
         x = torch.cat([x, c2], dim=1)
         x = self.deconv2(x, c3.shape[-2:])
-
-        print(c3.shape)
-        print(x.shape)
 
         x = torch.cat([x, c3, palette_c3], dim=1)
         x = self.deconv3(x, c4.shape[-2:])
