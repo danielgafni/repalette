@@ -37,7 +37,12 @@ class PairRecolorDataset(Dataset):
         self.shuffle_palette = shuffle_palette
 
         hue_variants = np.linspace(-0.5, 0.5, self.multiplier)
+
         self.hue_pairs = [perm for perm in permutations(hue_variants, 2)]
+
+        if shuffle_palette:
+            random.shuffle(self.hue_pairs)
+
         self.n_pairs = len(self.hue_pairs)
 
         if query is None:
@@ -116,6 +121,7 @@ class PairRecolorDataset(Dataset):
         """
         if to_shuffle:
             random.shuffle(self.query)
+            random.shuffle(self.hue_pairs)
         else:
             self.query = self.correct_order_query
 
