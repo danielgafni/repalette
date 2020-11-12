@@ -107,15 +107,15 @@ class DeconvBlock(nn.Module):
         out_channels,
         kernel_size=3,
         activation="leaky_relu",
-        upsample=True,
     ):
         super().__init__()
-        if upsample:
-            self.model = nn.Sequential(
-                nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True),
-                ConvBlock(in_channels, out_channels, kernel_size),
-                ConvBlock(out_channels, out_channels, kernel_size),
-            )
+        self.model = nn.Sequential(
+            ConvBlock(in_channels, out_channels, kernel_size),
+            ConvBlock(out_channels, out_channels, kernel_size),
+        )
 
-    def forward(self, x):
+    def forward(self, x, size=None):
+        if size is not None:
+            upsample = nn.Upsample(size=size, mode="bilinear", align_corners=True)
+            x = upsample(x)
         return self.model(x)

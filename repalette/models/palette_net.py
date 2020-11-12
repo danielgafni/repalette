@@ -146,7 +146,7 @@ class RecoloringDecoder(pl.LightningModule):
         self.deconv2 = DeconvBlock(256 + 256, 128)
         self.deconv3 = DeconvBlock(128 + 128 + 18, 64)
         self.deconv4 = DeconvBlock(64 + 64 + 18, 64)
-        self.final_conv = FinalConvBlock(64 + 1, 2, activation="none", normalize=False)
+        self.final_conv = ConvBlock(64 + 1, 2, activation="none", normalize=False)
 
     def forward(self, content_features, palette, luminance):
         c1, c2, c3, c4 = content_features
@@ -164,17 +164,25 @@ class RecoloringDecoder(pl.LightningModule):
             batch_size, 18, height, width
         ).to(self.device)
 
+        print(c1.shape)
+
         x = torch.cat([c1, palette_c1], dim=1)
-        x = self.deconv1(x)
+        x = self.deconv1(x, c2.shape[-2:])
+
+        print(c2.shape)
+        print(x.shape)
 
         x = torch.cat([x, c2], dim=1)
-        x = self.deconv2(x)
+        x = self.deconv2(x, c3.shape[-2:])
+
+        print(c3.shape)
+        print(x.shape)
 
         x = torch.cat([x, c3, palette_c3], dim=1)
-        x = self.deconv3(x)
+        x = self.deconv3(x, c4.shape[-2:])
 
         x = torch.cat([x, c4, palette_c4], dim=1)
-        x = self.deconv4(x)
+        x = self.deconv4(x, luminance.shape[-2:])
 
         x = torch.cat([luminance, x], dim=1)
         x = self.final_conv(x)
