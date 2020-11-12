@@ -27,7 +27,7 @@ class RGBDataset(Dataset):
             self.query = query
 
     def __getitem__(self, index):
-        rgb_image = self.query.get(index + 1)
+        rgb_image = self.query[index]
 
         if not rgb_image:
             raise IndexError
@@ -40,7 +40,7 @@ class RGBDataset(Dataset):
         return len(self.query)
 
     def split(self, test_size=0.2, shuffle=True):
-        query = self.query * self.multiplier
+        query = self.query
 
         if shuffle:
             random.shuffle(query)

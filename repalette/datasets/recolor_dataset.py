@@ -73,7 +73,7 @@ class RecolorDataset(Dataset):
         return len(self.query)
 
     def split(self, test_size=0.2, shuffle=True):
-        query = self.query * self.multiplier
+        query = self.query
 
         if shuffle:
             random.shuffle(query)

@@ -7,12 +7,11 @@ import random
 from itertools import permutations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql.expression import func
 from sqlalchemy.orm.query import Query
 
 from repalette.constants import DATABASE_PATH
 from repalette.utils.color import HueAdjust
-from repalette.utils.models import RawImage, RGBImage
+from repalette.utils.models import RGBImage
 
 
 class PairRecolorDataset(Dataset):
@@ -33,7 +32,11 @@ class PairRecolorDataset(Dataset):
         self.shuffle_palette = shuffle_palette
 
         hue_variants = np.linspace(-0.5, 0.5, self.multiplier)
+
         self.hue_pairs = [perm for perm in permutations(hue_variants, 2)]
+        if shuffle_palette:
+            random.shuffle((self.hue_pairs))
+
         self.n_pairs = len(self.hue_pairs)
 
         self.transform = transform
@@ -95,6 +98,7 @@ class PairRecolorDataset(Dataset):
 
         if shuffle:
             random.shuffle(query)
+            random.shuffle(self.hue_pairs)
 
         train_query = query[:int(len(query) * (1-test_size))]
         test_query = query[int(len(query) * (1-test_size)):]
