@@ -169,9 +169,5 @@ docs/_book
 # TODO: where does this rule come from?
 test/
 
-/repalette/models/pytorch_models_checkpoints/
-notebooks/dataset.ipynb
 *.yaml
 *.0
-notebooks/dataset.ipynb
-notebooks/dataset.ipynb
