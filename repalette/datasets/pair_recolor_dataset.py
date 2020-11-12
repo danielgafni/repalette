@@ -97,7 +97,7 @@ class PairRecolorDataset(Dataset):
         """
         :return:
         """
-        return len(self.n_pairs) * self.multiplier
+        return self.n_pairs * self.multiplier
 
     def split(self, test_size=0.2, shuffle=True):
         query = self.query

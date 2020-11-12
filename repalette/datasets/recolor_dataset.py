@@ -70,7 +70,7 @@ class RecolorDataset(Dataset):
         return image_aug, palette_aug
 
     def __len__(self):
-        return len(self.query)
+        return len(self.query) * self.multiplier
 
     def split(self, test_size=0.2, shuffle=True):
         query = self.query
