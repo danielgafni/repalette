@@ -19,7 +19,7 @@ class PairRecolorDataset(Dataset):
     def __init__(
         self,
         multiplier: int,
-        query: Query = None,
+        query: list = None,
         resize: tuple = IMAGE_SIZE,
         shuffle_palette=True,
     ):
@@ -97,7 +97,7 @@ class PairRecolorDataset(Dataset):
         """
         :return:
         """
-        return len(self.query) * self.n_pairs * self.multiplier
+        return len(self.query) * self.n_pairs
 
     def split(self, test_size=0.2, shuffle=True):
         query = self.query
