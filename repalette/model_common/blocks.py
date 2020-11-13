@@ -8,13 +8,13 @@ class ResnetLayer(nn.Module):
     """Resnet layer consisting of several residual blocks."""
 
     def __init__(
-        self,
-        block,
-        in_channels,
-        out_channels,
-        n_blocks=2,
-        activation="leaky_relu",
-        stride=2,
+            self,
+            block,
+            in_channels,
+            out_channels,
+            n_blocks=2,
+            activation="leaky_relu",
+            stride=2,
     ):
         super().__init__()
         blocks = []
@@ -70,25 +70,21 @@ class ConvBlock(nn.Module):
     """Convolution layer followed by instance normalization and activation function."""
 
     def __init__(
-        self,
-        in_channels,
-        out_channels,
-        kernel_size=3,
-        stride=1,
-        padding=1,
-        dilation=1,
-        activation="leaky_relu",
-        normalize=True
+            self,
+            in_channels,
+            out_channels,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+            dilation=1,
+            activation="leaky_relu"
     ):
         super().__init__()
 
         self.conv = nn.Conv2d(
             in_channels, out_channels, kernel_size, stride, padding, dilation
         )
-        if normalize:
-            self.norm = nn.InstanceNorm2d(out_channels)
-        else:
-            self.norm = nn.Identity()
+        self.norm = nn.InstanceNorm2d(out_channels)
         self.activ = activation_shortcuts[activation]
 
     def forward(self, x):
@@ -102,11 +98,11 @@ class DeconvBlock(nn.Module):
     """Upsampling block consisting of 2 convolutional blocks."""
 
     def __init__(
-        self,
-        in_channels,
-        out_channels,
-        kernel_size=3,
-        activation="leaky_relu",
+            self,
+            in_channels,
+            out_channels,
+            kernel_size=3,
+            activation="leaky_relu",
     ):
         super().__init__()
         self.model = nn.Sequential(

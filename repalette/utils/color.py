@@ -4,13 +4,16 @@ from skimage.color import rgb2lab, lab2rgb
 from PIL import Image
 import numpy as np
 
+from repalette.utils.normalize import normalize_lab_img
 
-class HueAdjust:
+
+class FullTransform:
     """Wrapping class for user `torchvision.transforms` transformation followed by hue adjustment
     and casting to torch tensor. Returns a list of images, same size as `hue_shifts`."""
 
-    def __init__(self, transform=None):
+    def __init__(self, transform=None, normalize=True):
         self.transform = transform
+        self.normalize = normalize
 
     def __call__(self, img, *hue_shifts):
         """
@@ -28,6 +31,8 @@ class HueAdjust:
         for hue_shift in hue_shifts:
             aug_img = smart_hue_adjust(img, hue_shift)
             aug_img = TF.to_tensor(aug_img).to(torch.float)
+            if self.normalize:
+                aug_img = normalize_lab_img(aug_img)
             augmented_imgs.append(aug_img)
         return augmented_imgs
 

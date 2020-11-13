@@ -10,26 +10,29 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.query import Query
 
 from repalette.constants import DATABASE_PATH
-from repalette.utils.color import HueAdjust
+from repalette.utils.color import FullTransform
 from repalette.utils.models import RGBImage
 
 
 class PairRecolorDataset(Dataset):
     def __init__(
-        self,
-        multiplier: int = 16,
-        query: Query = None,
-        shuffle_palette=True,
-        transform=None
+            self,
+            multiplier: int = 16,
+            query: Query = None,
+            shuffle_palette=True,
+            transform=None,
+            normalize=True
     ):
         """
         Dataset constructor.
         :param multiplier: an odd multiplier for color augmentation
         :param shuffle_palette: if to shuffle output palettes
         :param transform: optional transform to be applied on a sample
+        :param normalize: if to normalize LAB images to be in [-1, 1] range
         """
         self.multiplier = multiplier
         self.shuffle_palette = shuffle_palette
+        self.normalize = normalize
 
         hue_variants = np.linspace(-0.5, 0.5, self.multiplier)
 
@@ -66,13 +69,13 @@ class PairRecolorDataset(Dataset):
         pair_index = index % self.n_pairs
         hue_shift_first, hue_shift_second = self.hue_pairs[pair_index]
         i = (
-            index // self.n_pairs
+                index // self.n_pairs
         )  # actual image index (from design-seeds-data directory)
 
         rgb_image = self.query[i]
 
-        img_transform = HueAdjust(self.transform)
-        palette_transform = HueAdjust()
+        img_transform = FullTransform(self.transform, normalize=self.normalize)
+        palette_transform = FullTransform(normalize=self.normalize)
 
         image = Image.open(rgb_image.path)
         img_aug_first, img_aug_second = img_transform(image, hue_shift_first, hue_shift_second)
@@ -100,8 +103,8 @@ class PairRecolorDataset(Dataset):
             random.shuffle(query)
             random.shuffle(self.hue_pairs)
 
-        train_query = query[:int(len(query) * (1-test_size))]
-        test_query = query[int(len(query) * (1-test_size)):]
+        train_query = query[:int(len(query) * (1 - test_size))]
+        test_query = query[int(len(query) * (1 - test_size)):]
 
         train = PairRecolorDataset(multiplier=self.multiplier, query=train_query)
         test = PairRecolorDataset(multiplier=self.multiplier, query=test_query)
