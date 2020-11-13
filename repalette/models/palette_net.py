@@ -9,7 +9,6 @@ from repalette.model_common.blocks import (
     DeconvBlock,
     ResnetLayer,
     BasicBlock,
-    FinalConvBlock
 )
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
 from repalette.constants import DEFAULT_LR, DEFAULT_BETAS
@@ -147,7 +146,7 @@ class RecoloringDecoder(pl.LightningModule):
         self.deconv2 = DeconvBlock(256 + 256, 128)
         self.deconv3 = DeconvBlock(128 + 128 + 18, 64)
         self.deconv4 = DeconvBlock(64 + 64 + 18, 64)
-        self.final_conv = ConvBlock(64 + 1, 2, activation="none", normalize=False)
+        self.final_conv = ConvBlock(64 + 1, 2, activation="none")
 
     def forward(self, content_features, palette, luminance):
         c1, c2, c3, c4 = content_features
@@ -166,16 +165,16 @@ class RecoloringDecoder(pl.LightningModule):
         ).to(self.device)
 
         x = torch.cat([c1, palette_c1], dim=1)
-        x = self.deconv1(x)
+        x = self.deconv1(x, c2.shape[-2:])
 
         x = torch.cat([x, c2], dim=1)
-        x = self.deconv2(x)
+        x = self.deconv2(x, c3.shape[-2:])
 
         x = torch.cat([x, c3, palette_c3], dim=1)
-        x = self.deconv3(x)
+        x = self.deconv3(x, c4.shape[-2:])
 
         x = torch.cat([x, c4, palette_c4], dim=1)
-        x = self.deconv4(x)
+        x = self.deconv4(x, luminance.shape[-2:])
 
         x = torch.cat([luminance, x], dim=1)
         x = self.final_conv(x)

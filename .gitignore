@@ -11,6 +11,9 @@ data-raw/*
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
+# Lightning logs
+*.ckpt
+
 # IPython
 profile_default/
 ipython_config.py
