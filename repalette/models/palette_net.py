@@ -11,6 +11,7 @@ from repalette.model_common.blocks import (
     BasicBlock,
 )
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
+from repalette.utils.normalize import restore_lab_img
 from repalette.constants import DEFAULT_LR, DEFAULT_BETAS
 
 
@@ -69,6 +70,10 @@ class PaletteNet(pl.LightningModule):
         )
         self.val_dataloader().shuffle(False)
 
+        original_img = restore_lab_img(original_img)
+        target_img = restore_lab_img(target_img)
+        target_palette = restore_lab_img(target_palette)
+
         original_img = original_img.to(self.device)
         target_img = target_img.to(self.device)
         target_palette = target_palette.to(self.device)
@@ -77,7 +82,7 @@ class PaletteNet(pl.LightningModule):
             target_palette = nn.Flatten()(target_palette)
             recolored_img = self(original_img, target_palette)
 
-        original_grid = lab_batch_to_rgb_image_grid(original_img[0].unsqueeze(0))
+        original_grid = lab_batch_to_rgb_image_grid(original_img)
         target_grid = lab_batch_to_rgb_image_grid(target_img)
 
         target_palette_img = target_palette.view(-1, 3, 6, 1)
@@ -146,7 +151,7 @@ class RecoloringDecoder(pl.LightningModule):
         self.deconv2 = DeconvBlock(256 + 256, 128)
         self.deconv3 = DeconvBlock(128 + 128 + 18, 64)
         self.deconv4 = DeconvBlock(64 + 64 + 18, 64)
-        self.final_conv = ConvBlock(64 + 1, 2, activation="none")
+        self.final_conv = ConvBlock(64 + 1, 2, activation="tanh")
 
     def forward(self, content_features, palette, luminance):
         c1, c2, c3, c4 = content_features

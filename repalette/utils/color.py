@@ -9,7 +9,8 @@ from repalette.utils.normalize import normalize_lab_img
 
 class FullTransform:
     """Wrapping class for user `torchvision.transforms` transformation followed by hue adjustment
-    and casting to torch tensor. Returns a list of images, same size as `hue_shifts`."""
+    and casting to torch tensor. Returns a list of images, same size as `hue_shifts`.
+    """
 
     def __init__(self, transform=None, normalize=True):
         self.transform = transform
