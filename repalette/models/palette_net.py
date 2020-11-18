@@ -70,6 +70,8 @@ class PaletteNet(pl.LightningModule):
         )
         self.val_dataloader().shuffle(False)
 
+        original_img_normalized = original_img.clone().to(self.device)
+
         original_img = restore_lab_img(original_img)
         target_img = restore_lab_img(target_img)
         target_palette = restore_lab_img(target_palette)
@@ -90,7 +92,8 @@ class PaletteNet(pl.LightningModule):
             target_palette_img, pad_value=1.0, padding=1
         )
 
-        recolored_img_with_luminance = torch.cat((original_img[:, 0:1, :, :], recolored_img), dim=1)
+        recolored_img_with_luminance = torch.cat((original_img_normalized[:, 0:1, :, :], recolored_img), dim=1)
+        recolored_img_with_luminance = restore_lab_img(recolored_img_with_luminance)
         recolored_grid = lab_batch_to_rgb_image_grid(recolored_img_with_luminance)
 
         self.logger.experiment.add_image(
