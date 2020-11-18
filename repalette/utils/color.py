@@ -4,7 +4,7 @@ from skimage.color import rgb2lab, lab2rgb
 from PIL import Image
 import numpy as np
 
-from repalette.utils.normalize import normalize_lab_img
+from repalette.utils.normalize import Scaler
 
 
 class FullTransform:
@@ -14,7 +14,7 @@ class FullTransform:
 
     def __init__(self, transform=None, normalize=True):
         self.transform = transform
-        self.normalize = normalize
+        self.scaler = Scaler() if normalize else None
 
     def __call__(self, img, *hue_shifts):
         """
@@ -32,8 +32,8 @@ class FullTransform:
         for hue_shift in hue_shifts:
             aug_img = smart_hue_adjust(img, hue_shift)
             aug_img = TF.to_tensor(aug_img).to(torch.float)
-            if self.normalize:
-                aug_img = normalize_lab_img(aug_img)
+            if self.scaler:
+                aug_img = self.scaler.transform(aug_img)
             augmented_imgs.append(aug_img)
         return augmented_imgs
 

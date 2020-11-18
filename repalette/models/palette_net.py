@@ -11,7 +11,7 @@ from repalette.model_common.blocks import (
     BasicBlock,
 )
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
-from repalette.utils.normalize import restore_lab_img
+from repalette.utils.normalize import Scaler
 from repalette.constants import DEFAULT_LR, DEFAULT_BETAS
 
 
@@ -38,6 +38,7 @@ class PaletteNet(pl.LightningModule):
         self.test_dataloader_ = test_dataloader
         self.loss_fn = nn.MSELoss()
         self.hparams = hparams
+        self.scaler = Scaler()
 
     def forward(self, img, palette):
         luminance = img[:, 0:1, :, :]
@@ -70,9 +71,9 @@ class PaletteNet(pl.LightningModule):
         )
         self.val_dataloader().shuffle(False)
 
-        original_img = restore_lab_img(original_img)
-        target_img = restore_lab_img(target_img)
-        target_palette = restore_lab_img(target_palette)
+        original_img = self.scaler.inverse_transform(original_img)
+        target_img = self.scaler.inverse_transform(target_img)
+        target_palette = self.scaler.inverse_transform(target_palette)
 
         original_img = original_img.to(self.device)
         target_img = target_img.to(self.device)

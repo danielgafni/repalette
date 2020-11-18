@@ -1,4 +1,5 @@
 import os
+import torch
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))[:-9]
 BASE_DATA_DIR = os.path.join(ROOT_DIR, "data")
@@ -20,3 +21,5 @@ DEFAULT_BETAS = (0.5, 0.999)
 L_RANGE = (0, 100)
 A_RANGE = (-86.185, 98.254)
 B_RANGE = (-107.863, 94.482)
+# LAB_RANGE = torch.as_tensor([L_RANGE, A_RANGE, B_RANGE], dtype=torch.float)
+# NORM_RANGE = torch.as_tensor([[-1, 1]] * 3, dtype=torch.float)

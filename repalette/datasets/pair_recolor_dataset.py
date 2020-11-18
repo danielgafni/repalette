@@ -80,19 +80,10 @@ class PairRecolorDataset(Dataset):
         image = Image.open(rgb_image.path)
         palette = Image.fromarray(rgb_image.palette)
 
+
         img_aug_first, img_aug_second = self.img_transform(image, hue_shift_first, hue_shift_second)
         palette_aug_first, palette_aug_second = self.palette_transform(palette, hue_shift_first,
                                                                        hue_shift_second)
-
-        # img_aug_first = TF.to_tensor(smart_hue_adjust(image, hue_shift_first)).to(torch.float)
-        # img_aug_second = TF.to_tensor(smart_hue_adjust(image, hue_shift_second)).to(torch.float)
-        #
-        # palette_aug_first = TF.to_tensor(smart_hue_adjust(palette, hue_shift_first)).to(
-        #     torch.float
-        # )
-        # palette_aug_second = TF.to_tensor(smart_hue_adjust(palette, hue_shift_second)).to(
-        #     torch.float
-        # )
 
         if self.shuffle_palette:
             palette_aug_first = palette_aug_first[:, :, torch.randperm(6)]
