@@ -1,6 +1,7 @@
 import torch
 from torchvision.utils import make_grid
 from skimage.color import lab2rgb
+import warnings
 
 
 def lab_batch_to_rgb_image_grid(lab_batch, padding=2, pad_value=0):
@@ -11,16 +12,16 @@ def lab_batch_to_rgb_image_grid(lab_batch, padding=2, pad_value=0):
     :param pad_value: padding value
     :return: torch.Tensor, images stacked with `torchvision.utils.make_grid`.
     """
-    grid = make_grid(
-        torch.stack(
-            [
-                torch.from_numpy(lab2rgb(lab_image.permute(1, 2, 0).cpu())).permute(
-                    2, 0, 1
-                )
-                for lab_image in lab_batch
-            ]
-        ),
-        padding=padding,
-        pad_value=pad_value,
-    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        grid = make_grid(
+            torch.stack(
+                [
+                    torch.from_numpy(lab2rgb(lab_image.cpu()))
+                    for lab_image in lab_batch.permute(0, 2, 3, 1)
+                ]
+            ).permute(0, 3, 1, 2),
+            padding=padding,
+            pad_value=pad_value,
+        )
     return grid

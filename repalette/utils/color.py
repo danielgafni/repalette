@@ -4,22 +4,38 @@ from skimage.color import rgb2lab, lab2rgb
 from PIL import Image
 import numpy as np
 
+from repalette.utils.normalize import Scaler
 
-class PairHueAdjust:
+
+class FullTransform:
     """Wrapping class for user `torchvision.transforms` transformation followed by hue adjustment
-    and casting to torch tensor. Returns a pair of augmented images."""
+    and casting to torch tensor. Returns a list of images, same size as `hue_shifts`.
+    """
 
-    def __init__(self, transform=None):
+    def __init__(self, transform=None, normalize=True):
         self.transform = transform
+        self.scaler = Scaler() if normalize else None
 
-    def __call__(self, img, hue_shift_first, hue_shift_second: float):
+    def __call__(self, img, *hue_shifts):
+        """
+        Shifts hue for an image, preserving its luminance
+        :param img: Input image
+        :type img: a `PIL` image
+        :param hue_shifts: hue shifts in [-0.5, 0.5] interval
+        :type hue_shifts: float
+        :return: hue-shifted images with original luminance
+        :rtype: list[np.float32]
+        """
         if self.transform is not None:
             img = self.transform(img)
-        img_first = smart_hue_adjust(img, hue_shift_first)
-        img_second = smart_hue_adjust(img, hue_shift_second)
-        img_first = TF.to_tensor(img_first).to(torch.float)
-        img_second = TF.to_tensor(img_second).to(torch.float)
-        return img_first, img_second
+        augmented_imgs = []
+        for hue_shift in hue_shifts:
+            aug_img = smart_hue_adjust(img, hue_shift)
+            aug_img = TF.to_tensor(aug_img).to(torch.float)
+            if self.scaler:
+                aug_img = self.scaler.transform(aug_img)
+            augmented_imgs.append(aug_img)
+        return augmented_imgs
 
 
 def smart_hue_adjust(img, hue_shift: float, lab=True) -> np.float32:

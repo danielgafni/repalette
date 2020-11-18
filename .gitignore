@@ -12,6 +12,7 @@ data-raw/*
 */.ipynb_checkpoints/*
 
 # Lightning logs
+notebooks/lightning_logs/*
 *.ckpt
 
 # IPython
