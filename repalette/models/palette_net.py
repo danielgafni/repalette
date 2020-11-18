@@ -64,7 +64,49 @@ class PaletteNet(pl.LightningModule):
         return loss
 
     def training_epoch_end(self, outputs):
-        pass
+        # OPTIONAL
+        (original_img, _), (target_img, target_palette) = next(
+            iter(self.train_dataloader())
+        )
+
+        original_img = original_img.to(self.device)
+        target_img = target_img.to(self.device)
+        target_palette = target_palette.to(self.device)
+
+        with torch.no_grad():
+            _target_palette = nn.Flatten()(target_palette)
+            recolored_img = self(original_img, _target_palette)
+
+        original_luminance = original_img.clone()[:, 0:1, ...].to(self.device)
+        recolored_img_with_luminance = torch.cat((original_luminance, recolored_img), dim=1)
+
+        self.scaler.to(self.device)
+
+        original_img = self.scaler.inverse_transform(original_img)
+        target_img = self.scaler.inverse_transform(target_img)
+        target_palette = self.scaler.inverse_transform(target_palette)
+        recolored_img_with_luminance = self.scaler.inverse_transform(recolored_img_with_luminance)
+
+        original_grid = lab_batch_to_rgb_image_grid(original_img)
+        target_grid = lab_batch_to_rgb_image_grid(target_img)
+
+        target_palette_img = target_palette.view(-1, 3, 6, 1)
+        target_palette_grid = lab_batch_to_rgb_image_grid(
+            target_palette_img, pad_value=1.0, padding=1
+        )
+
+        recolored_grid = lab_batch_to_rgb_image_grid(recolored_img_with_luminance)
+
+        self.logger.experiment.add_image(
+            "Train/Original", original_grid, self.current_epoch
+        )
+        self.logger.experiment.add_image("Train/Target", target_grid, self.current_epoch)
+        self.logger.experiment.add_image(
+            "Train/Target_Palette", target_palette_grid, self.current_epoch
+        )
+        self.logger.experiment.add_image(
+            "Train/Recolored", recolored_grid, self.current_epoch
+        )
 
     def validation_epoch_end(self, outputs):
         # OPTIONAL
