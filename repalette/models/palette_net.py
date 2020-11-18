@@ -63,6 +63,9 @@ class PaletteNet(pl.LightningModule):
         self.log("Val/Loss", loss, prog_bar=True)
         return loss
 
+    def training_epoch_end(self, outputs):
+        pass
+
     def validation_epoch_end(self, outputs):
         # OPTIONAL
         self.val_dataloader().shuffle(True)
@@ -71,17 +74,25 @@ class PaletteNet(pl.LightningModule):
         )
         self.val_dataloader().shuffle(False)
 
-        original_img = self.scaler.inverse_transform(original_img)
-        target_img = self.scaler.inverse_transform(target_img)
-        target_palette = self.scaler.inverse_transform(target_palette)
-
         original_img = original_img.to(self.device)
         target_img = target_img.to(self.device)
         target_palette = target_palette.to(self.device)
 
         with torch.no_grad():
-            target_palette = nn.Flatten()(target_palette)
-            recolored_img = self(original_img, target_palette)
+            _target_palette = nn.Flatten()(target_palette)
+            recolored_img = self(original_img, _target_palette)
+
+        self.logger.experiment.add_graph(self, (original_img, _target_palette))
+
+        original_luminance = original_img.clone()[:, 0:1, ...].to(self.device)
+        recolored_img_with_luminance = torch.cat((original_luminance, recolored_img), dim=1)
+
+        self.scaler.to(self.device)
+
+        original_img = self.scaler.inverse_transform(original_img)
+        target_img = self.scaler.inverse_transform(target_img)
+        target_palette = self.scaler.inverse_transform(target_palette)
+        recolored_img_with_luminance = self.scaler.inverse_transform(recolored_img_with_luminance)
 
         original_grid = lab_batch_to_rgb_image_grid(original_img)
         target_grid = lab_batch_to_rgb_image_grid(target_img)
@@ -91,7 +102,6 @@ class PaletteNet(pl.LightningModule):
             target_palette_img, pad_value=1.0, padding=1
         )
 
-        recolored_img_with_luminance = torch.cat((original_img[:, 0:1, :, :], recolored_img), dim=1)
         recolored_grid = lab_batch_to_rgb_image_grid(recolored_img_with_luminance)
 
         self.logger.experiment.add_image(
@@ -104,8 +114,6 @@ class PaletteNet(pl.LightningModule):
         self.logger.experiment.add_image(
             "Val/Recolored", recolored_grid, self.current_epoch
         )
-
-        self.logger.experiment.add_graph(self, (original_img, target_palette))
 
     def train_dataloader(self):
         self.train_dataloader_.shuffle(True)  # train dataloader should be shuffled!

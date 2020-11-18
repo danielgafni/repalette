@@ -12,6 +12,10 @@ class Scaler:
         if new_range is None:
             self.new_range = torch.as_tensor([[-1, 1]] * 3, dtype=torch.float)
 
+    def to(self, device: torch.device = torch.device("cpu")):
+        self.old_range = self.old_range.to(device)
+        self.new_range = self.new_range.to(device)
+
     def transform(self, img: torch.Tensor):
         """
         Scales image into bounds, determined by `new_range` parameter.
