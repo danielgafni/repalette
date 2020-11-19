@@ -1,6 +1,6 @@
 import torchvision.transforms.functional as TF
 import torch
-from skimage.color import rgb2lab, lab2rgb
+from skimage.color import rgb2lab, lab2rgb, rgb2hsv, hsv2rgb
 from PIL import Image
 import numpy as np
 
@@ -80,3 +80,21 @@ def smart_hue_adjust(img, hue_shift: float, lab=True) -> np.float32:
     img_augmented = (lab2rgb(img_shifted_LAB) * 255.0).astype(int)
 
     return img_augmented
+
+
+def sort_palette(palette):
+    """
+    Sorts palette by hue
+    Parameters
+    ----------
+    palette
+        numpy array of shape [1, :, 3]. Must be an RGB image.
+    Returns
+        sorted palette of shape [1. :, 3]
+    -------
+
+    """
+    palette_hsv = rgb2hsv(palette)
+    sort_args = np.argsort(palette_hsv[..., 0], axis=1).flatten()
+    palette_sorted = hsv2rgb(palette_hsv[:, sort_args, :])
+    return palette_sorted

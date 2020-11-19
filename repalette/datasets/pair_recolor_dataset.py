@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.query import Query
 
 from repalette.constants import IMAGE_SIZE, DATABASE_PATH
-from repalette.utils.color import FullTransform
+from repalette.utils.color import FullTransform, sort_palette
 from repalette.utils.models import RGBImage
 
 
@@ -19,7 +19,8 @@ class PairRecolorDataset(Dataset):
             self,
             multiplier: int = 16,
             query: Query = None,
-            shuffle_palette=True,
+            shuffle_palette=False,
+            sort=True,
             transform=None,
             normalize=True
     ):
@@ -27,11 +28,17 @@ class PairRecolorDataset(Dataset):
         Dataset constructor.
         :param multiplier: an odd multiplier for color augmentation
         :param shuffle_palette: if to shuffle output palettes
+        :param sort: if to sort output palettes by hue
         :param transform: optional transform to be applied on a sample
         :param normalize: if to normalize LAB images to be in [-1, 1] range
         """
+        if sort_palette and shuffle_palette:
+            raise ValueError("Don't sort and shuffle the palette at the same time!")
+
+
         self.multiplier = multiplier
         self.shuffle_palette = shuffle_palette
+        self.sort = sort
 
         hue_variants = np.linspace(-0.5, 0.5, self.multiplier)
 
@@ -78,6 +85,11 @@ class PairRecolorDataset(Dataset):
         rgb_image = self.query[i]
 
         image = Image.open(rgb_image.path)
+        palette = rgb_image.palette
+
+        if self.sort:
+            palette = sort_palette(palette)
+
         palette = Image.fromarray(rgb_image.palette)
 
 
