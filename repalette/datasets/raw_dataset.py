@@ -44,8 +44,8 @@ class RawDataset(Dataset):
         if shuffle:
             random.shuffle(query)
 
-        train_query = query[:int(len(query) * (1 - test_size))]
-        test_query = query[int(len(query) * (1 - test_size)):]
+        train_query = query[: int(len(query) * (1 - test_size))]
+        test_query = query[int(len(query) * (1 - test_size)) :]
 
         train = RawDataset(query=train_query)
         test = RawDataset(query=test_query)

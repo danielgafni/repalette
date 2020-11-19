@@ -78,12 +78,19 @@ class ConvBlock(nn.Module):
         padding=1,
         dilation=1,
         activation="leaky_relu",
-        normalize=True
+        normalize=True,
+        padding_mode="zeros",
     ):
         super().__init__()
 
         self.conv = nn.Conv2d(
-            in_channels, out_channels, kernel_size, stride, padding, dilation
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride,
+            padding,
+            dilation,
+            padding_mode=padding_mode,
         )
         if normalize:
             self.norm = nn.InstanceNorm2d(out_channels)
@@ -102,11 +109,11 @@ class DeconvBlock(nn.Module):
     """Upsampling block consisting of 2 convolutional blocks."""
 
     def __init__(
-            self,
-            in_channels,
-            out_channels,
-            kernel_size=3,
-            activation="leaky_relu",
+        self,
+        in_channels,
+        out_channels,
+        kernel_size=3,
+        activation="leaky_relu",
     ):
         super().__init__()
         self.model = nn.Sequential(

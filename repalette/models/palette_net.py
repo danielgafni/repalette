@@ -17,11 +17,11 @@ from repalette.constants import DEFAULT_LR, DEFAULT_BETAS
 
 class PaletteNet(pl.LightningModule):
     def __init__(
-            self,
-            train_dataloader,
-            val_dataloader=None,
-            test_dataloader=None,
-            hparams=None,
+        self,
+        train_dataloader,
+        val_dataloader=None,
+        test_dataloader=None,
+        hparams=None,
     ):
         super().__init__()
         if hparams is None:
@@ -78,14 +78,18 @@ class PaletteNet(pl.LightningModule):
             recolored_img = self(original_img, _target_palette)
 
         original_luminance = original_img.clone()[:, 0:1, ...].to(self.device)
-        recolored_img_with_luminance = torch.cat((original_luminance, recolored_img), dim=1)
+        recolored_img_with_luminance = torch.cat(
+            (original_luminance, recolored_img), dim=1
+        )
 
         self.scaler.to(self.device)
 
         original_img = self.scaler.inverse_transform(original_img)
         target_img = self.scaler.inverse_transform(target_img)
         target_palette = self.scaler.inverse_transform(target_palette)
-        recolored_img_with_luminance = self.scaler.inverse_transform(recolored_img_with_luminance)
+        recolored_img_with_luminance = self.scaler.inverse_transform(
+            recolored_img_with_luminance
+        )
 
         original_grid = lab_batch_to_rgb_image_grid(original_img)
         target_grid = lab_batch_to_rgb_image_grid(target_img)
@@ -100,7 +104,9 @@ class PaletteNet(pl.LightningModule):
         self.logger.experiment.add_image(
             "Train/Original", original_grid, self.current_epoch
         )
-        self.logger.experiment.add_image("Train/Target", target_grid, self.current_epoch)
+        self.logger.experiment.add_image(
+            "Train/Target", target_grid, self.current_epoch
+        )
         self.logger.experiment.add_image(
             "Train/Target_Palette", target_palette_grid, self.current_epoch
         )
@@ -127,14 +133,18 @@ class PaletteNet(pl.LightningModule):
         self.logger.experiment.add_graph(self, (original_img, _target_palette))
 
         original_luminance = original_img.clone()[:, 0:1, ...].to(self.device)
-        recolored_img_with_luminance = torch.cat((original_luminance, recolored_img), dim=1)
+        recolored_img_with_luminance = torch.cat(
+            (original_luminance, recolored_img), dim=1
+        )
 
         self.scaler.to(self.device)
 
         original_img = self.scaler.inverse_transform(original_img)
         target_img = self.scaler.inverse_transform(target_img)
         target_palette = self.scaler.inverse_transform(target_palette)
-        recolored_img_with_luminance = self.scaler.inverse_transform(recolored_img_with_luminance)
+        recolored_img_with_luminance = self.scaler.inverse_transform(
+            recolored_img_with_luminance
+        )
 
         original_grid = lab_batch_to_rgb_image_grid(original_img)
         target_grid = lab_batch_to_rgb_image_grid(target_img)
@@ -178,7 +188,7 @@ class FeatureExtractor(pl.LightningModule):
     def __init__(self):
         super().__init__()
 
-        self.conv = ConvBlock(3, 64)
+        self.conv = ConvBlock(3, 64, padding_mode="replicate")
         self.pool = nn.MaxPool2d(2)
 
         self.res1 = ResnetLayer(BasicBlock, 64, 128)
