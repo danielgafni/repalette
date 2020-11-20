@@ -12,7 +12,7 @@ from repalette.model_common.blocks import (
 )
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
 from repalette.utils.normalize import Scaler
-from repalette.constants import DEFAULT_LR, DEFAULT_BETAS
+from repalette.constants import DEFAULT_LR, DEFAULT_BETA_1, DEFAULT_BETA_2
 
 
 class PaletteNet(pl.LightningModule):
@@ -27,7 +27,8 @@ class PaletteNet(pl.LightningModule):
         if hparams is None:
             hparams = {
                 "lr": DEFAULT_LR,
-                "betas": DEFAULT_BETAS,
+                "beta_1": DEFAULT_BETA_2,
+                "beta_2": DEFAULT_BETA_1,
                 "batch_size": 32,
                 "num_workers": 8,
             }
@@ -60,7 +61,6 @@ class PaletteNet(pl.LightningModule):
         target_palette = nn.Flatten()(target_palette)
         recolored_img = self(original_img, target_palette)
         loss = self.loss_fn(recolored_img, target_img[:, 1:, :, :])
-        self.log("Val/Loss", loss, prog_bar=True)
         return loss
 
     def training_epoch_end(self, outputs):
@@ -167,6 +167,10 @@ class PaletteNet(pl.LightningModule):
             "Val/Recolored", recolored_grid, self.current_epoch
         )
 
+        mean_val_loss = torch.stack(outputs).mean()
+        self.log("Val/Loss", mean_val_loss)
+        # self.logger.log_hyperparams(self.hparams)
+
     def train_dataloader(self):
         self.train_dataloader_.shuffle(True)  # train dataloader should be shuffled!
         return self.train_dataloader_
@@ -179,7 +183,7 @@ class PaletteNet(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(
-            self.parameters(), lr=self.hparams["lr"], betas=self.hparams["betas"]
+            self.parameters(), lr=self.hparams["lr"], betas=(self.hparams["beta_1"], self.hparams["beta_2"])
         )
         return optimizer
 

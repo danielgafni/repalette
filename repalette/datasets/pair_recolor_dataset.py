@@ -7,10 +7,10 @@ import random
 from itertools import permutations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.query import Query
 
 from repalette.constants import IMAGE_SIZE, DATABASE_PATH
-from repalette.utils.color import FullTransform, sort_palette
+from repalette.utils.color import FullTransform
+from repalette.utils.color import  sort_palette as sort_palette_by_hue
 from repalette.utils.models import RGBImage
 
 
@@ -18,26 +18,28 @@ class PairRecolorDataset(Dataset):
     def __init__(
         self,
         multiplier: int = 16,
-        query: Query = None,
+        query: list = None,
+        shuffle=True,
         shuffle_palette=False,
-        sort=True,
+        sort_palette=True,
         transform=None,
         normalize=True,
     ):
         """
         Dataset constructor.
         :param multiplier: an odd multiplier for color augmentation
+        :param shuffle: if to shuffle images and color augmentation
         :param shuffle_palette: if to shuffle output palettes
-        :param sort: if to sort output palettes by hue
+        :param sort_palette: if to sort output palettes by hue
         :param transform: optional transform to be applied on a sample
         :param normalize: if to normalize LAB images to be in [-1, 1] range
         """
-        if sort and shuffle_palette:
+        if sort_palette and shuffle_palette:
             raise ValueError("Don't sort and shuffle the palette at the same time!")
 
         self.multiplier = multiplier
         self.shuffle_palette = shuffle_palette
-        self.sort = sort
+        self.sort_palette = sort_palette
         self.normalize = normalize
         self.transform = transform
 
@@ -57,9 +59,6 @@ class PairRecolorDataset(Dataset):
         self.img_transform = FullTransform(transform, normalize=normalize)
         self.palette_transform = FullTransform(normalize=normalize)
 
-        if shuffle_palette:
-            random.shuffle(self.hue_pairs)
-
         self.n_pairs = len(self.hue_pairs)
 
         if query is None:
@@ -73,6 +72,9 @@ class PairRecolorDataset(Dataset):
             self.query = query
 
         self.correct_order_query = self.query
+
+        if shuffle:
+            random.shuffle(self.hue_pairs)
 
     def __getitem__(self, index):
         """
@@ -90,8 +92,8 @@ class PairRecolorDataset(Dataset):
         image = Image.open(rgb_image.path)
         palette = rgb_image.palette
 
-        if self.sort:
-            palette = sort_palette(palette)
+        if self.sort_palette:
+            palette = sort_palette_by_hue(palette)
 
         palette = Image.fromarray(palette)
 
@@ -126,7 +128,8 @@ class PairRecolorDataset(Dataset):
         train = PairRecolorDataset(
             multiplier=self.multiplier,
             query=train_query,
-            sort=self.sort,
+            shuffle=shuffle,
+            sort_palette=self.sort_palette,
             normalize=self.normalize,
             transform=self.transform,
             shuffle_palette=self.shuffle_palette,
@@ -134,7 +137,8 @@ class PairRecolorDataset(Dataset):
         test = PairRecolorDataset(
             multiplier=self.multiplier,
             query=test_query,
-            sort=self.sort,
+            shuffle=shuffle,
+            sort_palette=self.sort_palette,
             normalize=self.normalize,
             transform=self.transform,
             shuffle_palette=self.shuffle_palette,
