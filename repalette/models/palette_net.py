@@ -12,22 +12,23 @@ from repalette.model_common.blocks import (
 )
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
 from repalette.utils.normalize import Scaler
-from repalette.constants import DEFAULT_LR, DEFAULT_BETAS
+from repalette.constants import DEFAULT_LR, DEFAULT_BETA_1, DEFAULT_BETA_2
 
 
 class PaletteNet(pl.LightningModule):
     def __init__(
-            self,
-            train_dataloader,
-            val_dataloader=None,
-            test_dataloader=None,
-            hparams=None,
+        self,
+        train_dataloader,
+        val_dataloader=None,
+        test_dataloader=None,
+        hparams=None,
     ):
         super().__init__()
         if hparams is None:
             hparams = {
                 "lr": DEFAULT_LR,
-                "betas": DEFAULT_BETAS,
+                "beta_1": DEFAULT_BETA_2,
+                "beta_2": DEFAULT_BETA_1,
                 "batch_size": 32,
                 "num_workers": 8,
             }
@@ -60,7 +61,6 @@ class PaletteNet(pl.LightningModule):
         target_palette = nn.Flatten()(target_palette)
         recolored_img = self(original_img, target_palette)
         loss = self.loss_fn(recolored_img, target_img[:, 1:, :, :])
-        self.log("Val/Loss", loss, prog_bar=True)
         return loss
 
     def training_epoch_end(self, outputs):
@@ -78,14 +78,18 @@ class PaletteNet(pl.LightningModule):
             recolored_img = self(original_img, _target_palette)
 
         original_luminance = original_img.clone()[:, 0:1, ...].to(self.device)
-        recolored_img_with_luminance = torch.cat((original_luminance, recolored_img), dim=1)
+        recolored_img_with_luminance = torch.cat(
+            (original_luminance, recolored_img), dim=1
+        )
 
         self.scaler.to(self.device)
 
         original_img = self.scaler.inverse_transform(original_img)
         target_img = self.scaler.inverse_transform(target_img)
         target_palette = self.scaler.inverse_transform(target_palette)
-        recolored_img_with_luminance = self.scaler.inverse_transform(recolored_img_with_luminance)
+        recolored_img_with_luminance = self.scaler.inverse_transform(
+            recolored_img_with_luminance
+        )
 
         original_grid = lab_batch_to_rgb_image_grid(original_img)
         target_grid = lab_batch_to_rgb_image_grid(target_img)
@@ -100,7 +104,9 @@ class PaletteNet(pl.LightningModule):
         self.logger.experiment.add_image(
             "Train/Original", original_grid, self.current_epoch
         )
-        self.logger.experiment.add_image("Train/Target", target_grid, self.current_epoch)
+        self.logger.experiment.add_image(
+            "Train/Target", target_grid, self.current_epoch
+        )
         self.logger.experiment.add_image(
             "Train/Target_Palette", target_palette_grid, self.current_epoch
         )
@@ -127,14 +133,18 @@ class PaletteNet(pl.LightningModule):
         self.logger.experiment.add_graph(self, (original_img, _target_palette))
 
         original_luminance = original_img.clone()[:, 0:1, ...].to(self.device)
-        recolored_img_with_luminance = torch.cat((original_luminance, recolored_img), dim=1)
+        recolored_img_with_luminance = torch.cat(
+            (original_luminance, recolored_img), dim=1
+        )
 
         self.scaler.to(self.device)
 
         original_img = self.scaler.inverse_transform(original_img)
         target_img = self.scaler.inverse_transform(target_img)
         target_palette = self.scaler.inverse_transform(target_palette)
-        recolored_img_with_luminance = self.scaler.inverse_transform(recolored_img_with_luminance)
+        recolored_img_with_luminance = self.scaler.inverse_transform(
+            recolored_img_with_luminance
+        )
 
         original_grid = lab_batch_to_rgb_image_grid(original_img)
         target_grid = lab_batch_to_rgb_image_grid(target_img)
@@ -157,6 +167,10 @@ class PaletteNet(pl.LightningModule):
             "Val/Recolored", recolored_grid, self.current_epoch
         )
 
+        mean_val_loss = torch.stack(outputs).mean()
+        self.log("Val/Loss", mean_val_loss)
+        # self.logger.log_hyperparams(self.hparams)
+
     def train_dataloader(self):
         self.train_dataloader_.shuffle(True)  # train dataloader should be shuffled!
         return self.train_dataloader_
@@ -169,7 +183,7 @@ class PaletteNet(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(
-            self.parameters(), lr=self.hparams["lr"], betas=self.hparams["betas"]
+            self.parameters(), lr=self.hparams["lr"], betas=(self.hparams["beta_1"], self.hparams["beta_2"])
         )
         return optimizer
 
@@ -178,7 +192,7 @@ class FeatureExtractor(pl.LightningModule):
     def __init__(self):
         super().__init__()
 
-        self.conv = ConvBlock(3, 64)
+        self.conv = ConvBlock(3, 64, padding_mode="replicate")
         self.pool = nn.MaxPool2d(2)
 
         self.res1 = ResnetLayer(BasicBlock, 64, 128)

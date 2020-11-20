@@ -90,11 +90,11 @@ def sort_palette(palette):
     palette
         numpy array of shape [1, :, 3]. Must be an RGB image.
     Returns
-        sorted palette of shape [1. :, 3]
+        sorted palette of shape [1. :, 3] and dtype np.uint8
     -------
 
     """
     palette_hsv = rgb2hsv(palette)
     sort_args = np.argsort(palette_hsv[..., 0], axis=1).flatten()
-    palette_sorted = hsv2rgb(palette_hsv[:, sort_args, :])
+    palette_sorted = (hsv2rgb(palette_hsv[:, sort_args, :]) * 255).astype("uint8")
     return palette_sorted

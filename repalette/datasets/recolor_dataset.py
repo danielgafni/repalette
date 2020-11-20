@@ -63,8 +63,7 @@ class RecolorDataset(Dataset):
             smart_hue_adjust(image, hue_shift),
         )
 
-        palette = Image.fromarray(rgb_image.palette
-                                  )
+        palette = Image.fromarray(rgb_image.palette)
         palette_aug = TF.to_tensor(smart_hue_adjust(palette, hue_shift))
 
         return image_aug, palette_aug
@@ -78,8 +77,8 @@ class RecolorDataset(Dataset):
         if shuffle:
             random.shuffle(query)
 
-        train_query = query[:int(len(query) * (1 - test_size))]
-        test_query = query[int(len(query) * (1 - test_size)):]
+        train_query = query[: int(len(query) * (1 - test_size))]
+        test_query = query[int(len(query) * (1 - test_size)) :]
 
         train = RecolorDataset(query=train_query)
         test = RecolorDataset(query=test_query)

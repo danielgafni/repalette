@@ -8,7 +8,9 @@ class Scaler:
         self.old_range = old_range
         self.new_range = new_range
         if old_range is None:
-            self.old_range = torch.as_tensor([L_RANGE, A_RANGE, B_RANGE], dtype=torch.float)
+            self.old_range = torch.as_tensor(
+                [L_RANGE, A_RANGE, B_RANGE], dtype=torch.float
+            )
         if new_range is None:
             self.new_range = torch.as_tensor([[-1, 1]] * 3, dtype=torch.float)
 
