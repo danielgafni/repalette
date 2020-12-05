@@ -20,9 +20,9 @@ class TripletRecolorDataset(PairRecolorDataset):
 
         original_palette = Image.fromarray(original_palette)
 
-        original_image_aug = self.img_transform(original_image, 0)
-        original_palette_aug = self.palette_transform(original_palette, 0)
+        [original_image_aug] = self.img_transform(original_image, 0)
+        [original_palette_aug] = self.palette_transform(original_palette, 0)
 
-        original_pair = (original_image_aug, original_palette_aug)
+        original_pair = original_image_aug, original_palette_aug
 
         return source_pair, target_pair, original_pair
