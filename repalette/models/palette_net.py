@@ -139,7 +139,7 @@ class PaletteNet(pl.LightningModule):
     def validation_epoch_end(self, outputs):
         # OPTIONAL
         self.val_dataloader().shuffle(True)
-        (original_img, _), (target_img, target_palette) = next(
+        (original_img, _), (target_img, target_palette), _ = next(
             iter(self.val_dataloader())
         )
         self.val_dataloader().shuffle(False)
