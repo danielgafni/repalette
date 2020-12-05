@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
-
+import wandb
 from collections import OrderedDict
 
 from repalette.model_common.blocks import (
@@ -53,7 +53,7 @@ class PaletteNet(pl.LightningModule):
         target_palette = nn.Flatten()(target_palette)
         recolored_img = self(original_img, target_palette)
         loss = self.loss_fn(recolored_img, target_img[:, 1:, :, :])
-        self.log("Train/Loss", loss, prog_bar=True)
+        self.logger.log_metrics({"Train/Loss": loss, "step": self.global_step})
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -101,18 +101,12 @@ class PaletteNet(pl.LightningModule):
 
         recolored_grid = lab_batch_to_rgb_image_grid(recolored_img_with_luminance)
 
-        self.logger.experiment.add_image(
-            "Train/Original", original_grid, self.current_epoch
-        )
-        self.logger.experiment.add_image(
-            "Train/Target", target_grid, self.current_epoch
-        )
-        self.logger.experiment.add_image(
-            "Train/Target_Palette", target_palette_grid, self.current_epoch
-        )
-        self.logger.experiment.add_image(
-            "Train/Recolored", recolored_grid, self.current_epoch
-        )
+        self.logger.experiment.log({"train_images": [
+            wandb.Image(original_grid, caption="Train/Original"),
+            wandb.Image(target_grid, caption="Train/Target"),
+            wandb.Image(target_palette_grid, caption="Train/Target_Palette"),
+            wandb.Image(recolored_grid, caption="Train/Recolored")
+        ]})
 
     def validation_epoch_end(self, outputs):
         # OPTIONAL
@@ -156,19 +150,15 @@ class PaletteNet(pl.LightningModule):
 
         recolored_grid = lab_batch_to_rgb_image_grid(recolored_img_with_luminance)
 
-        self.logger.experiment.add_image(
-            "Val/Original", original_grid, self.current_epoch
-        )
-        self.logger.experiment.add_image("Val/Target", target_grid, self.current_epoch)
-        self.logger.experiment.add_image(
-            "Val/Target_Palette", target_palette_grid, self.current_epoch
-        )
-        self.logger.experiment.add_image(
-            "Val/Recolored", recolored_grid, self.current_epoch
-        )
+        self.logger.experiment.log({"val_images": [
+            wandb.Image(original_grid, caption="Val/Original"),
+            wandb.Image(target_grid, caption="Val/Target"),
+            wandb.Image(target_palette_grid, caption="Val/Target_Palette"),
+            wandb.Image(recolored_grid, caption="Val/Recolored")
+        ]})
 
         mean_val_loss = torch.stack(outputs).mean()
-        self.log("Val/Loss", mean_val_loss)
+        self.logger.log_metrics({"Val/Loss": mean_val_loss, "epoch": self.current_epoch})
         # self.logger.log_hyperparams(self.hparams)
 
     def train_dataloader(self):
