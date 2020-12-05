@@ -108,7 +108,3 @@ if __name__ == "__main__":
             bar.desc = f"Processing... Dropped: [{dropped}]"
 
         bar.update(n=1)
-
-
-if __name__ == "__main__":
-    main()

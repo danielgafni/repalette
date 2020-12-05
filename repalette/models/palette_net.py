@@ -130,7 +130,7 @@ class PaletteNet(pl.LightningModule):
             _target_palette = nn.Flatten()(target_palette)
             recolored_img = self(original_img, _target_palette)
 
-        self.logger.experiment.add_graph(self, (original_img, _target_palette))
+        # self.logger.experiment.add_graph(self, (original_img, _target_palette))
 
         original_luminance = original_img.clone()[:, 0:1, ...].to(self.device)
         recolored_img_with_luminance = torch.cat(
