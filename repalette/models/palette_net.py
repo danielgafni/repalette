@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
+import itertools as it
 
 from collections import OrderedDict
 
@@ -12,34 +13,35 @@ from repalette.model_common.blocks import (
 )
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
 from repalette.utils.normalize import Scaler
-from repalette.constants import DEFAULT_LR, DEFAULT_BETA_1, DEFAULT_BETA_2
+from repalette.constants import DEFAULT_LR, DEFAULT_BETA_1, DEFAULT_BETA_2, DEFAULT_LAMBDA_MSE_LOSS
 
 
 class PaletteNet(pl.LightningModule):
     def __init__(
-        self,
-        train_dataloader,
-        val_dataloader=None,
-        test_dataloader=None,
-        hparams=None,
+            self,
+            train_dataloader,
+            val_dataloader=None,
+            test_dataloader=None,
+            hparams=None,
     ):
         super().__init__()
         if hparams is None:
             hparams = {
                 "lr": DEFAULT_LR,
-                "beta_1": DEFAULT_BETA_2,
-                "beta_2": DEFAULT_BETA_1,
-                "batch_size": 32,
-                "num_workers": 8,
+                "beta_1": DEFAULT_BETA_1,
+                "beta_2": DEFAULT_BETA_2,
+                "lambda_mse_loss": DEFAULT_LAMBDA_MSE_LOSS
             }
         self.feature_extractor = FeatureExtractor()
         self.recoloring_decoder = RecoloringDecoder()
+        self.discriminator = Discriminator()
         self.train_dataloader_ = train_dataloader
         self.val_dataloader_ = val_dataloader
         self.test_dataloader_ = test_dataloader
         self.loss_fn = nn.MSELoss()
         self.hparams = hparams
         self.scaler = Scaler()
+        self.regime = "mse"
 
     def forward(self, img, palette):
         luminance = img[:, 0:1, :, :]
@@ -47,17 +49,37 @@ class PaletteNet(pl.LightningModule):
         recolored_img_ab = self.recoloring_decoder(content_features, palette, luminance)
         return recolored_img_ab
 
-    def training_step(self, batch, batch_idx):
-        (original_img, _), (target_img, target_palette) = batch
-        # print(original_img.shape)
+    def training_step(self, batch, batch_idx, optimizer_idx):
+        (source_img, _), (target_img, target_palette), (original_img, original_palette) = batch
         target_palette = nn.Flatten()(target_palette)
-        recolored_img = self(original_img, target_palette)
-        loss = self.loss_fn(recolored_img, target_img[:, 1:, :, :])
-        self.log("Train/Loss", loss, prog_bar=True)
-        return loss
+        original_palette = nn.Flatten()(original_palette)
+        luminance = source_img[:, 0:1, :, :]
+        source_content_features = self.feature_extractor(source_img)
+        recolored_img_ab = self.recoloring_decoder(source_content_features, target_palette,
+                                                   luminance)
+        mse_loss = self.loss_fn(recolored_img_ab, target_img[:, 1:, :, :])
+        self.log("Train/Loss", mse_loss, prog_bar=True)
+        if self.regime == "mse":
+            return mse_loss
+
+        recolored_img = torch.stack([luminance, recolored_img_ab], dim=-3)
+        if optimizer_idx == 0:
+            real_prob_tt = self.discriminator(recolored_img, target_palette)
+            adv_loss = -torch.mean(torch.log(real_prob_tt))
+            return mse_loss * self.hparams["lambda_mse_loss"] + adv_loss
+        if optimizer_idx == 1:
+            fake_prob_tt = 1 - self.discriminator(recolored_img, target_palette)
+            fake_prob_to = 1 - self.discriminator(recolored_img, original_palette)
+            fake_prob_ot = 1 - self.discriminator(original_img, target_palette)
+            real_prob_oo = self.discriminator(original_img, original_palette)
+            adv_loss = -(torch.mean(torch.log(fake_prob_tt))
+                         + torch.mean(torch.log(fake_prob_to))
+                         + torch.mean(torch.log(fake_prob_ot))
+                         + torch.mean(torch.log(real_prob_oo)))
+            return adv_loss
 
     def validation_step(self, batch, batch_idx):
-        (original_img, _), (target_img, target_palette) = batch
+        (original_img, _), (target_img, target_palette), _ = batch
         target_palette = nn.Flatten()(target_palette)
         recolored_img = self(original_img, target_palette)
         loss = self.loss_fn(recolored_img, target_img[:, 1:, :, :])
@@ -65,7 +87,7 @@ class PaletteNet(pl.LightningModule):
 
     def training_epoch_end(self, outputs):
         # OPTIONAL
-        (original_img, _), (target_img, target_palette) = next(
+        (original_img, _), (target_img, target_palette), _ = next(
             iter(self.train_dataloader())
         )
 
@@ -182,12 +204,24 @@ class PaletteNet(pl.LightningModule):
         return self.test_dataloader_
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(
-            self.parameters(),
-            lr=self.hparams["lr"],
-            betas=(self.hparams["beta_1"], self.hparams["beta_2"]),
+        params_mse = it.chain(self.feature_extractor.parameters(),
+                              self.recoloring_decoder.parameters())
+        optimizer_mse = torch.optim.Adam(
+            params_mse, lr=self.hparams["lr"],
+            betas=(self.hparams["beta_1"], self.hparams["beta_2"])
         )
-        return optimizer
+        optimizer_G = torch.optim.Adam(
+            self.recoloring_decoder.parameters(), lr=self.hparams["lr"],
+            betas=(self.hparams["beta_1"], self.hparams["beta_2"])
+        )
+        optimizer_D = torch.optim.Adam(
+            self.discriminator.parameters(), lr=self.hparams["lr"],
+            betas=(self.hparams["beta_1"], self.hparams["beta_2"])
+        )
+        if self.regime == "mse":
+            return optimizer_mse
+        else:
+            return [optimizer_G, optimizer_D]
 
 
 class FeatureExtractor(pl.LightningModule):
@@ -225,16 +259,16 @@ class RecoloringDecoder(pl.LightningModule):
 
         batch_size, _, height, width = c1.size()
         palette_c1 = palette[:, :, None, None] * torch.ones(
-            batch_size, 18, height, width
-        ).to(self.device)
+            batch_size, 18, height, width, device=self.device
+        )
         batch_size, _, height, width = c3.size()
         palette_c3 = palette[:, :, None, None] * torch.ones(
-            batch_size, 18, height, width
-        ).to(self.device)
+            batch_size, 18, height, width, device=self.device
+        )
         batch_size, _, height, width = c4.size()
         palette_c4 = palette[:, :, None, None] * torch.ones(
-            batch_size, 18, height, width
-        ).to(self.device)
+            batch_size, 18, height, width, device=self.device
+        )
 
         x = torch.cat([c1, palette_c1], dim=1)
         x = self.deconv1(x, c2.shape[-2:])
@@ -255,22 +289,25 @@ class RecoloringDecoder(pl.LightningModule):
 
 
 class Discriminator(pl.LightningModule):
-    def __init__(self, in_channels):
+    def __init__(self):
         super().__init__()
 
         self.model = nn.Sequential(
-            OrderedDict(
-                [
-                    ("conv1", ConvBlock(in_channels, 64, kernel_size=4, stride=2)),
-                    ("conv2", ConvBlock(64, 64, kernel_size=4, stride=2)),
-                    ("conv3", ConvBlock(64, 64, kernel_size=4, stride=2)),
-                    ("conv4", ConvBlock(64, 64, kernel_size=4, stride=2)),
-                    ("flatten", nn.Flatten()),
-                    ("fc", nn.Linear(25600, 1)),
-                    ("activ", nn.Sigmoid()),
-                ]
-            )
+            OrderedDict([
+                ("conv1", ConvBlock(3 + 18, 64, kernel_size=4, stride=2)),
+                ("conv2", ConvBlock(64, 128, kernel_size=4, stride=2)),
+                ("conv3", ConvBlock(128, 256, kernel_size=4, stride=2)),
+                ("conv4", ConvBlock(256, 512, kernel_size=4, stride=2)),
+                ("fc", nn.AdaptiveAvgPool2d(1)),
+                ("flatten", nn.Flatten()),
+                ("activ", nn.Sigmoid()),
+            ])
         )
 
-    def forward(self, x):
+    def forward(self, x, palette):
+        batch_size, _, height, width = x.size()
+        palette_dupl = palette[:, :, None, None] * torch.ones(
+            batch_size, 18, height, width, device=self.device
+        )
+        x = torch.cat([x, palette_dupl], dim=1)
         return self.model(x)
