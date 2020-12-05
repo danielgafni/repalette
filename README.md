@@ -1,12 +1,7 @@
 # Installation
 ```bash
-conda create -n repalette --file conda-requirements -c conda-forge -c pytorch-nightly
-conda activate repalette
-python setup.py sdist
-python setup.py bdist_wheel
-python setup.py build
-python setup.py install
-python setup.py develop
+poetry install
+poetry run python setup.py install develop
 ```
 
 ## Install Jupyter Lab plugins
