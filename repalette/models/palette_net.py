@@ -183,7 +183,9 @@ class PaletteNet(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(
-            self.parameters(), lr=self.hparams["lr"], betas=(self.hparams["beta_1"], self.hparams["beta_2"])
+            self.parameters(),
+            lr=self.hparams["lr"],
+            betas=(self.hparams["beta_1"], self.hparams["beta_2"]),
         )
         return optimizer
 

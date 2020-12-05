@@ -2,7 +2,6 @@ from torch.utils.data import Dataset
 from PIL import Image
 import torchvision.transforms.functional as TF
 from torchvision.transforms import Resize
-from pandas import DataFrame
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import random

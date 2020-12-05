@@ -1,6 +1,8 @@
 # Installation
 ```bash
 poetry install
+poetry build
+./prepare_setup
 poetry run python setup.py install develop
 ```
 
