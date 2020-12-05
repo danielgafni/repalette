@@ -3,6 +3,14 @@
 poetry install
 ```
 
+## Configure
+```bash
+cp ./.env.example ./.env
+```
+Place the aws access key file (can be downloaded from "My Security Credentials") here:
+
+`repalette/data/aws/access_key.csv`
+
 ## Install Jupyter Lab plugins
 
 ```bash
