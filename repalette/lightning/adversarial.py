@@ -2,29 +2,38 @@ import torch
 import torch.nn as nn
 import pytorch_lightning as pl
 
-from repalette.models.palette_net import Discriminator
+from repalette.models import Discriminator, PaletteNet
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
 from repalette.utils.normalize import Scaler
-from repalette.constants import DEFAULT_LR, DEFAULT_BETA_1, DEFAULT_BETA_2, DEFAULT_LAMBDA_MSE_LOSS
+from repalette.constants import (
+    DEFAULT_LR,
+    DEFAULT_BETA_1,
+    DEFAULT_BETA_2,
+    DEFAULT_LAMBDA_MSE_LOSS,
+)
 
 
 class AdversarialTrainer(pl.LightningModule):
     """
     Wrapper for adversarial training of PaletteNet.
     """
+
     def __init__(
-            self,
-            palette_net,
-            train_dataloader,
-            val_dataloader=None,
-            test_dataloader=None,
-            lr=DEFAULT_LR,
-            betas=(DEFAULT_BETA_1, DEFAULT_BETA_2),
-            lambda_mse_loss=DEFAULT_LAMBDA_MSE_LOSS,
+        self,
+        palette_net: PaletteNet,
+        train_dataloader,
+        discriminator: Discriminator = None,
+        val_dataloader=None,
+        test_dataloader=None,
+        lr=DEFAULT_LR,
+        betas=(DEFAULT_BETA_1, DEFAULT_BETA_2),
+        lambda_mse_loss=DEFAULT_LAMBDA_MSE_LOSS,
     ):
         super().__init__()
         self.generator = palette_net
-        self.discriminator = Discriminator()
+        self.discriminator = (
+            discriminator if discriminator is not None else Discriminator()
+        )
 
         self.train_dataloader_ = train_dataloader
         self.val_dataloader_ = val_dataloader
@@ -42,7 +51,11 @@ class AdversarialTrainer(pl.LightningModule):
         return self.generator(img, palette)
 
     def training_step(self, batch, batch_idx, optimizer_idx):
-        (source_img, _), (target_img, target_palette), (original_img, original_palette) = batch
+        (
+            (source_img, _),
+            (target_img, target_palette),
+            (original_img, original_palette),
+        ) = batch
         target_palette = nn.Flatten()(target_palette)
         original_palette = nn.Flatten()(original_palette)
         luminance = source_img[:, 0:1, :, :]
@@ -59,10 +72,12 @@ class AdversarialTrainer(pl.LightningModule):
             fake_prob_to = 1 - self.discriminator(recolored_img, original_palette)
             fake_prob_ot = 1 - self.discriminator(original_img, target_palette)
             real_prob_oo = self.discriminator(original_img, original_palette)
-            adv_loss = -(torch.mean(torch.log(fake_prob_tt))
-                         + torch.mean(torch.log(fake_prob_to))
-                         + torch.mean(torch.log(fake_prob_ot))
-                         + torch.mean(torch.log(real_prob_oo)))
+            adv_loss = -(
+                torch.mean(torch.log(fake_prob_tt))
+                + torch.mean(torch.log(fake_prob_to))
+                + torch.mean(torch.log(fake_prob_ot))
+                + torch.mean(torch.log(real_prob_oo))
+            )
             return adv_loss
 
     def validation_step(self, batch, batch_idx):
@@ -192,11 +207,13 @@ class AdversarialTrainer(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer_G = torch.optim.Adam(
-            self.generator.recoloring_decoder.parameters(), lr=self.hparams["lr"],
-            betas=(self.hparams["beta_1"], self.hparams["beta_2"])
+            self.generator.recoloring_decoder.parameters(),
+            lr=self.hparams["lr"],
+            betas=(self.hparams["beta_1"], self.hparams["beta_2"]),
         )
         optimizer_D = torch.optim.Adam(
-            self.discriminator.parameters(), lr=self.hparams["lr"],
-            betas=(self.hparams["beta_1"], self.hparams["beta_2"])
+            self.discriminator.parameters(),
+            lr=self.hparams["lr"],
+            betas=(self.hparams["beta_1"], self.hparams["beta_2"]),
         )
         return [optimizer_G, optimizer_D]

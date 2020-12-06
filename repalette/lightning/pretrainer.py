@@ -12,13 +12,14 @@ class PreTrainer(pl.LightningModule):
     """
     Wrapper for pre-training of PaletteNet.
     """
+
     def __init__(
-            self,
-            train_dataloader,
-            val_dataloader=None,
-            test_dataloader=None,
-            lr=DEFAULT_LR,
-            betas=(DEFAULT_BETA_1, DEFAULT_BETA_2),
+        self,
+        train_dataloader,
+        val_dataloader=None,
+        test_dataloader=None,
+        lr=DEFAULT_LR,
+        betas=(DEFAULT_BETA_1, DEFAULT_BETA_2),
     ):
         super().__init__()
 
@@ -172,7 +173,8 @@ class PreTrainer(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(
-            self.parameters(), lr=self.hparams["lr"],
-            betas=(self.hparams["beta_1"], self.hparams["beta_2"])
+            self.parameters(),
+            lr=self.hparams["lr"],
+            betas=(self.hparams["beta_1"], self.hparams["beta_2"]),
         )
         return optimizer
