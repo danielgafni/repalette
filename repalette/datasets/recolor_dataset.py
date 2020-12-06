@@ -16,17 +16,29 @@ class RecolorDataset(Dataset):
         self,
         multiplier: int,
         query=None,
-        resize=IMAGE_SIZE,
+        shuffle=True,
+        shuffle_palette=False,
+        sort_palette=True,
+        transform=None,
+        normalize=True,
     ):
         """
         Dataset constructor.
         :param multiplier: an odd multiplier for color augmentation
-        :param resize: size to which the image will be resized with `torhvision.trainsforms.Resize`
+        :param shuffle: if to shuffle images and color augmentation
+        :param shuffle_palette: if to shuffle output palettes
+        :param sort_palette: if to sort output palettes by hue
+        :param transform: optional transform to be applied on a sample
+        :param normalize: if to normalize LAB images to be in [-1, 1] range
         """
-        if multiplier % 2 == 0:
-            raise ValueError("Multiplier must be odd.")
+        if sort_palette and shuffle_palette:
+            raise ValueError("Don't sort and shuffle the palette at the same time!")
+
         self.multiplier = multiplier
-        self.resize = resize
+        self.shuffle_palette = shuffle_palette
+        self.sort_palette = sort_palette
+        self.normalize = normalize
+        self.transform = transform
 
         if query is None:
             engine = create_engine(f"sqlite:///{DATABASE_PATH}")

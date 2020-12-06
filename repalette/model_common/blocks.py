@@ -1,4 +1,3 @@
-# import torch
 import torch.nn as nn
 
 from repalette.model_common.activations import activation_shortcuts
@@ -17,8 +16,7 @@ class ResnetLayer(nn.Module):
         stride=2,
     ):
         super().__init__()
-        blocks = []
-        blocks.append(block(in_channels, out_channels, activation, stride))
+        blocks = [block(in_channels, out_channels, activation, stride)]
         for _ in range(1, n_blocks):
             blocks.append(block(out_channels, out_channels, activation))
 

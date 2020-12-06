@@ -125,7 +125,7 @@ class PairRecolorDataset(Dataset):
         train_query = query[: int(len(query) * (1 - test_size))]
         test_query = query[int(len(query) * (1 - test_size)) :]
 
-        train = PairRecolorDataset(
+        train = self.__class__(
             multiplier=self.multiplier,
             query=train_query,
             shuffle=shuffle,
@@ -134,7 +134,7 @@ class PairRecolorDataset(Dataset):
             transform=self.transform,
             shuffle_palette=self.shuffle_palette,
         )
-        test = PairRecolorDataset(
+        test = self.__class__(
             multiplier=self.multiplier,
             query=test_query,
             shuffle=shuffle,
