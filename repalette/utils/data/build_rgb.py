@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 
 from repalette.constants import RGB_IMAGES_DIR, DEFAULT_DATABASE
-from repalette.utils.models import RGBImage, Base
+from repalette.db import RGBImage, Base
 from repalette.datasets import RawDataset
 
 

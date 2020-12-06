@@ -6,7 +6,7 @@ import numpy as np
 import random
 
 from repalette.constants import DATABASE_PATH
-from repalette.utils.models import RGBImage
+from repalette.db import RGBImage
 
 
 class RGBDataset(Dataset):

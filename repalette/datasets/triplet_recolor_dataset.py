@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image
 
 from repalette.datasets.pair_recolor_dataset import PairRecolorDataset
-from repalette.utils.color import sort_palette as sort_palette_by_hue
+from repalette.utils.transforms import sort_palette as sort_palette_by_hue
 
 
 class TripletRecolorDataset(PairRecolorDataset):

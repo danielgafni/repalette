@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 import random
 
 from repalette.constants import DATABASE_PATH
-from repalette.utils.models import RawImage
+from repalette.db import RawImage
 
 
 class RawDataset(Dataset):

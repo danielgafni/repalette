@@ -17,7 +17,7 @@ from repalette.constants import (
     RGB_IMAGES_DIR,
     DEFAULT_DATABASE,
 )
-from repalette.utils.models import RawImage, image_url_to_name, Base
+from repalette.db import RawImage, image_url_to_name, Base
 
 
 DESIGN_SEEDS_PAGES_ROOT = r"https://www.design-seeds.com/blog/page/"

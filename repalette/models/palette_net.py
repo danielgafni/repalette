@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from repalette.model_common.blocks import (
+from repalette.models.nn import (
     ConvBlock,
     DeconvBlock,
     ResnetLayer,

@@ -9,9 +9,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from repalette.constants import IMAGE_SIZE, DATABASE_PATH
-from repalette.utils.color import FullTransform
-from repalette.utils.color import sort_palette as sort_palette_by_hue
-from repalette.utils.models import RGBImage
+from repalette.utils.transforms import FullTransform, sort_palette as sort_palette_by_hue
+from repalette.db import RGBImage
 
 
 class PairRecolorDataset(Dataset):

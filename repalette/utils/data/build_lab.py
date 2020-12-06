@@ -9,7 +9,7 @@ from multiprocessing import Pool
 from tqdm import tqdm
 
 from repalette.datasets import RGBDataset
-from repalette.utils.models import LABTensor, Base
+from repalette.db import LABTensor, Base
 from repalette.constants import LAB_IMAGES_DIR, LAB_PALETTES_DIR, DEFAULT_DATABASE
 
 
