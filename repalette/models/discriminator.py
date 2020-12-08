@@ -3,7 +3,7 @@ from collections import OrderedDict
 import torch
 from torch import nn as nn
 
-from repalette.model_common import ConvBlock
+from repalette.models.nn import ConvBlock
 
 
 class Discriminator(nn.Module):

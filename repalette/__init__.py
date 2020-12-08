@@ -1,1 +1,1 @@
-from .model_common import activations
+from .models.nn import activations

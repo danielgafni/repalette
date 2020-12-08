@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 
 from repalette.models.palette_net import PaletteNet
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
-from repalette.utils.normalize import Scaler
+from repalette.utils.transforms import Scaler
 from repalette.constants import DEFAULT_LR, DEFAULT_BETA_1, DEFAULT_BETA_2
 
 

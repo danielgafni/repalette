@@ -6,9 +6,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import random
 
-from repalette.constants import ROOT_DIR, IMAGE_SIZE, DATABASE_PATH
-from repalette.utils.color import smart_hue_adjust
-from repalette.utils.models import RawImage, RGBImage
+from repalette.constants import DATABASE_PATH
+from repalette.utils.transforms import smart_hue_adjust
+from repalette.db import RGBImage
 
 
 class RecolorDataset(Dataset):

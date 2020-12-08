@@ -1,4 +1,0 @@
-#!/bin/bash
-tar -zxvf ./dist/*.tar.gz --no-anchored setup.py
-mv ./repalette-*/setup.py setup.py
-rm -r ./repalette-*
