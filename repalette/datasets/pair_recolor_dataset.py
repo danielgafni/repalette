@@ -8,12 +8,12 @@ from itertools import permutations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from repalette.constants import IMAGE_SIZE, DATABASE_PATH
+from repalette.constants import IMAGE_SIZE, RGB_DATABASE_PATH
 from repalette.utils.transforms import (
     FullTransform,
     sort_palette as sort_palette_by_hue,
 )
-from repalette.db import RGBImage
+from repalette.db.rgb import RGBImage
 
 
 class PairRecolorDataset(Dataset):
@@ -64,7 +64,7 @@ class PairRecolorDataset(Dataset):
         self.n_pairs = len(self.hue_pairs)
 
         if query is None:
-            engine = create_engine(f"sqlite:///{DATABASE_PATH}")
+            engine = create_engine(f"sqlite:///{RGB_DATABASE_PATH}")
             # create a configured "Session" class
             Session = sessionmaker(bind=engine)
             session = Session()

@@ -1,2 +1,2 @@
-from .adversarial import AdversarialTrainer
-from .pretrainer import PreTrainer
+from .adversarial import AdversarialTask
+from .pretrain import PreTrainTask

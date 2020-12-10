@@ -6,14 +6,14 @@ from repalette.models import Discriminator, PaletteNet
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
 from repalette.utils.transforms import Scaler
 from repalette.constants import (
-    DEFAULT_LR,
-    DEFAULT_BETA_1,
-    DEFAULT_BETA_2,
-    DEFAULT_LAMBDA_MSE_LOSS,
+    DEFAULT_ADVERSARIAL_LR,
+    DEFAULT_ADVERSARIAL_BETA_1,
+    DEFAULT_ADVERSARIAL_BETA_2,
+    DEFAULT_ADVERSARIAL_LAMBDA_MSE_LOSS,
 )
 
 
-class AdversarialTrainer(pl.LightningModule):
+class AdversarialTask(pl.LightningModule):
     """
     Wrapper for adversarial training of PaletteNet.
     """
@@ -25,9 +25,9 @@ class AdversarialTrainer(pl.LightningModule):
         discriminator: Discriminator = None,
         val_dataloader=None,
         test_dataloader=None,
-        lr=DEFAULT_LR,
-        betas=(DEFAULT_BETA_1, DEFAULT_BETA_2),
-        lambda_mse_loss=DEFAULT_LAMBDA_MSE_LOSS,
+        lr=DEFAULT_ADVERSARIAL_LR,
+        betas=(DEFAULT_ADVERSARIAL_BETA_1, DEFAULT_ADVERSARIAL_BETA_2),
+        lambda_mse_loss=DEFAULT_ADVERSARIAL_LAMBDA_MSE_LOSS,
     ):
         super().__init__()
         self.generator = palette_net

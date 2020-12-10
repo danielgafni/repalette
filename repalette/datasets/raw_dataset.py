@@ -4,19 +4,19 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import random
 
-from repalette.constants import DATABASE_PATH
-from repalette.db import RawImage
+from repalette.constants import RAW_DATABASE_PATH
+from repalette.db.raw import RawImage
 
 
 class RawDataset(Dataset):
     """
     Dataset of images downloaded from https://www.design-seeds.com/blog/.
-    `repalette/utils/download_data.py` must be run before using this dataset
+    `repalette/utils/download_raw.py` must be run before using this dataset
     """
 
     def __init__(self, query=None):
         if query is None:
-            engine = create_engine(f"sqlite:///{DATABASE_PATH}")
+            engine = create_engine(f"sqlite:///{RAW_DATABASE_PATH}")
             # create a configured "Session" class
             Session = sessionmaker(bind=engine)
             session = Session()

@@ -2,6 +2,7 @@ data/*
 data-raw/*
 .idea/
 *.csv
+notebooks/wandb/
 
 # Created by .ignore support plugin (hsz.mobi)
 ### JupyterNotebooks template
