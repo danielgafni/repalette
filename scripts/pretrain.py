@@ -33,15 +33,15 @@ if __name__ == "__main__":
     hparams_parser.add_argument("--precision", type=int, default=16, choices=[16, 32])
     hparams_parser.add_argument("--accumulate-grad-batches", type=int, default=1)
     hparams_parser.add_argument("--gradient-clip-val", type=float, default=0.0)
-    hparams_parser.add_argument(
-        "--auto-lr-find", type=str, default=False, choices=["learning_rate", False]
-    )
-    hparams_parser.add_argument(
-        "--auto-scale-batch-size",
-        type=str,
-        default=None,
-        choices=[None, "power", "binsearch"],
-    )
+    # hparams_parser.add_argument(
+    #     "--auto-lr-find", type=str, default=False, choices=["learning_rate", False]
+    # )
+    # hparams_parser.add_argument(
+    #     "--auto-scale-batch-size",
+    #     type=str,
+    #     default=None,
+    #     choices=[None, "power", "binsearch"],
+    # )
 
     # callbacks
     hparams_parser.add_argument("--patience", type=int, default=20)
