@@ -6,9 +6,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import random
 
-from repalette.constants import DATABASE_PATH
+from repalette.constants import RGB_DATABASE_PATH
 from repalette.utils.transforms import smart_hue_adjust
-from repalette.db import RGBImage
+from repalette.db.rgb import RGBImage
 
 
 class RecolorDataset(Dataset):
@@ -41,7 +41,7 @@ class RecolorDataset(Dataset):
         self.transform = transform
 
         if query is None:
-            engine = create_engine(f"sqlite:///{DATABASE_PATH}")
+            engine = create_engine(f"sqlite:///{RGB_DATABASE_PATH}")
             # create a configured "Session" class
             Session = sessionmaker(bind=engine)
             session = Session()

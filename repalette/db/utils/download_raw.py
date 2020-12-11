@@ -15,9 +15,10 @@ from repalette.constants import (
     BASE_DATA_DIR,
     RAW_DATA_DIR,
     RGB_IMAGES_DIR,
-    DEFAULT_DATABASE,
+    DEFAULT_RAW_DATABASE,
 )
-from repalette.db import RawImage, image_url_to_name, Base
+from repalette.db import image_url_to_name
+from repalette.db.raw import RawImage, RAWBase
 
 
 DESIGN_SEEDS_PAGES_ROOT = r"https://www.design-seeds.com/blog/page/"
@@ -62,31 +63,26 @@ def get_image_urls_and_palettes():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--num_workers", type=int, default=8)
+    parser.add_argument("--num-workers", type=int, default=8)
     args = parser.parse_args()
 
-    if not os.path.exists(BASE_DATA_DIR):
-        os.makedirs(BASE_DATA_DIR)
-    if not os.path.exists(RAW_DATA_DIR):
-        os.makedirs(RAW_DATA_DIR)
-    if not os.path.exists(RGB_IMAGES_DIR):
-        os.makedirs(RGB_IMAGES_DIR)
+    os.makedirs(BASE_DATA_DIR, exist_ok=True)
+    os.makedirs(RAW_DATA_DIR, exist_ok=True)
+    os.makedirs(RGB_IMAGES_DIR, exist_ok=True)
 
-    engine = create_engine(DEFAULT_DATABASE)
+    engine = create_engine(DEFAULT_RAW_DATABASE)
     # create a configured "Session" class
     Session = sessionmaker(bind=engine)
-    Base.metadata.create_all(engine)
+    RAWBase.metadata.create_all(engine)
 
     def download_image_to_database(image_data):
         url, palette = image_data
         name = image_url_to_name(url)
-        path = os.path.join(RAW_DATA_DIR, name)
 
         # create a database Session
         session = Session()
 
         raw_image = RawImage(
-            path=path,
             palette=palette,
             url=url,
             name=name,
@@ -100,7 +96,7 @@ if __name__ == "__main__":
             raw_image.width = image.width
             session.commit()
             # save image on disk
-            image.save(path, "PNG")
+            image.save(raw_image.path, "PNG")
 
         except IntegrityError:  # image already in the database
             pass

@@ -1,2 +1,1 @@
-from .adversarial import AdversarialTrainer
-from .pretrainer import PreTrainer
+from .systems import PreTrainSystem, AdversarialSystem

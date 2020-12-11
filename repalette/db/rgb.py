@@ -1,22 +1,26 @@
 import datetime
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, MetaData
+from sqlalchemy.ext.declarative import declarative_base
 import numpy as np
+import os
 
-from repalette.db import Base
+from repalette.constants import RGB_IMAGES_DIR
+
+rgb_meta = MetaData()
+
+RGBBase = declarative_base()
 
 
-class RGBImage(Base):
+class RGBImage(RGBBase):
     __tablename__ = "rgb_images"
     id = Column("id", Integer, primary_key=True)
-    path = Column("path", String)
     url = Column("url", String, unique=True)
     name = Column("name", String, default="")
     height = Column("height", Integer, default=0)
     width = Column("width", Integer, default=0)
     created_at = Column("created_at", DateTime, default=datetime.datetime.utcnow)
 
-    def __init__(self, path, np_palette, url="", name="", height=0, width=0):
-        self.path = path
+    def __init__(self, np_palette, url="", name="", height=0, width=0):
         self.url = url
         self.name = name
         self.height = height
@@ -45,6 +49,11 @@ class RGBImage(Base):
                 color.append(getattr(self, f"color_{i}_{c}"))
             palette.append(color)
         return np.array(palette).reshape(1, 6, 3).astype(np.uint8)
+
+    @property
+    def path(self):
+        path = os.path.join(RGB_IMAGES_DIR, self.name)
+        return path
 
 
 # add 18 columns for 6 RGB colors - don't want to do it manually :)

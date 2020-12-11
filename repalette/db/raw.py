@@ -1,13 +1,18 @@
 import datetime
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, MetaData
+from sqlalchemy.ext.declarative import declarative_base
+import os
 
-from repalette.db import Base
+from repalette.constants import RAW_DATA_DIR
+
+raw_meta = MetaData()
+
+RAWBase = declarative_base()
 
 
-class RawImage(Base):
+class RawImage(RAWBase):
     __tablename__ = "raw_images"
     id = Column("id", Integer, primary_key=True)
-    path = Column("path", String)
     url = Column("url", String, unique=True)
     name = Column("name", String, default="")
     height = Column("height", Integer, default=0)
@@ -20,8 +25,7 @@ class RawImage(Base):
     palette_5 = Column("palette_5", String, default="")
     created_at = Column("created_at", DateTime, default=datetime.datetime.utcnow)
 
-    def __init__(self, path, palette, url="", name="", height=0, width=0):
-        self.path = path
+    def __init__(self, palette, url="", name="", height=0, width=0):
         self.url = url
         self.name = name
         self.height = height
@@ -43,3 +47,8 @@ class RawImage(Base):
         Returns palette colors
         """
         return [getattr(self, f"palette_{i}") for i in range(6)]
+
+    @property
+    def path(self):
+        path = os.path.join(RAW_DATA_DIR, self.name)
+        return path

@@ -5,8 +5,8 @@ from sqlalchemy.orm import sessionmaker
 import numpy as np
 import random
 
-from repalette.constants import DATABASE_PATH
-from repalette.db import RGBImage
+from repalette.constants import RGB_DATABASE_PATH
+from repalette.db.rgb import RGBImage
 
 
 class RGBDataset(Dataset):
@@ -17,7 +17,7 @@ class RGBDataset(Dataset):
 
     def __init__(self, query=None):
         if query is None:
-            engine = create_engine(f"sqlite:///{DATABASE_PATH}")
+            engine = create_engine(f"sqlite:///{RGB_DATABASE_PATH}")
             # create a configured "Session" class
             Session = sessionmaker(bind=engine)
             session = Session()
