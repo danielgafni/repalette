@@ -1,6 +1,5 @@
 import logging
 import shutil
-import tempfile
 import os
 import boto3
 from botocore.exceptions import ClientError
@@ -17,6 +16,7 @@ from repalette.constants import (
 
 
 def upload_to_s3():
+    # TODO: use repalette.utils.aws.upload_to_s3
     s3_client = boto3.client("s3")
     tmp_file_name = os.path.join(BASE_DATA_DIR, "rgb_tmp")
     print(f"Creating temporary archive {tmp_file_name}.zip")

@@ -15,8 +15,12 @@ S3_RGB_IMAGES_PATH = os.path.join(S3_BASE_DATA_DIR, "rgb.zip")
 S3_RAW_DATABASE_PATH = os.path.join(S3_BASE_DATA_DIR, "raw.sqlite")
 S3_RGB_DATABASE_PATH = os.path.join(S3_BASE_DATA_DIR, "rgb.sqlite")
 
-S3_LIGHTNING_LOGS_DIR = os.path.join(S3_BUCKET_PATH, "lightning-logs")
-S3_MODEL_CHECKPOINTS_DIR = os.path.join(S3_BUCKET_PATH, "model-checkpoints")
+S3_LIGHTNING_LOGS_RELATIVE_DIR = "lightning-logs"
+S3_LIGHTNING_LOGS_DIR = os.path.join(S3_BUCKET_PATH, S3_LIGHTNING_LOGS_RELATIVE_DIR)
+S3_MODEL_CHECKPOINTS_RELATIVE_DIR = "model-checkpoints"
+S3_MODEL_CHECKPOINTS_DIR = os.path.join(
+    S3_BUCKET_PATH, S3_MODEL_CHECKPOINTS_RELATIVE_DIR
+)
 
 # data
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -30,7 +34,7 @@ DEFAULT_RAW_DATABASE = f"sqlite:///{RAW_DATABASE_PATH}"
 DEFAULT_RGB_DATABASE = f"sqlite:///{RGB_DATABASE_PATH}"
 
 LIGHTNING_LOGS_DIR = os.path.join(BASE_DATA_DIR, "lightning-logs")
-MODEL_CHECKPOINTS_DIR = os.path.join(BASE_DATA_DIR, "saves")
+MODEL_CHECKPOINTS_DIR = os.path.join(BASE_DATA_DIR, "model-checkpoints")
 MODELS_DIR = os.path.join(BASE_DATA_DIR, "models")
 
 # transforms

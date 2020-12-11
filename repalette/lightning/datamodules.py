@@ -18,7 +18,7 @@ class PreTrainDataModule(pl.LightningDataModule):
         transform=None,
         image_size=IMAGE_SIZE,
         size=1,
-        pin_memory=True
+        pin_memory=True,
     ):
         super().__init__()
         self.batch_size = batch_size
@@ -61,7 +61,7 @@ class PreTrainDataModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.num_workers,
             batch_size=self.batch_size,
-            pin_memory=self.pin_memory
+            pin_memory=self.pin_memory,
         )
         # train dataloader should be shuffled!
         train_dataloader.shuffle(True)
@@ -73,7 +73,7 @@ class PreTrainDataModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.num_workers,
             batch_size=self.batch_size,
-            pin_memory=self.pin_memory
+            pin_memory=self.pin_memory,
         )
         return val_dataloader
 
@@ -83,13 +83,13 @@ class PreTrainDataModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.num_workers,
             batch_size=self.batch_size,
-            pin_memory=self.pin_memory
+            pin_memory=self.pin_memory,
         )
         return test_dataloader
 
     # don't uncomment!!!
     # def transfer_batch_to_device(self, batch: Any, device: torch.device) -> Any:
-    #     maybe we want this later
+    #     # maybe we want this later
     #
     # def prepare_data(self, *args, **kwargs):
-    #     maybe we want this later
+    #     # maybe we want this later
