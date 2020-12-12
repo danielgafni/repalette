@@ -45,13 +45,11 @@ python repaletet/utils/build_rgb.py
 # Project structure
 ## data
 * `data` - root data directory
-* `data/sqlite.db` - database file
+* `data/raw.sqlite`, `data/rgb.sqlite` - databases
 * `data/raw` - raw images downloaded from [Design Seeds](https://www.design-seeds.com/blog/page/")
 * `data/rgb` - cropped images without palettes in RGB
-* `data/models` - `pytorch-lightning` models checkpoints
-* `data/pl_logs` - `pytorch-lightning` logs to use with `tensorboard`
+* `data/model-checkpoints` - `pytorch-lightning` models checkpoints
+* `data/lightning-logs` - `pytorch-lightning` `tensorboard` (or other logger) logs
 ## Code
 * `repalette` - main python package
-
-# TODO
-* Use image augmentations (`torchvision.transforms.RandomWhatever`)
+* `scripts` - training scripts

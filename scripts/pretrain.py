@@ -73,7 +73,7 @@ if __name__ == "__main__":
     hparams_parser.add_argument(
         "--name", type=str, default="pretrain", help="experiment name"
     )
-    hparams_parser.add_argument("--version", type=str, default="0", help="run version - used to generate checkpoint S3 path")
+    hparams_parser.add_argument("--version", type=str, required=True, help="unique! run version - used to generate checkpoint S3 path")
     hparams_parser.add_argument(
         "--logger", type=str, default="tensorboard", choices=["tensorboard"]
     )
