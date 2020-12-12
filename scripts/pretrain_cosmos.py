@@ -17,7 +17,7 @@ def pretrain(version, num_workers=7, max_epochs=None):
         max_epochs_part = ""
 
     command = f"""
-    python scripts/pretrain.py --version {version} --num-workers {num_workers} {max_epochs_part}
+    poetry run python scripts/pretrain.py --version {version} --num-workers {num_workers} {max_epochs_part}
     """
     return command
 
