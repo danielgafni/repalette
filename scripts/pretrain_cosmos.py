@@ -17,8 +17,7 @@ def pretrain(version, num_workers=7, max_epochs=None):
         max_epochs_part = ""
 
     command = f"""
-    poetry run python repalette/utils/download_raw.py --num_workers {num_workers}
-    poetry run python repalette/utils/build_rgb.py
+    poetry run python repalette/db/utils/download_rgb_from_s3.py
     poetry run python scripts/pretrain.py --version {version} --num-workers {num_workers} {max_epochs_part}
     """
     return command

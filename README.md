@@ -36,10 +36,21 @@ unset NODE_OPTIONS
 set NODE_OPTIONS=
 ```
 
-# Download dataset
+# Dataset
+## Download data
+### Option 1: scrap data from www.design-seeds.com
 ```bash
 python repalette/utils/download_raw.py --num_workers 8  # adjust num_workers
 python repalette/utils/build_rgb.py
+```
+### Option 2: download prepared data from S3
+```bash
+python repalette/db/utils/download_rgb_from_s3.py
+```
+## Update S3 dataset
+```bash
+python repalette/db/utils/upload_rgb_to_s3.py
+
 ```
 
 # Project structure
