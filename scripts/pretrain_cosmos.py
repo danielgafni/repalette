@@ -10,13 +10,12 @@ from repalette.constants import DEFAULT_COSMOS_DATABASE, S3_BUCKET_PATH
 
 def pretrain(version, num_workers=7, max_epochs=None):
     if max_epochs:
-        max_epochs_part = (
-            f"--max-epochs {max_epochs}"
-        )
+        max_epochs_part = f"--max-epochs {max_epochs}"
     else:
         max_epochs_part = ""
 
     command = f"""
+    {set_env_variables()}
     poetry run python repalette/db/utils/download_rgb_from_s3.py
     poetry run python scripts/pretrain.py --version {version} --num-workers {num_workers} {max_epochs_part}
     """
@@ -45,6 +44,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     load_dotenv()
+
+    def set_env_variables():
+        env_variables = [
+            "AWS_DEFAULT_REGION",
+            "S3_BUCKET_NAME",
+        ]
+        return "\n".join(
+            [f'export {variable}="{os.getenv(variable)}"' for variable in env_variables]
+        )
 
     cosmos = Cosmos(
         DEFAULT_COSMOS_DATABASE,
