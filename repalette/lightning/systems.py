@@ -31,7 +31,18 @@ class PreTrainSystem(pl.LightningModule):
     ):
         super().__init__()
 
-        self.save_hyperparameters()  # `self.__init__` arguments are saved to `self.hparams`
+        # manually configure hyperparams in case we add some non-hyperparams arguments in the future
+        # they are saved to `self.hparams`
+        self.save_hyperparameters(
+            "learning_rate",
+            "beta_1",
+            "beta_2",
+            "weight_decay",
+            "optimizer",
+            "batch_size",
+            "multiplier",
+            "scheduler_patience",
+        )
 
         self.generator = PaletteNet()
         # self.MSE = MeanSquaredError()
@@ -52,7 +63,10 @@ class PreTrainSystem(pl.LightningModule):
 
     def training_epoch_end(self, outputs):
         # log training loss
-        self.log("Train/loss_epoch", torch.stack([output["loss"] for output in outputs]).mean())
+        self.log(
+            "Train/loss_epoch",
+            torch.stack([output["loss"] for output in outputs]).mean(),
+        )
 
     def validation_step(self, batch, batch_idx):
         (source_img, _), (target_img, target_palette) = batch
@@ -130,32 +144,44 @@ class AdversarialSystem(pl.LightningModule):
 
     def __init__(
         self,
-        palette_net: PaletteNet,
-        train_dataloader,
-        discriminator: Discriminator = None,
-        val_dataloader=None,
-        test_dataloader=None,
-        lr=DEFAULT_ADVERSARIAL_LR,
-        betas=(DEFAULT_ADVERSARIAL_BETA_1, DEFAULT_ADVERSARIAL_BETA_2),
+        generator,
+        discriminator=None,
         lambda_mse_loss=DEFAULT_ADVERSARIAL_LAMBDA_MSE_LOSS,
+        learning_rate=DEFAULT_ADVERSARIAL_LR,
+        beta_1=DEFAULT_ADVERSARIAL_BETA_1,
+        beta_2=DEFAULT_ADVERSARIAL_BETA_2,
+        weight_decay=0.01,
+        optimizer="adam",
+        batch_size=8,
+        multiplier=16,
     ):
         super().__init__()
-        self.generator = palette_net
-        self.discriminator = (
-            discriminator if discriminator is not None else Discriminator()
+
+        # manually configure hyperparams in case we add some non-hyperparams arguments in the future
+        # they are saved to `self.hparams`
+        self.save_hyperparameters(
+            "lambda_mse_loss",
+            "learning_rate",
+            "beta_1",
+            "beta_2",
+            "weight_decay",
+            "optimizer",
+            "batch_size",
+            "multiplier",
+            "scheduler_patience",
         )
 
-        self.train_dataloader_ = train_dataloader
-        self.val_dataloader_ = val_dataloader
-        self.test_dataloader_ = test_dataloader
+        self.generator = None
+        self.discriminator = Discriminator()
+
         self.MSE = MeanSquaredError()
         self.scaler = Scaler()
-        self.hparams = {
-            "lr": lr,
-            "beta_1": betas[0],
-            "beta_2": betas[1],
-            "lambda_mse_loss": lambda_mse_loss,
-        }
+
+    def set_generator(self, generator):
+        self.generator = generator
+
+    def set_discriminator(self, discriminator):
+        self.discriminator = discriminator
 
     def forward(self, img, palette):
         return self.generator(img, palette)
@@ -172,12 +198,13 @@ class AdversarialSystem(pl.LightningModule):
         recolored_img_ab = self.generator(source_img, target_palette)
         recolored_img = torch.cat([luminance, recolored_img_ab], dim=-3)
         mse_loss = self.MSE(recolored_img_ab, target_img[:, 1:, :, :])
-        self.log("Train/Loss", mse_loss, prog_bar=True)
+
+        adv_loss = 0
         if optimizer_idx == 0:
             real_prob_tt = self.discriminator(recolored_img, target_palette)
             adv_loss = -torch.mean(torch.log(real_prob_tt))
-            return mse_loss * self.hparams["lambda_mse_loss"] + adv_loss
-        if optimizer_idx == 1:
+            return mse_loss * self.hparams.lambda_mse_loss + adv_loss
+        elif optimizer_idx == 1:
             fake_prob_tt = 1 - self.discriminator(recolored_img, target_palette)
             fake_prob_to = 1 - self.discriminator(recolored_img, original_palette)
             fake_prob_ot = 1 - self.discriminator(original_img, target_palette)
@@ -189,31 +216,148 @@ class AdversarialSystem(pl.LightningModule):
                 + torch.mean(torch.log(real_prob_oo))
             )
             return adv_loss
+        else:
+            pass
 
-    def validation_step(self, batch, batch_idx):
-        (original_img, _), (target_img, target_palette), _ = batch
-        target_palette = nn.Flatten()(target_palette)
-        recolored_img = self.generator(original_img, target_palette)
-        loss = self.MSE(recolored_img, target_img[:, 1:, :, :])
-        return loss
+        self.log("Train/mse_loss_step", mse_loss)
+        self.log("Train/adv_loss_step", adv_loss)
+
+        return mse_loss, adv_loss
 
     def training_epoch_end(self, outputs):
-        pass
+        # log training loss
+        self.log(
+            "Train/mse_loss_epoch",
+            torch.stack([output["mse_loss"] for output in outputs]).mean(),
+        )
+        self.log(
+            "Train/adv_loss_epoch",
+            torch.stack([output["adv_loss"] for output in outputs]).mean(),
+        )
+
+    def validation_step(self, batch, batch_idx, optimizer_idx):
+        (
+            (source_img, _),
+            (target_img, target_palette),
+            (original_img, original_palette),
+        ) = batch
+        target_palette = nn.Flatten()(target_palette)
+        original_palette = nn.Flatten()(original_palette)
+        luminance = source_img[:, 0:1, :, :]
+        recolored_img_ab = self.generator(source_img, target_palette)
+        recolored_img = torch.cat([luminance, recolored_img_ab], dim=-3)
+        mse_loss = self.MSE(recolored_img_ab, target_img[:, 1:, :, :])
+
+        adv_loss = 0
+        if optimizer_idx == 0:
+            real_prob_tt = self.discriminator(recolored_img, target_palette)
+            adv_loss = -torch.mean(torch.log(real_prob_tt))
+            return mse_loss * self.hparams.lambda_mse_loss + adv_loss
+        elif optimizer_idx == 1:
+            fake_prob_tt = 1 - self.discriminator(recolored_img, target_palette)
+            fake_prob_to = 1 - self.discriminator(recolored_img, original_palette)
+            fake_prob_ot = 1 - self.discriminator(original_img, target_palette)
+            real_prob_oo = self.discriminator(original_img, original_palette)
+            adv_loss = -(
+                    torch.mean(torch.log(fake_prob_tt))
+                    + torch.mean(torch.log(fake_prob_to))
+                    + torch.mean(torch.log(fake_prob_ot))
+                    + torch.mean(torch.log(real_prob_oo))
+            )
+            return adv_loss
+        else:
+            pass
+
+        return mse_loss, adv_loss
 
     def validation_epoch_end(self, outputs):
-        mean_val_loss = torch.stack(outputs).mean()
-        self.log("Val/Loss", mean_val_loss)
-        # self.logger.log_hyperparams(self.hparams)
+        # log training loss
+        self.log(
+            "Val/mse_loss_epoch",
+            torch.stack([output["mse_loss"] for output in outputs]).mean(),
+        )
+        self.log(
+            "Val/adv_loss_epoch",
+            torch.stack([output["adv_loss"] for output in outputs]).mean(),
+        )
+
+    def test_step(self, batch, batch_idx, optimizer_idx):
+        (
+            (source_img, _),
+            (target_img, target_palette),
+            (original_img, original_palette),
+        ) = batch
+        target_palette = nn.Flatten()(target_palette)
+        original_palette = nn.Flatten()(original_palette)
+        luminance = source_img[:, 0:1, :, :]
+        recolored_img_ab = self.generator(source_img, target_palette)
+        recolored_img = torch.cat([luminance, recolored_img_ab], dim=-3)
+        mse_loss = self.MSE(recolored_img_ab, target_img[:, 1:, :, :])
+
+        adv_loss = 0
+        if optimizer_idx == 0:
+            real_prob_tt = self.discriminator(recolored_img, target_palette)
+            adv_loss = -torch.mean(torch.log(real_prob_tt))
+            return mse_loss * self.hparams.lambda_mse_loss + adv_loss
+        elif optimizer_idx == 1:
+            fake_prob_tt = 1 - self.discriminator(recolored_img, target_palette)
+            fake_prob_to = 1 - self.discriminator(recolored_img, original_palette)
+            fake_prob_ot = 1 - self.discriminator(original_img, target_palette)
+            real_prob_oo = self.discriminator(original_img, original_palette)
+            adv_loss = -(
+                    torch.mean(torch.log(fake_prob_tt))
+                    + torch.mean(torch.log(fake_prob_to))
+                    + torch.mean(torch.log(fake_prob_ot))
+                    + torch.mean(torch.log(real_prob_oo))
+            )
+            return adv_loss
+        else:
+            pass
+
+        return mse_loss, adv_loss
+
+    def test_epoch_end(self, outputs):
+        # log training loss
+        self.log(
+            "Test/mse_loss_epoch",
+            torch.stack([output["mse_loss"] for output in outputs]).mean(),
+        )
+        self.log(
+            "Test/adv_loss_epoch",
+            torch.stack([output["adv_loss"] for output in outputs]).mean(),
+        )
 
     def configure_optimizers(self):
-        optimizer_G = torch.optim.Adam(
-            self.generator.recoloring_decoder.parameters(),
-            lr=self.hparams["lr"],
-            betas=(self.hparams["beta_1"], self.hparams["beta_2"]),
-        )
-        optimizer_D = torch.optim.Adam(
-            self.discriminator.parameters(),
-            lr=self.hparams["lr"],
-            betas=(self.hparams["beta_1"], self.hparams["beta_2"]),
-        )
+        if self.hparams.optimizer == "adam":
+            optimizer_G = torch.optim.Adam(
+                self.generator.recoloring_decoder.parameters(),
+                lr=self.learning_rate,
+                betas=(self.hparams.beta_1, self.beta_2),
+                weight_decay=self.hparams.weight_decay
+            )
+            optimizer_D = torch.optim.Adam(
+                self.discriminator.parameters(),
+                lr=self.learning_rate,
+                betas=(self.beta_1, self.beta_2),
+                weight_decay=self.hparams.weight_decay
+            )
+
+        elif self.hparams.optimizer == "adamw":
+            optimizer_G = torch.optim.AdamW(
+                self.generator.recoloring_decoder.parameters(),
+                lr=self.learning_rate,
+                betas=(self.hparams.beta_1, self.beta_2),
+                weight_decay=self.hparams.weight_decay
+            )
+            optimizer_D = torch.optim.AdamW(
+                self.discriminator.parameters(),
+                lr=self.learning_rate,
+                betas=(self.beta_1, self.beta_2),
+                weight_decay=self.hparams.weight_decay
+            )
+        else:
+            raise NotImplementedError(
+                f"Optimizer {self.hparams.optimizer} is not implemented"
+            )
+
         return [optimizer_G, optimizer_D]

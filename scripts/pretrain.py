@@ -73,7 +73,12 @@ if __name__ == "__main__":
     hparams_parser.add_argument(
         "--name", type=str, default="pretrain", help="experiment name"
     )
-    hparams_parser.add_argument("--version", type=str, required=True, help="unique! run version - used to generate checkpoint S3 path")
+    hparams_parser.add_argument(
+        "--version",
+        type=str,
+        required=True,
+        help="unique! run version - used to generate checkpoint S3 path",
+    )
     hparams_parser.add_argument(
         "--logger", type=str, default="tensorboard", choices=["tensorboard"]
     )
@@ -106,7 +111,6 @@ if __name__ == "__main__":
         patience=hparams.patience,
         verbose=False,
         mode="min",
-
     )
 
     pretrain_gpu_stats_monitor = GPUStatsMonitor(temperature=True)
@@ -118,7 +122,7 @@ if __name__ == "__main__":
         name=hparams.name,
         version=hparams.version,
         log_graph=True,
-        default_hp_metric=False
+        default_hp_metric=False,
     )
 
     trainer = Trainer.from_argparse_args(
@@ -130,7 +134,7 @@ if __name__ == "__main__":
             log_recoloring_to_tensorboard,
             pretrain_gpu_stats_monitor,
         ],
-        profiler="simple"
+        profiler="simple",
     )
 
     datamodule = PreTrainDataModule(
@@ -152,6 +156,7 @@ if __name__ == "__main__":
     pretrain_system = PreTrainSystem.load_from_checkpoint(best_model_path)
 
     test_result = trainer.test(pretrain_system, datamodule=datamodule)
+
     pretrain_system.hparams.hp_metric = test_result[0]["Test/loss_epoch"]
     logger.log_hyperparams(pretrain_system.hparams)
     logger.finalize(status="success")
