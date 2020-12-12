@@ -1,13 +1,14 @@
-FROM pytorch/pytorch
+FROM nvidia/cuda:10.2-base
+RUN apt-get update && apt-get install --no-install-recommends --no-install-suggests -y python3.8 python3-pip
 
 WORKDIR ./repalette
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+RUN python3.8 -m pip install poetry==1.1.4  # install specific version of poetry with pip, not the official script
 
-COPY ./pyproject.toml .
-COPY ./poetry.lock .
+COPY pyproject.toml poetry.lock ./
 
 RUN poetry install
 
-COPY ./repalette .
-COPY ./scripts .
+COPY ./repalette ./scripts ./
+
+CMD python -c "import torch; assert torch.cuda.is_available()"
