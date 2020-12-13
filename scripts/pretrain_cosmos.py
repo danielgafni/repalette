@@ -8,7 +8,15 @@ import sys
 from repalette.constants import DEFAULT_COSMOS_DATABASE, S3_BUCKET_PATH
 
 
+"""
+This script can be modified to send different jobs to AWS Batch via Cosmos.
+"""
+
+
 def pretrain(version, num_workers=7, max_epochs=None):
+    """
+    Main function for Cosmos to execute
+    """
     if max_epochs:
         max_epochs_part = f"--max-epochs {max_epochs}"
     else:
@@ -32,6 +40,12 @@ if __name__ == "__main__":
         type=int,
         default=7,
         help="Number of workers for the dataloaders",
+    )
+    parser.add_argument(
+        "--gpu-rec",
+        type=int,
+        default=1,
+        help="Number of GPUs",
     )
     parser.add_argument(
         "--max-attempts",
@@ -84,6 +98,7 @@ if __name__ == "__main__":
         time_req=None,
         max_attempts=args.max_attempts,
         core_req=args.core_req,
+        gpu_req=args.gpu_req,
         mem_req=args.mem_req,
     )
 
