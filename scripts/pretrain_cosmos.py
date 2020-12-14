@@ -42,7 +42,7 @@ if __name__ == "__main__":
         help="Number of workers for the dataloaders",
     )
     parser.add_argument(
-        "--gpu-rec",
+        "--gpu-req",
         type=int,
         default=1,
         help="Number of GPUs",
