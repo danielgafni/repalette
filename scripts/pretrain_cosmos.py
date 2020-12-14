@@ -13,7 +13,7 @@ This script can be modified to send different jobs to AWS Batch via Cosmos.
 """
 
 
-def pretrain(version, num_workers=7, max_epochs=None):
+def pretrain(version, num_workers, max_epochs=None):
     """
     Main function for Cosmos to execute
     """
@@ -53,8 +53,14 @@ if __name__ == "__main__":
         default=20,
         help="Number of attempts to run the tasks",
     )
-    parser.add_argument("--core-req", type=int, default=8)
-    parser.add_argument("--mem-req", type=int, default=16000)
+    parser.add_argument(
+        "--max-epochs",
+        type=int,
+        default=1,
+        help="Number of epochs to train",
+    )
+    parser.add_argument("--core-req", type=int, default=6)
+    parser.add_argument("--mem-req", type=int, default=25000)
     args = parser.parse_args()
 
     load_dotenv()
@@ -91,7 +97,7 @@ if __name__ == "__main__":
         func=pretrain,
         params=dict(
             version=task_name,
-            max_epochs=1,
+            max_epochs=args.max_epochs,
             num_workers=args.num_workers,
         ),
         uid=task_name,
