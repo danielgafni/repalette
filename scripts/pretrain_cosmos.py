@@ -6,7 +6,7 @@ from uuid import uuid1
 import sys
 
 from repalette.constants import DEFAULT_COSMOS_DATABASE, S3_BUCKET_PATH
-
+from repalette.utils.aws import INCREASE_DOCKER_SHARED_MEMORY
 
 """
 This script can be modified to send different jobs to AWS Batch via Cosmos.
@@ -24,6 +24,7 @@ def pretrain(version, num_workers, max_epochs=None):
 
     command = f"""
     {set_env_variables()}
+    {INCREASE_DOCKER_SHARED_MEMORY}
     poetry run python repalette/db/utils/download_rgb_from_s3.py
     poetry run python scripts/pretrain.py --version {version} --num-workers {num_workers} {max_epochs_part}
     """
