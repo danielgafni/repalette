@@ -14,4 +14,7 @@ COPY ./repalette ./repalette
 
 RUN poetry install --no-dev  # this will only install the actual `repalette` project copied above
 
-COPY ./scripts ./scripts
+COPY ./scripts/pretrain_cosmos.py ./scripts/pretrain_cosmos.py
+
+ADD ./scripts/aws_docker_setup.sh ./scripts/aws_docker_setup.sh
+ENTRYPOINT ["./scripts/aws_docker_setup.sh"]

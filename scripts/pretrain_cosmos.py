@@ -24,7 +24,7 @@ def pretrain(version, num_workers, max_epochs=None):
 
     command = f"""
     {set_env_variables()}
-    {INCREASE_DOCKER_SHARED_MEMORY}
+    df -h
     poetry run python repalette/db/utils/download_rgb_from_s3.py
     poetry run python scripts/pretrain.py --version {version} --num-workers {num_workers} {max_epochs_part}
     """
