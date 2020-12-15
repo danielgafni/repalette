@@ -19,14 +19,20 @@ class PreTrainDataModule(pl.LightningDataModule):
         image_size=IMAGE_SIZE,
         size=1,
         pin_memory=True,
+        train_batch_from_same_image=False,
+        val_batch_from_same_image=False,
+        test_batch_from_same_image=False
     ):
         super().__init__()
         self.batch_size = batch_size
         self.multiplier = multiplier
-        self.shuffle = shuffle
         self.num_workers = num_workers
         self.size = size
         self.pin_memory = pin_memory
+        self.shuffle = shuffle
+        self.train_batch_from_same_image = train_batch_from_same_image
+        self.val_batch_from_same_image = val_batch_from_same_image
+        self.test_batch_from_same_image = test_batch_from_same_image
 
         self.train = None
         self.val = None
@@ -58,19 +64,19 @@ class PreTrainDataModule(pl.LightningDataModule):
     def train_dataloader(self):
         train_dataloader = ShuffleDataLoader(
             self.train,
-            shuffle=False,
+            shuffle=not self.test_batch_from_same_image,
             num_workers=self.num_workers,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
         )
         # train dataloader should be shuffled!
-        train_dataloader.shuffle(True)
+        train_dataloader.shuffle(True)  # this will make no difference if self.batch_from_same_image == True
         return train_dataloader
 
     def val_dataloader(self):
         val_dataloader = ShuffleDataLoader(
             self.val,
-            shuffle=False,
+            shuffle=not self.val_batch_from_same_image,
             num_workers=self.num_workers,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
@@ -80,7 +86,7 @@ class PreTrainDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         test_dataloader = ShuffleDataLoader(
             self.test,
-            shuffle=False,
+            shuffle=not self.test_batch_from_same_image,
             num_workers=self.num_workers,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
