@@ -71,7 +71,7 @@ if __name__ == "__main__":
         )
 
     cosmos = Cosmos(
-        "mysql://admin:779be989794d01db0ccb8b96@repalette-dev.ceulf4rkmfve.us-east-2.rds.amazonaws.com/cosmos",
+        RDS_COSMOS_DATABASE,
         default_drm="awsbatch",
         default_drm_options=dict(
             container_image=os.getenv("ECR_CONTAINER_IMAGE"),
