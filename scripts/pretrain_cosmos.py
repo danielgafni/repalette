@@ -100,7 +100,7 @@ if __name__ == "__main__":
     )
     cosmos.initdb()
 
-    workflow_name = f"pretrain-{uuid1().hex}"
+    workflow_name = f"{args.name}-{uuid1().hex}"
     workflow = cosmos.start(workflow_name, restart=True, skip_confirm=True)
 
     task_name = uuid1().hex
