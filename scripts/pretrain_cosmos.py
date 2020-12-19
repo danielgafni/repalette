@@ -18,7 +18,7 @@ env_variables = [
         ]
 
 
-def pretrain(version, num_workers, batch_size, multiplier, max_epochs=None):
+def pretrain(version, num_workers, batch_size, multiplier, size, max_epochs=None):
     """
     Main function for Cosmos to execute
     """
@@ -30,7 +30,7 @@ def pretrain(version, num_workers, batch_size, multiplier, max_epochs=None):
     command = f"""
     df -h
     poetry run python repalette/db/utils/download_rgb_from_s3.py
-    poetry run python scripts/pretrain.py --version {version} --num-workers {num_workers} {max_epochs_part} --batch-size {batch_size} --multiplier {multiplier}
+    poetry run python scripts/pretrain.py --version {version} --num-workers {num_workers} {max_epochs_part} --batch-size {batch_size} --multiplier {multiplier} --size {size}
     """
     return command
 
@@ -67,6 +67,11 @@ if __name__ == "__main__":
         "--multiplier",
         type=int,
         default=16,
+    )
+    parser.add_argument(
+        "--size",
+        type=float,
+        default=1.,
     )
     parser.add_argument("--core-req", type=int, default=8)
     parser.add_argument("--mem-req", type=int, default=32000)
@@ -107,7 +112,8 @@ if __name__ == "__main__":
             max_epochs=args.max_epochs,
             num_workers=args.core_req - 1,
             batch_size=args.batch_size,
-            multiplier=args.multiplier
+            multiplier=args.multiplier,
+            size=args.size
         ),
         uid=task_name,
         time_req=None,
