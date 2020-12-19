@@ -50,6 +50,9 @@ class RecolorDataset(Dataset):
         else:
             self.query = query
 
+        if shuffle:
+            random.shuffle(self.query)
+
     def __getitem__(self, index):
         """
         :param index: index of item to get from the dataset

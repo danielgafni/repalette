@@ -3,6 +3,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, GPUStatsMonitor
 from dotenv import load_dotenv
 import os
+from uuid import uuid1
 
 from repalette.constants import (
     DEFAULT_PRETRAIN_LR,
@@ -28,7 +29,7 @@ if __name__ == "__main__":
     hparams_parser = argparse.ArgumentParser()
 
     # trainer
-    hparams_parser.add_argument("--max-epochs", type=int, default=None)
+    hparams_parser.add_argument("--max-epochs", type=int, default=100)
     hparams_parser.add_argument("--gpus", type=int, default=-1)
     hparams_parser.add_argument("--precision", type=int, default=16, choices=[16, 32])
     hparams_parser.add_argument("--accumulate-grad-batches", type=int, default=1)
@@ -68,6 +69,9 @@ if __name__ == "__main__":
     hparams_parser.add_argument("--shuffle", type=bool, default=True)
     hparams_parser.add_argument("--size", type=float, default=1.0)
     hparams_parser.add_argument("--pin-memory", type=bool, default=True)
+    hparams_parser.add_argument("--train-batch-from-same-image", type=bool, default=True)
+    hparams_parser.add_argument("--val-batch-from-same-image", type=bool, default=True)
+    hparams_parser.add_argument("--test-batch-from-same-image", type=bool, default=True)
 
     # misc
     hparams_parser.add_argument(
@@ -76,7 +80,7 @@ if __name__ == "__main__":
     hparams_parser.add_argument(
         "--version",
         type=str,
-        required=True,
+        default=None,
         help="unique! run version - used to generate checkpoint S3 path",
     )
     hparams_parser.add_argument(
@@ -84,6 +88,9 @@ if __name__ == "__main__":
     )
 
     hparams = hparams_parser.parse_args()
+
+    if hparams.version is None:
+        hparams.version = str(uuid1())
 
     # main LightningModule
     pretrain_system = PreTrainSystem(
@@ -98,7 +105,7 @@ if __name__ == "__main__":
     )
 
     pretrain_checkpoints = ModelCheckpoint(
-        dirpath=MODEL_CHECKPOINTS_DIR,
+        dirpath=os.path.join(MODEL_CHECKPOINTS_DIR, hparams.version),
         monitor="Val/loss_epoch",
         verbose=True,
         mode="min",
@@ -125,6 +132,11 @@ if __name__ == "__main__":
         default_hp_metric=False,
     )
 
+    # try:
+    #     trainer = Trainer(resume_from_checkpoint='some/path/to/my_checkpoint.ckpt')
+    # except:
+    #
+
     trainer = Trainer.from_argparse_args(
         hparams,
         logger=logger,
@@ -144,6 +156,9 @@ if __name__ == "__main__":
         num_workers=hparams.num_workers,
         size=hparams.size,
         pin_memory=hparams.pin_memory,
+        train_batch_from_same_image=hparams.train_batch_from_same_image,
+        val_batch_from_same_image=hparams.val_batch_from_same_image,
+        test_batch_from_same_image=hparams.test_batch_from_same_image,
     )
 
     # trainer.tune(pretrain_system, datamodule=datamodule)
