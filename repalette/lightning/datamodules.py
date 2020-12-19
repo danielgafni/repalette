@@ -21,7 +21,7 @@ class PreTrainDataModule(pl.LightningDataModule):
         pin_memory=True,
         train_batch_from_same_image=False,
         val_batch_from_same_image=False,
-        test_batch_from_same_image=False
+        test_batch_from_same_image=False,
     ):
         super().__init__()
         self.batch_size = batch_size
@@ -70,7 +70,9 @@ class PreTrainDataModule(pl.LightningDataModule):
             pin_memory=self.pin_memory,
         )
         # train dataloader should be shuffled!
-        train_dataloader.shuffle(True)  # this will make no difference if self.batch_from_same_image == True
+        train_dataloader.shuffle(
+            True
+        )  # this will make no difference if self.batch_from_same_image == True
         return train_dataloader
 
     def val_dataloader(self):

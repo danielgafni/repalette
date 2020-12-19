@@ -73,6 +73,7 @@ class PreTrainSystem(pl.LightningModule):
         target_palette = nn.Flatten()(target_palette)
         recolored_img_ab = self.generator(source_img, target_palette)
         loss = self.MSE(recolored_img_ab, target_img[:, 1:, :, :])
+        self.log("Val/loss_step", loss)
 
         return loss
 
@@ -87,6 +88,7 @@ class PreTrainSystem(pl.LightningModule):
         target_palette = nn.Flatten()(target_palette)
         recolored_img_ab = self.generator(source_img, target_palette)
         loss = self.MSE(recolored_img_ab, target_img[:, 1:, :, :])
+        self.log("Test/loss_step", loss)
 
         return loss
 
@@ -259,10 +261,10 @@ class AdversarialSystem(pl.LightningModule):
             fake_prob_ot = 1 - self.discriminator(original_img, target_palette)
             real_prob_oo = self.discriminator(original_img, original_palette)
             adv_loss = -(
-                    torch.mean(torch.log(fake_prob_tt))
-                    + torch.mean(torch.log(fake_prob_to))
-                    + torch.mean(torch.log(fake_prob_ot))
-                    + torch.mean(torch.log(real_prob_oo))
+                torch.mean(torch.log(fake_prob_tt))
+                + torch.mean(torch.log(fake_prob_to))
+                + torch.mean(torch.log(fake_prob_ot))
+                + torch.mean(torch.log(real_prob_oo))
             )
             return adv_loss
         else:
@@ -305,10 +307,10 @@ class AdversarialSystem(pl.LightningModule):
             fake_prob_ot = 1 - self.discriminator(original_img, target_palette)
             real_prob_oo = self.discriminator(original_img, original_palette)
             adv_loss = -(
-                    torch.mean(torch.log(fake_prob_tt))
-                    + torch.mean(torch.log(fake_prob_to))
-                    + torch.mean(torch.log(fake_prob_ot))
-                    + torch.mean(torch.log(real_prob_oo))
+                torch.mean(torch.log(fake_prob_tt))
+                + torch.mean(torch.log(fake_prob_to))
+                + torch.mean(torch.log(fake_prob_ot))
+                + torch.mean(torch.log(real_prob_oo))
             )
             return adv_loss
         else:
@@ -333,13 +335,13 @@ class AdversarialSystem(pl.LightningModule):
                 self.generator.recoloring_decoder.parameters(),
                 lr=self.learning_rate,
                 betas=(self.hparams.beta_1, self.beta_2),
-                weight_decay=self.hparams.weight_decay
+                weight_decay=self.hparams.weight_decay,
             )
             optimizer_D = torch.optim.Adam(
                 self.discriminator.parameters(),
                 lr=self.learning_rate,
                 betas=(self.beta_1, self.beta_2),
-                weight_decay=self.hparams.weight_decay
+                weight_decay=self.hparams.weight_decay,
             )
 
         elif self.hparams.optimizer == "adamw":
@@ -347,13 +349,13 @@ class AdversarialSystem(pl.LightningModule):
                 self.generator.recoloring_decoder.parameters(),
                 lr=self.learning_rate,
                 betas=(self.hparams.beta_1, self.beta_2),
-                weight_decay=self.hparams.weight_decay
+                weight_decay=self.hparams.weight_decay,
             )
             optimizer_D = torch.optim.AdamW(
                 self.discriminator.parameters(),
                 lr=self.learning_rate,
                 betas=(self.beta_1, self.beta_2),
-                weight_decay=self.hparams.weight_decay
+                weight_decay=self.hparams.weight_decay,
             )
         else:
             raise NotImplementedError(

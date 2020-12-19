@@ -29,7 +29,7 @@ if __name__ == "__main__":
     hparams_parser = argparse.ArgumentParser()
 
     # trainer
-    hparams_parser.add_argument("--max-epochs", type=int, default=None)
+    hparams_parser.add_argument("--max-epochs", type=int, default=100)
     hparams_parser.add_argument("--gpus", type=int, default=-1)
     hparams_parser.add_argument("--precision", type=int, default=16, choices=[16, 32])
     hparams_parser.add_argument("--accumulate-grad-batches", type=int, default=1)
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     )
 
     pretrain_checkpoints = ModelCheckpoint(
-        dirpath=MODEL_CHECKPOINTS_DIR,
+        dirpath=os.path.join(MODEL_CHECKPOINTS_DIR, hparams.version),
         monitor="Val/loss_epoch",
         verbose=True,
         mode="min",
@@ -131,6 +131,11 @@ if __name__ == "__main__":
         log_graph=True,
         default_hp_metric=False,
     )
+
+    # try:
+    #     trainer = Trainer(resume_from_checkpoint='some/path/to/my_checkpoint.ckpt')
+    # except:
+    #
 
     trainer = Trainer.from_argparse_args(
         hparams,
