@@ -60,6 +60,10 @@ class RecoloringDecoder(nn.Module):
         palette_c1 = palette[:, :, None, None] * torch.ones(
             batch_size, 18, height, width, device=device
         )
+        batch_size, _, height, width = c2.size()
+        palette_c2 = palette[:, :, None, None] * torch.ones(
+            batch_size, 18, height, width, device=device
+        )
         batch_size, _, height, width = c3.size()
         palette_c3 = palette[:, :, None, None] * torch.ones(
             batch_size, 18, height, width, device=device
@@ -72,8 +76,8 @@ class RecoloringDecoder(nn.Module):
         x = torch.cat([c1, palette_c1], dim=1)
         x = self.deconv1(x, c2.shape[-2:])
 
-        x = torch.cat([x, c2], dim=1)
-        x = self.deconv2(x, c3.shape[-2:])
+        x = torch.cat([x, c2, palette_c2], dim=1)
+        x = self.deconv2(x, c2.shape[-2:])
 
         x = torch.cat([x, c3, palette_c3], dim=1)
         x = self.deconv3(x, c4.shape[-2:])
