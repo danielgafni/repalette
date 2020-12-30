@@ -28,6 +28,7 @@ class PreTrainSystem(pl.LightningModule):
         batch_size,
         multiplier,
         scheduler_patience,
+        mode='resnet',
     ):
         super().__init__()
 
@@ -44,7 +45,7 @@ class PreTrainSystem(pl.LightningModule):
             "scheduler_patience",
         )
 
-        self.generator = PaletteNet()
+        self.generator = PaletteNet(mode)
         # self.MSE = MeanSquaredError()
         self.MSE = torch.nn.MSELoss()
         self.scaler = Scaler()

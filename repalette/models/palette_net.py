@@ -5,14 +5,21 @@ from repalette.models.nn import (
     ConvBlock,
     DeconvBlock,
     ResnetLayer,
+    DenseLayer,
+    DenseBottleneck,
+    DenseBasicBlock,
+    TransitionLayer,
     BasicBlock,
 )
 
 
 class PaletteNet(nn.Module):
-    def __init__(self):
+    def __init__(self, mode='resnet'):
         super().__init__()
-        self.feature_extractor = FeatureExtractor()
+        if mode == 'resnet':
+            self.feature_extractor = FeatureExtractor()
+        else:
+            self.feature_extractor = DenseFeatureExtractor(mode)
         self.recoloring_decoder = RecoloringDecoder()
 
     def forward(self, img, palette):
@@ -85,3 +92,41 @@ class RecoloringDecoder(nn.Module):
         x = self.final_conv(x)
 
         return x
+
+
+class DenseFeatureExtractor(nn.Module):
+    def __init__(self, mode='dense-bc'):
+        super().__init__()
+
+        self.conv = ConvBlock(3, 64, padding_mode="replicate")
+        self.pool = nn.MaxPool2d(2)
+
+        if mode == 'dense-bc':
+            self.dense1 = DenseLayer(DenseBottleneck, 6, 32, 64)
+            self.trans1 = TransitionLayer(256, 128)
+            self.dense2 = DenseLayer(DenseBottleneck, 12, 32, 128)
+            self.trans2 = TransitionLayer(512, 256)
+            self.dense3 = DenseLayer(DenseBottleneck, 24, 32, 256)
+            self.trans3 = TransitionLayer(1024, 512)
+        elif mode == 'dense-b':
+            self.dense1 = DenseLayer(DenseBottleneck, 4, 16, 64)
+            self.trans1 = TransitionLayer(128, 128)
+            self.dense2 = DenseLayer(DenseBottleneck, 8, 16, 128)
+            self.trans2 = TransitionLayer(256, 256)
+            self.dense3 = DenseLayer(DenseBottleneck, 16, 16, 256)
+            self.trans3 = TransitionLayer(512, 512)
+        elif mode == 'dense':
+            self.dense1 = DenseLayer(DenseBasicBlock, 4, 16, 64)
+            self.trans1 = TransitionLayer(128, 128)
+            self.dense2 = DenseLayer(DenseBasicBlock, 8, 16, 128)
+            self.trans2 = TransitionLayer(256, 256)
+            self.dense3 = DenseLayer(DenseBasicBlock, 16, 16, 256)
+            self.trans3 = TransitionLayer(512, 512)
+
+    def forward(self, x):
+        x = self.conv(x)
+        c4 = self.pool(x)
+        c3 = self.trans1(self.dense1(c4))
+        c2 = self.trans2(self.dense2(c3))
+        c1 = self.trans3(self.dense3(c2))
+        return c1, c2, c3, c4

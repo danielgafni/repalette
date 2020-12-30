@@ -68,17 +68,14 @@ class BasicBlock(ResidualBlock):
 class DenseLayer(nn.Module):
     """DenseNet layer with dense connections."""
 
-    def __init__(self, block, growth_rate, n_blocks):
+    def __init__(self, block, n_blocks, growth_rate, in_channels, activation='leaky_relu'):
         super().__init__()
-        self.blocks = [block(growth_rate * (n_prev_layers + 1), growth_rate) for n_prev_layers in
-                       range(n_blocks)]
+        blocks = [block(in_channels + growth_rate * i, growth_rate, activation) for i in
+                  range(n_blocks)]
+        self.layer = nn.Sequential(*blocks)
 
     def forward(self, x):
-        for block in self.blocks[-1]:
-            layer_out = block(x)
-            x = torch.cat((x, layer_out), dim=-3)
-        x = self.blocks[-1](x)
-        return x
+        return self.layer(x)
 
 
 class DenseBottleneck(nn.Module):
@@ -87,80 +84,53 @@ class DenseBottleneck(nn.Module):
     with 1x1 and 3x3 convolutions respectively.
     """
 
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, activation="leaky_relu"):
         super().__init__()
-        self.first_block = DenseBasicBlock(in_channels, 4 * out_channels, 1)
-        self.second_block = DenseBasicBlock(4 * out_channels, out_channels)
+        inter_channels = 4 * out_channels
+
+        self.activ = activation_shortcuts[activation]
+
+        self.norm1 = nn.InstanceNorm2d(in_channels)
+        self.conv1 = nn.Conv2d(in_channels, inter_channels, kernel_size=1, stride=1, padding=0)
+
+        self.norm2 = nn.InstanceNorm2d(inter_channels)
+        self.conv2 = nn.Conv2d(inter_channels, out_channels, kernel_size=3, stride=1, padding=1)
 
     def forward(self, x):
-        x = self.first_block(x)
-        x = self.second_block(x)
-        return x
+        out = self.conv1(self.activ(self.norm1(x)))
+        out = self.conv2(self.activ(self.norm2(out)))
+        return torch.cat([x, out], dim=-3)
 
 
 class DenseBasicBlock(nn.Module):
     """DenseNet basic block consisting of batchnorm, activation and 3x3 convolution."""
 
-    def __init__(
-            self,
-            in_channels,
-            out_channels,
-            kernel_size=3,
-            stride=1,
-            padding=1,
-            dilation=1,
-            activation="leaky_relu",
-            padding_mode="zeros",
-    ):
+    def __init__(self, in_channels, out_channels, activation="leaky_relu"):
         super().__init__()
 
         self.norm = nn.InstanceNorm2d(in_channels)
-        self.conv = nn.Conv2d(
-            in_channels,
-            out_channels,
-            kernel_size,
-            stride,
-            padding,
-            dilation,
-            padding_mode=padding_mode,
-        )
         self.activ = activation_shortcuts[activation]
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
 
     def forward(self, x):
-        x = self.norm(x)
-        x = self.activ(x)
-        x = self.conv(x)
-        return x
+        out = self.conv(self.activ(self.norm(x)))
+        return torch.cat([x, out], dim=-3)
 
 
 class TransitionLayer(nn.Module):
     """Transition layer between adjacent densely connected dense blocks."""
 
-    def __init__(
-            self,
-            in_channels,
-            out_channels,
-            kernel_size=1,
-            stride=1,
-            padding=1,
-            dilation=1,
-            padding_mode="zeros",
-    ):
+    def __init__(self, in_channels, out_channels, activation="leaky_relu"):
         super().__init__()
+
         self.norm = nn.InstanceNorm2d(in_channels)
-        self.conv = nn.Conv2d(
-            in_channels,
-            out_channels,
-            kernel_size,
-            stride,
-            padding,
-            dilation,
-            padding_mode=padding_mode,
-        )
+        self.activ = activation_shortcuts[activation]
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0)
         self.pool = nn.AvgPool2d(2)
 
     def forward(self, x):
         x = self.norm(x)
+        x = self.activ(x)
         x = self.conv(x)
         x = self.pool(x)
         return x
