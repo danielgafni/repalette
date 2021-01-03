@@ -115,9 +115,7 @@ class PreTrainSystem(pl.LightningModule):
                 weight_decay=self.hparams.weight_decay,
             )
         else:
-            raise NotImplementedError(
-                f"Optimizer {self.hparams.optimizer} is not implemented"
-            )
+            raise NotImplementedError(f"Optimizer {self.hparams.optimizer} is not implemented")
 
         lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer=optimizer, mode="min", patience=self.hparams.scheduler_patience
@@ -131,9 +129,7 @@ class PreTrainSystem(pl.LightningModule):
 
     @property
     def example_input_array(self):
-        (source_img, _), (target_img, target_palette) = next(
-            iter(self.val_dataloader())
-        )
+        (source_img, _), (target_img, target_palette) = next(iter(self.val_dataloader()))
         return source_img[0:1, ...], nn.Flatten()(target_palette[0:1, ...])
 
 
@@ -358,8 +354,6 @@ class AdversarialSystem(pl.LightningModule):
                 weight_decay=self.hparams.weight_decay,
             )
         else:
-            raise NotImplementedError(
-                f"Optimizer {self.hparams.optimizer} is not implemented"
-            )
+            raise NotImplementedError(f"Optimizer {self.hparams.optimizer} is not implemented")
 
         return [optimizer_G, optimizer_D]

@@ -39,9 +39,7 @@ def get_image_urls_and_palettes():
 
         for post in posts:
             image_url = post.find_all(class_="attachment-full")[0]["src"]
-            palette = [
-                header.text for header in post.find_all("h5") if "#" in header.text
-            ]
+            palette = [header.text for header in post.find_all("h5") if "#" in header.text]
 
             if (
                 len(palette) != 6

@@ -59,6 +59,4 @@ class RGBImage(RGBBase):
 # add 18 columns for 6 RGB colors - don't want to do it manually :)
 for i in range(6):
     for c in "rgb":
-        setattr(
-            RGBImage, f"color_{i}_{c}", Column(f"color_{i}_{c}", Integer, default=0)
-        )
+        setattr(RGBImage, f"color_{i}_{c}", Column(f"color_{i}_{c}", Integer, default=0))

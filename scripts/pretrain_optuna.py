@@ -14,14 +14,12 @@ from repalette.constants import (
     S3_LIGHTNING_LOGS_DIR,
     S3_MODEL_CHECKPOINTS_RELATIVE_DIR,
     MODEL_CHECKPOINTS_DIR,
-    RDS_OPTUNA_DATABASE
+    RDS_OPTUNA_DATABASE,
 )
 from repalette.lightning.datamodules import PreTrainDataModule
 from repalette.lightning.callbacks import LogRecoloringToTensorboard
 from repalette.lightning.systems import PreTrainSystem
 from repalette.utils.aws import upload_to_s3
-
-
 
 
 if __name__ == "__main__":
@@ -46,9 +44,7 @@ if __name__ == "__main__":
     # pretrain task
     hparams_parser.add_argument("--beta-1", type=float, default=DEFAULT_PRETRAIN_BETA_1)
     hparams_parser.add_argument("--beta-2", type=float, default=DEFAULT_PRETRAIN_BETA_2)
-    hparams_parser.add_argument(
-        "--optimizer", type=str, default="adam", choices=["adam", "adamw"]
-    )
+    hparams_parser.add_argument("--optimizer", type=str, default="adam", choices=["adam", "adamw"])
     hparams_parser.add_argument("--scheduler-patience", type=int, default=10)
     hparams_parser.add_argument("--batch-size", type=int, default=8)
     hparams_parser.add_argument("--multiplier", type=int, default=16)
@@ -63,9 +59,7 @@ if __name__ == "__main__":
     hparams_parser.add_argument("--test-batch-from-same-image", type=bool, default=True)
 
     # misc
-    hparams_parser.add_argument(
-        "--name", type=str, default="pretrain", help="experiment name"
-    )
+    hparams_parser.add_argument("--name", type=str, default="pretrain", help="experiment name")
     hparams_parser.add_argument(
         "--version",
         type=str,
@@ -76,7 +70,10 @@ if __name__ == "__main__":
         "--logger", type=str, default="tensorboard", choices=["tensorboard"]
     )
     hparams_parser.add_argument(
-        "--n_trials", type=int, default=1, help="Number of optuna trials. Leave 1 if run from Cosmos"
+        "--n_trials",
+        type=int,
+        default=1,
+        help="Number of optuna trials. Leave 1 if run from Cosmos",
     )
 
     hparams = hparams_parser.parse_args()
@@ -88,10 +85,10 @@ if __name__ == "__main__":
 
         # main LightningModule
         pretrain_system = PreTrainSystem(
-            learning_rate=trial.suggest_loguniform('learning_rate', 1e-5, 1e-2),
+            learning_rate=trial.suggest_loguniform("learning_rate", 1e-5, 1e-2),
             beta_1=hparams.beta_1,
             beta_2=hparams.beta_2,
-            weight_decay=trial.suggest_uniform('weight_decay', 1e-5, 1e-2),
+            weight_decay=trial.suggest_uniform("weight_decay", 1e-5, 1e-2),
             optimizer=hparams.optimizer,
             batch_size=hparams.batch_size,
             multiplier=hparams.multiplier,
@@ -136,7 +133,7 @@ if __name__ == "__main__":
                 pretrain_early_stopping,
                 log_recoloring_to_tensorboard,
                 pretrain_gpu_stats_monitor,
-                optuna_pruning
+                optuna_pruning,
             ],
             profiler="simple",
         )

@@ -2,8 +2,10 @@ from pytorch_lightning.callbacks import Callback
 import torch.nn as nn
 import torch
 
+from repalette.constants import DISCORD_TRAINING_CHANNEL_ID
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
 from repalette.lightning.systems import PreTrainSystem
+from repalette.utils.notify import notify_discord
 
 
 class LogRecoloringToTensorboard(Callback):
@@ -46,9 +48,7 @@ class LogRecoloringToTensorboard(Callback):
             recolored_img = pl_module.generator(original_img, _target_palette)
 
         original_luminance = original_img.clone()[:, 0:1, ...].to(pl_module.device)
-        recolored_img_with_luminance = torch.cat(
-            (original_luminance, recolored_img), dim=1
-        )
+        recolored_img_with_luminance = torch.cat((original_luminance, recolored_img), dim=1)
 
         pl_module.scaler.to(pl_module.device)
 
@@ -88,3 +88,19 @@ class LogRecoloringToTensorboard(Callback):
 class LogHPMetric(Callback):
     def on_train_end(self, trainer, pl_module):
         pass
+
+
+class NotifyTestEnd(Callback):
+    def __init__(self, notifier="discord"):
+        if notifier == "discord":
+            self.do_notify = self._notify_discord
+        else:
+            raise NotImplementedError(f"notifier {notifier} is not implemented.")
+
+    def on_test_end(self, trainer, pl_module):
+        message = f"✨✨✨ Training of {trainer.version} has finished ✨✨✨"
+        await self.do_notify(message=message)
+
+    @staticmethod
+    async def _notify_discord(message):
+        await notify_discord(channel_id=DISCORD_TRAINING_CHANNEL_ID, message=message)

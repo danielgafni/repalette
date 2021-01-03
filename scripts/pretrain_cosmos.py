@@ -13,9 +13,9 @@ This script can be modified to send different jobs to AWS Batch via Cosmos.
 
 
 env_variables = [
-            "AWS_DEFAULT_REGION",
-            "S3_BUCKET_NAME",
-        ]
+    "AWS_DEFAULT_REGION",
+    "S3_BUCKET_NAME",
+]
 
 
 def pretrain(version, num_workers, batch_size, multiplier, size, max_epochs=None):
@@ -37,9 +37,7 @@ def pretrain(version, num_workers, batch_size, multiplier, size, max_epochs=None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--name", type=str, default="pretrain", help="Cosmos workflow name"
-    )
+    parser.add_argument("--name", type=str, default="pretrain", help="Cosmos workflow name")
     parser.add_argument(
         "--gpu-req",
         type=int,
@@ -71,7 +69,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--size",
         type=float,
-        default=1.,
+        default=1.0,
     )
     parser.add_argument("--core-req", type=int, default=8)
     parser.add_argument("--mem-req", type=int, default=32000)
@@ -90,13 +88,11 @@ if __name__ == "__main__":
         default_drm="awsbatch",
         default_drm_options=dict(
             container_image=os.getenv("ECR_CONTAINER_IMAGE"),
-            s3_prefix_for_command_script_temp_files=os.path.join(
-                S3_BUCKET_PATH, "cosmos-tmp"
-            ),
+            s3_prefix_for_command_script_temp_files=os.path.join(S3_BUCKET_PATH, "cosmos-tmp"),
             shm_size=int(args.mem_req * 0.75),
-            retry_only_if_status_reason_matches="Host EC2 .+ terminated." # only retry on spot instance death
+            retry_only_if_status_reason_matches="Host EC2 .+ terminated.",  # only retry on spot instance death
         ),
-        default_queue=os.getenv("BATCH_QUEUE_NAME")
+        default_queue=os.getenv("BATCH_QUEUE_NAME"),
     )
     cosmos.initdb()
 
@@ -113,7 +109,7 @@ if __name__ == "__main__":
             num_workers=args.core_req - 1,
             batch_size=args.batch_size,
             multiplier=args.multiplier,
-            size=args.size
+            size=args.size,
         ),
         uid=task_name,
         time_req=None,
@@ -121,7 +117,7 @@ if __name__ == "__main__":
         core_req=args.core_req,
         gpu_req=args.gpu_req,
         mem_req=args.mem_req,
-        environment_variables={var: os.getenv(var) for var in env_variables}
+        environment_variables={var: os.getenv(var) for var in env_variables},
     )
 
     workflow.run()
