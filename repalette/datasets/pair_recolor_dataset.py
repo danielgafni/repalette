@@ -9,10 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from repalette.constants import IMAGE_SIZE, RGB_DATABASE_PATH
-from repalette.utils.transforms import (
-    FullTransform,
-    sort_palette as sort_palette_by_hue,
-)
+from repalette.utils.transforms import FullTransform, sort_palette as sort_palette_by_hue
 from repalette.db.rgb import RGBImage
 
 

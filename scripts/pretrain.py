@@ -4,6 +4,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, GPUStats
 from dotenv import load_dotenv
 import os
 from uuid import uuid1
+import asyncio
+import nest_asyncio
 
 from repalette.constants import (
     DEFAULT_PRETRAIN_LR,
@@ -141,7 +143,7 @@ if __name__ == "__main__":
             pretrain_early_stopping,
             log_recoloring_to_tensorboard,
             pretrain_gpu_stats_monitor,
-            notify_test_end,
+            # notify_test_end,
         ],
         profiler="simple",
     )
@@ -180,7 +182,12 @@ if __name__ == "__main__":
         ".".join([hparams.version, best_model_path.split(".")[-1]]),
     )
     upload_to_s3(best_model_path, S3_best_model_path)
-    await notify_discord(
-        channel_id=DISCORD_TRAINING_CHANNEL_ID,
-        message=f'Score: {test_result[0]["Test/loss_epoch"]}',
+
+    nest_asyncio.apply()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(
+        notify_discord(
+            channel_id=DISCORD_TRAINING_CHANNEL_ID,
+            message=f'Score: {test_result[0]["Test/loss_epoch"]}',
+        )
     )

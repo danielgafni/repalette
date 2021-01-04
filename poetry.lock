@@ -1021,7 +1021,7 @@ test = ["fastjsonschema", "testpath", "pytest", "pytest-cov"]
 name = "nest-asyncio"
 version = "1.4.3"
 description = "Patch asyncio to allow nested event loops"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.5"
 
@@ -1914,7 +1914,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "a155b32518ee70e084efa6cef390886c6d8ff98e32b70f085dc77b1a533261bd"
+content-hash = "c293d2d3142fb8dd556851ad96960428109ca39cd6a05ef1155189029c4b1631"
 
 [metadata.files]
 absl-py = [

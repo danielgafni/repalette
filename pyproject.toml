@@ -21,6 +21,7 @@ boto3 = "^1.16.35"
 mysqlclient = "^2.0.2"
 optuna = "^2.3.0"
 discord = "^1.0.1"
+nest-asyncio = "^1.4.3"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"
@@ -52,5 +53,8 @@ exclude = '''
   | buck-out
   | build
   | dist
- )/
+  | PaletteNet-PyTorch
+  | documents
+  | notebooks
+  )/
 '''

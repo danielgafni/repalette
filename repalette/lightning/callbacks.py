@@ -1,6 +1,8 @@
 from pytorch_lightning.callbacks import Callback
 import torch.nn as nn
 import torch
+import asyncio
+import nest_asyncio
 
 from repalette.constants import DISCORD_TRAINING_CHANNEL_ID
 from repalette.utils.visualization import lab_batch_to_rgb_image_grid
@@ -76,9 +78,7 @@ class LogRecoloringToTensorboard(Callback):
             f"{stage}/{prefix}target", target_grid, pl_module.current_epoch
         )
         pl_module.logger.experiment.add_image(
-            f"{stage}/{prefix}target_palette",
-            target_palette_grid,
-            pl_module.current_epoch,
+            f"{stage}/{prefix}target_palette", target_palette_grid, pl_module.current_epoch
         )
         pl_module.logger.experiment.add_image(
             f"{stage}/{prefix}recolored", recolored_grid, pl_module.current_epoch
@@ -98,9 +98,15 @@ class NotifyTestEnd(Callback):
             raise NotImplementedError(f"notifier {notifier} is not implemented.")
 
     def on_test_end(self, trainer, pl_module):
-        message = f"✨✨✨ Training of {trainer.version} has finished ✨✨✨"
-        await self.do_notify(message=message)
+        message = f"✨✨✨ Training of {trainer.logger.version} has finished ✨✨✨"
+        self.do_notify(message=message)
 
     @staticmethod
-    async def _notify_discord(message):
-        await notify_discord(channel_id=DISCORD_TRAINING_CHANNEL_ID, message=message)
+    def _notify_discord(message):
+
+        nest_asyncio.apply()
+
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(
+            notify_discord(channel_id=DISCORD_TRAINING_CHANNEL_ID, message=message)
+        )

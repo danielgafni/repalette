@@ -1,12 +1,7 @@
 import torch
 import torch.nn as nn
 
-from repalette.models.nn import (
-    ConvBlock,
-    DeconvBlock,
-    ResnetLayer,
-    BasicBlock,
-)
+from repalette.models.nn import ConvBlock, DeconvBlock, ResnetLayer, BasicBlock
 
 
 class PaletteNet(nn.Module):

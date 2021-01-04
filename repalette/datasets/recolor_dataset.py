@@ -69,9 +69,7 @@ class RecolorDataset(Dataset):
             resize = Resize(self.resize)
             image = resize(image)
 
-        image_aug = TF.to_tensor(
-            smart_hue_adjust(image, hue_shift),
-        )
+        image_aug = TF.to_tensor(smart_hue_adjust(image, hue_shift))
 
         palette = Image.fromarray(rgb_image.palette)
         palette_aug = TF.to_tensor(smart_hue_adjust(palette, hue_shift))

@@ -63,10 +63,7 @@ class PreTrainSystem(pl.LightningModule):
 
     def training_epoch_end(self, outputs):
         # log training loss
-        self.log(
-            "Train/loss_epoch",
-            torch.stack([output["loss"] for output in outputs]).mean(),
-        )
+        self.log("Train/loss_epoch", torch.stack([output["loss"] for output in outputs]).mean())
 
     def validation_step(self, batch, batch_idx):
         (source_img, _), (target_img, target_palette) = batch
@@ -121,11 +118,7 @@ class PreTrainSystem(pl.LightningModule):
             optimizer=optimizer, mode="min", patience=self.hparams.scheduler_patience
         )
 
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": lr_scheduler,
-            "monitor": "Val/loss_epoch",
-        }
+        return {"optimizer": optimizer, "lr_scheduler": lr_scheduler, "monitor": "Val/loss_epoch"}
 
     @property
     def example_input_array(self):
@@ -185,11 +178,7 @@ class AdversarialSystem(pl.LightningModule):
         return self.generator(img, palette)
 
     def training_step(self, batch, batch_idx, optimizer_idx):
-        (
-            (source_img, _),
-            (target_img, target_palette),
-            (original_img, original_palette),
-        ) = batch
+        ((source_img, _), (target_img, target_palette), (original_img, original_palette)) = batch
         target_palette = nn.Flatten()(target_palette)
         original_palette = nn.Flatten()(original_palette)
         luminance = source_img[:, 0:1, :, :]
@@ -225,20 +214,14 @@ class AdversarialSystem(pl.LightningModule):
     def training_epoch_end(self, outputs):
         # log training loss
         self.log(
-            "Train/mse_loss_epoch",
-            torch.stack([output["mse_loss"] for output in outputs]).mean(),
+            "Train/mse_loss_epoch", torch.stack([output["mse_loss"] for output in outputs]).mean()
         )
         self.log(
-            "Train/adv_loss_epoch",
-            torch.stack([output["adv_loss"] for output in outputs]).mean(),
+            "Train/adv_loss_epoch", torch.stack([output["adv_loss"] for output in outputs]).mean()
         )
 
     def validation_step(self, batch, batch_idx, optimizer_idx):
-        (
-            (source_img, _),
-            (target_img, target_palette),
-            (original_img, original_palette),
-        ) = batch
+        ((source_img, _), (target_img, target_palette), (original_img, original_palette)) = batch
         target_palette = nn.Flatten()(target_palette)
         original_palette = nn.Flatten()(original_palette)
         luminance = source_img[:, 0:1, :, :]
@@ -271,20 +254,14 @@ class AdversarialSystem(pl.LightningModule):
     def validation_epoch_end(self, outputs):
         # log training loss
         self.log(
-            "Val/mse_loss_epoch",
-            torch.stack([output["mse_loss"] for output in outputs]).mean(),
+            "Val/mse_loss_epoch", torch.stack([output["mse_loss"] for output in outputs]).mean()
         )
         self.log(
-            "Val/adv_loss_epoch",
-            torch.stack([output["adv_loss"] for output in outputs]).mean(),
+            "Val/adv_loss_epoch", torch.stack([output["adv_loss"] for output in outputs]).mean()
         )
 
     def test_step(self, batch, batch_idx, optimizer_idx):
-        (
-            (source_img, _),
-            (target_img, target_palette),
-            (original_img, original_palette),
-        ) = batch
+        ((source_img, _), (target_img, target_palette), (original_img, original_palette)) = batch
         target_palette = nn.Flatten()(target_palette)
         original_palette = nn.Flatten()(original_palette)
         luminance = source_img[:, 0:1, :, :]
@@ -317,12 +294,10 @@ class AdversarialSystem(pl.LightningModule):
     def test_epoch_end(self, outputs):
         # log training loss
         self.log(
-            "Test/mse_loss_epoch",
-            torch.stack([output["mse_loss"] for output in outputs]).mean(),
+            "Test/mse_loss_epoch", torch.stack([output["mse_loss"] for output in outputs]).mean()
         )
         self.log(
-            "Test/adv_loss_epoch",
-            torch.stack([output["adv_loss"] for output in outputs]).mean(),
+            "Test/adv_loss_epoch", torch.stack([output["adv_loss"] for output in outputs]).mean()
         )
 
     def configure_optimizers(self):
