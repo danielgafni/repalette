@@ -21,19 +21,12 @@ def upload_to_s3():
     tmp_file_name = os.path.join(BASE_DATA_DIR, "rgb_tmp")
     print(f"Creating temporary archive {tmp_file_name}.zip")
     shutil.make_archive(
-        tmp_file_name,
-        "zip",
-        root_dir=ROOT_DIR,
-        base_dir=os.path.relpath(RGB_IMAGES_DIR, ROOT_DIR),
+        tmp_file_name, "zip", root_dir=ROOT_DIR, base_dir=os.path.relpath(RGB_IMAGES_DIR, ROOT_DIR)
     )
 
     try:
-        print(
-            f"Uploading {tmp_file_name}.zip to s3://{S3_BUCKET_NAME}/{S3_RGB_DATABASE_PATH}"
-        )
-        s3_client.upload_file(
-            f"{tmp_file_name}.zip", S3_BUCKET_NAME, S3_RGB_IMAGES_PATH
-        )
+        print(f"Uploading {tmp_file_name}.zip to s3://{S3_BUCKET_NAME}/{S3_RGB_DATABASE_PATH}")
+        s3_client.upload_file(f"{tmp_file_name}.zip", S3_BUCKET_NAME, S3_RGB_IMAGES_PATH)
         s3_client.upload_file(RGB_DATABASE_PATH, S3_BUCKET_NAME, S3_RGB_DATABASE_PATH)
     except ClientError as e:
         logging.error(e)

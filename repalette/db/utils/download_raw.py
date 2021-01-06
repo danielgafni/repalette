@@ -11,12 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from multiprocessing import Pool
 from PIL import Image
 
-from repalette.constants import (
-    BASE_DATA_DIR,
-    RAW_DATA_DIR,
-    RGB_IMAGES_DIR,
-    DEFAULT_RAW_DATABASE,
-)
+from repalette.constants import BASE_DATA_DIR, RAW_DATA_DIR, RGB_IMAGES_DIR, DEFAULT_RAW_DATABASE
 from repalette.db import image_url_to_name
 from repalette.db.raw import RawImage, RAWBase
 
@@ -39,9 +34,7 @@ def get_image_urls_and_palettes():
 
         for post in posts:
             image_url = post.find_all(class_="attachment-full")[0]["src"]
-            palette = [
-                header.text for header in post.find_all("h5") if "#" in header.text
-            ]
+            palette = [header.text for header in post.find_all("h5") if "#" in header.text]
 
             if (
                 len(palette) != 6
@@ -82,11 +75,7 @@ if __name__ == "__main__":
         # create a database Session
         session = Session()
 
-        raw_image = RawImage(
-            palette=palette,
-            url=url,
-            name=name,
-        )
+        raw_image = RawImage(palette=palette, url=url, name=name)
         try:
             session.add(raw_image)
             # if add successful (new image) - download image

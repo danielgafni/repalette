@@ -64,7 +64,7 @@ class PreTrainDataModule(pl.LightningDataModule):
     def train_dataloader(self):
         train_dataloader = ShuffleDataLoader(
             self.train,
-            shuffle=not self.test_batch_from_same_image,
+            shuffle=not self.train_batch_from_same_image,
             num_workers=self.num_workers,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,

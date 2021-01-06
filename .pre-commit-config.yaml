@@ -1,0 +1,22 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+    -   id: check-yaml
+        exclude: ^PaletteNet-PyTorch/
+    -   id: end-of-file-fixer
+        exclude: ^PaletteNet-PyTorch/
+    -   id: trailing-whitespace
+        exclude: ^PaletteNet-PyTorch/
+#- repo: https://github.com/psf/black
+#  rev: stable
+#  hooks:
+#      - id: black
+#        language_version: python3 # Should be a command that runs python3.6+
+-   repo: local
+    hooks:
+    -   id: black
+        name: black
+        entry: black
+        language: python
+        files: ^repalette/

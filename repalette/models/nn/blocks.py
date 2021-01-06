@@ -7,13 +7,7 @@ class ResnetLayer(nn.Module):
     """Resnet layer consisting of several residual blocks."""
 
     def __init__(
-        self,
-        block,
-        in_channels,
-        out_channels,
-        n_blocks=2,
-        activation="leaky_relu",
-        stride=2,
+        self, block, in_channels, out_channels, n_blocks=2, activation="leaky_relu", stride=2
     ):
         super().__init__()
         blocks = [block(in_channels, out_channels, activation, stride)]
@@ -106,13 +100,7 @@ class ConvBlock(nn.Module):
 class DeconvBlock(nn.Module):
     """Upsampling block consisting of 2 convolutional blocks."""
 
-    def __init__(
-        self,
-        in_channels,
-        out_channels,
-        kernel_size=3,
-        activation="leaky_relu",
-    ):
+    def __init__(self, in_channels, out_channels, kernel_size=3, activation="leaky_relu"):
         super().__init__()
         self.model = nn.Sequential(
             ConvBlock(in_channels, out_channels, kernel_size),
