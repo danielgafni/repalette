@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # trainer
     hparams_parser.add_argument("--max-epochs", type=int, default=100)
     hparams_parser.add_argument("--gpus", type=int, default=-1)
-    hparams_parser.add_argument("--precision", type=int, default=16, choices=[16, 32])
+    hparams_parser.add_argument("--precision", type=int, default=32, choices=[16, 32])
     hparams_parser.add_argument("--accumulate-grad-batches", type=int, default=1)
     hparams_parser.add_argument("--gradient-clip-val", type=float, default=0.0)
     # hparams_parser.add_argument(
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     # )
 
     # callbacks
-    hparams_parser.add_argument("--patience", type=int, default=20)
+    hparams_parser.add_argument("--patience", type=int, default=10)
     hparams_parser.add_argument("--save-top-k", type=int, default=1)
 
     # pretrain task
