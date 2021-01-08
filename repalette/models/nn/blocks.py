@@ -1,18 +1,39 @@
 import torch.nn as nn
 
-from repalette.models.nn.activations import activation_shortcuts
+from repalette.models.nn.activations import (
+    activation_shortcuts,
+)
 
 
 class ResnetLayer(nn.Module):
     """Resnet layer consisting of several residual blocks."""
 
     def __init__(
-        self, block, in_channels, out_channels, n_blocks=2, activation="leaky_relu", stride=2
+        self,
+        block,
+        in_channels,
+        out_channels,
+        n_blocks=2,
+        activation="leaky_relu",
+        stride=2,
     ):
         super().__init__()
-        blocks = [block(in_channels, out_channels, activation, stride)]
+        blocks = [
+            block(
+                in_channels,
+                out_channels,
+                activation,
+                stride,
+            )
+        ]
         for _ in range(1, n_blocks):
-            blocks.append(block(out_channels, out_channels, activation))
+            blocks.append(
+                block(
+                    out_channels,
+                    out_channels,
+                    activation,
+                )
+            )
 
         self.model = nn.Sequential(*blocks)
 
@@ -39,12 +60,27 @@ class ResidualBlock(nn.Module):
 class BasicBlock(ResidualBlock):
     """Basic block for ResNet consisting of 2 convolutional layers."""
 
-    def __init__(self, in_channels, out_channels, activation="leaky_relu", stride=1):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        activation="leaky_relu",
+        stride=1,
+    ):
         super().__init__()
 
         self.residual = nn.Sequential(
-            ConvBlock(in_channels, out_channels, stride=stride, activation=activation),
-            ConvBlock(out_channels, out_channels, activation="none"),
+            ConvBlock(
+                in_channels,
+                out_channels,
+                stride=stride,
+                activation=activation,
+            ),
+            ConvBlock(
+                out_channels,
+                out_channels,
+                activation="none",
+            ),
         )
         if stride != 1 or in_channels != out_channels:
             self.shortcut = ConvBlock(
@@ -100,15 +136,33 @@ class ConvBlock(nn.Module):
 class DeconvBlock(nn.Module):
     """Upsampling block consisting of 2 convolutional blocks."""
 
-    def __init__(self, in_channels, out_channels, kernel_size=3, activation="leaky_relu"):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size=3,
+        activation="leaky_relu",
+    ):
         super().__init__()
         self.model = nn.Sequential(
-            ConvBlock(in_channels, out_channels, kernel_size),
-            ConvBlock(out_channels, out_channels, kernel_size),
+            ConvBlock(
+                in_channels,
+                out_channels,
+                kernel_size,
+            ),
+            ConvBlock(
+                out_channels,
+                out_channels,
+                kernel_size,
+            ),
         )
 
     def forward(self, x, size=None):
         if size is not None:
-            upsample = nn.Upsample(size=size, mode="bilinear", align_corners=True)
+            upsample = nn.Upsample(
+                size=size,
+                mode="bilinear",
+                align_corners=True,
+            )
             x = upsample(x)
         return self.model(x)

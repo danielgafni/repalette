@@ -11,7 +11,11 @@ mount -o remount,size=$SYSTEM_MEMORY_MB_75_PERCENT /dev/shm
 """
 
 
-def upload_to_s3(file_path, bucket_path, bucket_name=S3_BUCKET_NAME):
+def upload_to_s3(
+    file_path,
+    bucket_path,
+    bucket_name=S3_BUCKET_NAME,
+):
     s3_client = boto3.client("s3")
     try:
         print(f"Uploading {file_path} to s3://{bucket_name}/{bucket_path}")

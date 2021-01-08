@@ -1,1 +1,4 @@
-from .systems import PreTrainSystem, AdversarialSystem
+from .systems import (
+    PreTrainSystem,
+    AdversarialSystem,
+)

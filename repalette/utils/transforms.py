@@ -1,22 +1,43 @@
 import numpy as np
 import torch
 from PIL import Image
-from skimage.color import rgb2lab, lab2rgb, rgb2hsv, hsv2rgb
-from torchvision.transforms import functional as TF
+from skimage.color import (
+    rgb2lab,
+    lab2rgb,
+    rgb2hsv,
+    hsv2rgb,
+)
+from torchvision.transforms import (
+    functional as TF,
+)
 
-from repalette.constants import L_RANGE, A_RANGE, B_RANGE
+from repalette.constants import (
+    L_RANGE,
+    A_RANGE,
+    B_RANGE,
+)
 
 
 class Scaler:
-    def __init__(self, old_range: torch.Tensor = None, new_range: torch.Tensor = None):
+    def __init__(
+        self,
+        old_range: torch.Tensor = None,
+        new_range: torch.Tensor = None,
+    ):
         self.old_range = old_range
         self.new_range = new_range
         if old_range is None:
-            self.old_range = torch.as_tensor([L_RANGE, A_RANGE, B_RANGE], dtype=torch.float)
+            self.old_range = torch.as_tensor(
+                [L_RANGE, A_RANGE, B_RANGE],
+                dtype=torch.float,
+            )
         if new_range is None:
             self.new_range = torch.as_tensor([[-1, 1]] * 3, dtype=torch.float)
 
-    def to(self, device: torch.device = torch.device("cpu")):
+    def to(
+        self,
+        device: torch.device = torch.device("cpu"),
+    ):
         self.old_range = self.old_range.to(device)
         self.new_range = self.new_range.to(device)
 
@@ -40,7 +61,11 @@ class Scaler:
         return normalize_img(img, self.new_range, self.old_range)
 
 
-def normalize_img(img: torch.Tensor, old_range: torch.Tensor, new_range: torch.Tensor):
+def normalize_img(
+    img: torch.Tensor,
+    old_range: torch.Tensor,
+    new_range: torch.Tensor,
+):
     new_img = img - torch.mean(old_range, dim=-1)[:, None, None]
     coef = (new_range[:, 1] - new_range[:, 0]) / (old_range[:, 1] - old_range[:, 0])
     new_img *= coef[:, None, None]
@@ -93,10 +118,18 @@ def smart_hue_adjust(img, hue_shift: float, lab=True) -> np.float32:
 
     # if submitted numpy array - convert to PIL.Image
     if type(img) == np.ndarray:
-        if img.dtype in [np.float16, np.float32, np.float64]:
+        if img.dtype in [
+            np.float16,
+            np.float32,
+            np.float64,
+        ]:
             pil_img = Image.fromarray(img)
             np_img = img
-        elif img.dtype in [np.int16, np.int32, np.int64]:
+        elif img.dtype in [
+            np.int16,
+            np.int32,
+            np.int64,
+        ]:
             pil_img = Image.fromarray(img)
             np_img = img.astype(np.float) / 255.0
         else:

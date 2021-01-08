@@ -30,7 +30,7 @@ jupyterlab = "^2.2.9"
 ipywidgets = "^7.5.1"
 setuptools = "^50.3.2"
 awscli = "^1.18.196"
-cosmos-wfm = {git = "https://github.com/Mizzou-CBMI/COSMOS2.git"}
+cosmos-wfm = "^2.13.11"
 pre-commit = "^2.9.3"
 
 [build-system]

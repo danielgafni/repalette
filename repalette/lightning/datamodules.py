@@ -3,8 +3,13 @@ from typing import Any
 import pytorch_lightning as pl
 import torch
 from torchvision import transforms
-from repalette.datasets import PairRecolorDataset, TripletRecolorDataset
-from repalette.datasets.utils import ShuffleDataLoader
+from repalette.datasets import (
+    PairRecolorDataset,
+    TripletRecolorDataset,
+)
+from repalette.datasets.utils import (
+    ShuffleDataLoader,
+)
 from repalette.constants import DEFAULT_IMAGE_SIZE
 
 
@@ -51,9 +56,14 @@ class PreTrainDataModule(pl.LightningDataModule):
 
     def setup(self, stage=None):
         data = PairRecolorDataset(
-            multiplier=self.multiplier, shuffle=self.shuffle, transform=self.transform
+            multiplier=self.multiplier,
+            shuffle=self.shuffle,
+            transform=self.transform,
         )
-        data, _ = data.split(test_size=(1 - self.size), shuffle=True)
+        data, _ = data.split(
+            test_size=(1 - self.size),
+            shuffle=True,
+        )
         train, val = data.split(test_size=0.2, shuffle=True)
         val, test = val.split(test_size=0.5, shuffle=True)
 
@@ -146,9 +156,14 @@ class AdversarialDataModule(pl.LightningDataModule):
 
     def setup(self, stage=None):
         data = TripletRecolorDataset(
-            multiplier=self.multiplier, shuffle=self.shuffle, transform=self.transform
+            multiplier=self.multiplier,
+            shuffle=self.shuffle,
+            transform=self.transform,
         )
-        data, _ = data.split(test_size=(1 - self.size), shuffle=True)
+        data, _ = data.split(
+            test_size=(1 - self.size),
+            shuffle=True,
+        )
         train, val = data.split(test_size=0.2, shuffle=True)
         val, test = val.split(test_size=0.5, shuffle=True)
 

@@ -8,7 +8,10 @@ from itertools import permutations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from repalette.constants import DEFAULT_IMAGE_SIZE, RGB_DATABASE_PATH
+from repalette.constants import (
+    DEFAULT_IMAGE_SIZE,
+    RGB_DATABASE_PATH,
+)
 from repalette.utils.transforms import (
     FullTransform,
     sort_palette as sort_palette_by_hue,
@@ -86,7 +89,10 @@ class PairRecolorDataset(Dataset):
         :return: image of shape [3, self.resize] and palette of shape [3, 1, 6]
         """
         pair_index = index % self.n_pairs
-        hue_shift_first, hue_shift_second = self.hue_pairs[pair_index]
+        (
+            hue_shift_first,
+            hue_shift_second,
+        ) = self.hue_pairs[pair_index]
         i = index // self.n_pairs  # actual image index (from design-seeds-data directory)
 
         rgb_image = self.query[i]
@@ -99,16 +105,25 @@ class PairRecolorDataset(Dataset):
 
         palette = Image.fromarray(palette)
 
-        img_aug_first, img_aug_second = self.img_transform(image, hue_shift_first, hue_shift_second)
-        palette_aug_first, palette_aug_second = self.palette_transform(
-            palette, hue_shift_first, hue_shift_second
+        (img_aug_first, img_aug_second,) = self.img_transform(
+            image,
+            hue_shift_first,
+            hue_shift_second,
+        )
+        (palette_aug_first, palette_aug_second,) = self.palette_transform(
+            palette,
+            hue_shift_first,
+            hue_shift_second,
         )
 
         if self.shuffle_palette:
             palette_aug_first = palette_aug_first[:, :, torch.randperm(6)]
             palette_aug_second = palette_aug_second[:, :, torch.randperm(6)]
 
-        return (img_aug_first, palette_aug_first), (img_aug_second, palette_aug_second)
+        return (
+            img_aug_first,
+            palette_aug_first,
+        ), (img_aug_second, palette_aug_second)
 
     def __len__(self):
         """

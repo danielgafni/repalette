@@ -7,7 +7,9 @@ from sqlalchemy.orm import sessionmaker
 import random
 
 from repalette.constants import RGB_DATABASE_PATH
-from repalette.utils.transforms import smart_hue_adjust
+from repalette.utils.transforms import (
+    smart_hue_adjust,
+)
 from repalette.db.rgb import RGBImage
 
 

@@ -34,7 +34,10 @@ class RGBDataset(Dataset):
 
         image = np.array(Image.open(rgb_image.path).convert("RGB"))
 
-        return (image, rgb_image.palette), rgb_image
+        return (
+            image,
+            rgb_image.palette,
+        ), rgb_image
 
     def __len__(self):
         return len(self.query)

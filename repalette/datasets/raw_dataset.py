@@ -33,7 +33,10 @@ class RawDataset(Dataset):
 
         image = Image.open(raw_image.path).convert("RGB")
 
-        return (image, raw_image.palette), raw_image
+        return (
+            image,
+            raw_image.palette,
+        ), raw_image
 
     def __len__(self):
         return len(self.query)

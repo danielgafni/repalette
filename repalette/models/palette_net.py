@@ -1,7 +1,12 @@
 import torch
 import torch.nn as nn
 
-from repalette.models.nn import ConvBlock, DeconvBlock, ResnetLayer, BasicBlock
+from repalette.models.nn import (
+    ConvBlock,
+    DeconvBlock,
+    ResnetLayer,
+    BasicBlock,
+)
 
 
 class PaletteNet(nn.Module):
@@ -13,7 +18,11 @@ class PaletteNet(nn.Module):
     def forward(self, img, palette):
         luminance = img[:, 0:1, :, :]
         content_features = self.feature_extractor(img)
-        recolored_img_ab = self.recoloring_decoder(content_features, palette, luminance)
+        recolored_img_ab = self.recoloring_decoder(
+            content_features,
+            palette,
+            luminance,
+        )
         return recolored_img_ab
 
 
@@ -29,7 +38,10 @@ class FeatureExtractor(nn.Module):
         self.res3 = ResnetLayer(BasicBlock, 256, 512)
 
         # set last layer bias to 0 as described in `PeletteNet` paper
-        torch.nn.init.constant_(self.res3.model[-1].residual[-1].conv.bias, 0)
+        torch.nn.init.constant_(
+            self.res3.model[-1].residual[-1].conv.bias,
+            0,
+        )
 
     def forward(self, x):
         x = self.conv(x)
@@ -48,7 +60,12 @@ class RecoloringDecoder(nn.Module):
         self.deconv2 = DeconvBlock(256 + 256, 128)
         self.deconv3 = DeconvBlock(128 + 128 + 18, 64)
         self.deconv4 = DeconvBlock(64 + 64 + 18, 64)
-        self.final_conv = ConvBlock(64 + 1, 2, activation="tanh", normalize=False)
+        self.final_conv = ConvBlock(
+            64 + 1,
+            2,
+            activation="tanh",
+            normalize=False,
+        )
 
     def forward(self, content_features, palette, luminance):
         device = next(self.parameters()).device
@@ -56,15 +73,27 @@ class RecoloringDecoder(nn.Module):
 
         batch_size, _, height, width = c1.size()
         palette_c1 = palette[:, :, None, None] * torch.ones(
-            batch_size, 18, height, width, device=device
+            batch_size,
+            18,
+            height,
+            width,
+            device=device,
         )
         batch_size, _, height, width = c3.size()
         palette_c3 = palette[:, :, None, None] * torch.ones(
-            batch_size, 18, height, width, device=device
+            batch_size,
+            18,
+            height,
+            width,
+            device=device,
         )
         batch_size, _, height, width = c4.size()
         palette_c4 = palette[:, :, None, None] * torch.ones(
-            batch_size, 18, height, width, device=device
+            batch_size,
+            18,
+            height,
+            width,
+            device=device,
         )
 
         x = torch.cat([c1, palette_c1], dim=1)

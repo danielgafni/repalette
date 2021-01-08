@@ -1,6 +1,14 @@
 import datetime
-from sqlalchemy import Column, Integer, String, DateTime, MetaData
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    MetaData,
+)
+from sqlalchemy.ext.declarative import (
+    declarative_base,
+)
 import os
 
 from repalette.constants import RAW_DATA_DIR
@@ -23,9 +31,20 @@ class RawImage(RAWBase):
     palette_3 = Column("palette_3", String, default="")
     palette_4 = Column("palette_4", String, default="")
     palette_5 = Column("palette_5", String, default="")
-    created_at = Column("created_at", DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(
+        "created_at",
+        DateTime,
+        default=datetime.datetime.utcnow,
+    )
 
-    def __init__(self, palette, url="", name="", height=0, width=0):
+    def __init__(
+        self,
+        palette,
+        url="",
+        name="",
+        height=0,
+        width=0,
+    ):
         self.url = url
         self.name = name
         self.height = height

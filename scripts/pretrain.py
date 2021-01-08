@@ -19,7 +19,7 @@ from repalette.constants import (
 )
 from pytorch_lightning.loggers import TensorBoardLogger
 from repalette.lightning.datamodules import PreTrainDataModule
-from repalette.lightning.callbacks import LogPairRecoloringToTensorboard, NotifyTestEnd
+from repalette.lightning.callbacks import LogPairRecoloringToTensorboard, Notify
 from repalette.lightning.systems import PreTrainSystem
 from repalette.utils.aws import upload_to_s3
 from repalette.utils.notify import notify_discord
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
     log_recoloring_to_tensorboard = LogPairRecoloringToTensorboard()
 
-    notify_test_end = NotifyTestEnd()
+    notify_test_end = Notify()
 
     logger = TensorBoardLogger(
         S3_LIGHTNING_LOGS_DIR,

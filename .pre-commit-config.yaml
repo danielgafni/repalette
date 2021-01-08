@@ -17,6 +17,6 @@ repos:
     hooks:
     -   id: black
         name: black
-        entry: black
+        entry: black --line-length 100 .
         language: python
         files: ^repalette/

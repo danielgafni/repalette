@@ -11,7 +11,12 @@ from sqlalchemy.exc import IntegrityError
 from multiprocessing import Pool
 from PIL import Image
 
-from repalette.constants import BASE_DATA_DIR, RAW_DATA_DIR, RGB_IMAGES_DIR, DEFAULT_RAW_DATABASE
+from repalette.constants import (
+    BASE_DATA_DIR,
+    RAW_DATA_DIR,
+    RGB_IMAGES_DIR,
+    DEFAULT_RAW_DATABASE,
+)
 from repalette.db import image_url_to_name
 from repalette.db.raw import RawImage, RAWBase
 
@@ -90,11 +95,18 @@ if __name__ == "__main__":
         except IntegrityError:  # image already in the database
             pass
 
-    image_urls, palettes = get_image_urls_and_palettes()
+    (
+        image_urls,
+        palettes,
+    ) = get_image_urls_and_palettes()
 
     with Pool(args.num_workers) as pool:
-        with tqdm(desc="Downloading", total=len(image_urls)) as bar:
+        with tqdm(
+            desc="Downloading",
+            total=len(image_urls),
+        ) as bar:
             for _ in pool.imap_unordered(
-                download_image_to_database, list(zip(image_urls, palettes))
+                download_image_to_database,
+                list(zip(image_urls, palettes)),
             ):
                 bar.update(n=1)
