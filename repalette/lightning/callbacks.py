@@ -136,6 +136,7 @@ class LogTripletRecoloringToTensorboard(LogRecoloringToTensorboard):
 
         return source_img, target_img, target_palette
 
+
 class NotifyTestEnd(Callback):
     def __init__(self, notifier="discord"):
         if notifier == "discord":
