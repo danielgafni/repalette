@@ -7,6 +7,9 @@ from repalette.utils.transforms import sort_palette as sort_palette_by_hue
 
 class TripletRecolorDataset(PairRecolorDataset):
     def __getitem__(self, index):
+        """
+        @return: source_pair and target_pair - for generator; original_pair - for discriminator
+        """
         source_pair, target_pair = super().__getitem__(index)
 
         random_idx = np.random.randint(len(self.query))

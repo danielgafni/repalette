@@ -16,7 +16,7 @@ from repalette.constants import (
 )
 from pytorch_lightning.loggers import TensorBoardLogger
 from repalette.lightning.datamodules import PreTrainDataModule
-from repalette.lightning.callbacks import LogRecoloringToTensorboard
+from repalette.lightning.callbacks import LogPairRecoloringToTensorboard
 from repalette.lightning.systems import PreTrainSystem
 from repalette.utils.aws import upload_to_s3
 
@@ -49,17 +49,11 @@ if __name__ == "__main__":
     hparams_parser.add_argument("--save-top-k", type=int, default=1)
 
     # pretrain task
-    hparams_parser.add_argument(
-        "--learning-rate", type=float, default=DEFAULT_PRETRAIN_LR
-    )
+    hparams_parser.add_argument("--learning-rate", type=float, default=DEFAULT_PRETRAIN_LR)
     hparams_parser.add_argument("--beta-1", type=float, default=DEFAULT_PRETRAIN_BETA_1)
     hparams_parser.add_argument("--beta-2", type=float, default=DEFAULT_PRETRAIN_BETA_2)
-    hparams_parser.add_argument(
-        "--weight-decay", type=float, default=DEFAULT_PRETRAIN_WEIGHT_DECAY
-    )
-    hparams_parser.add_argument(
-        "--optimizer", type=str, default="adam", choices=["adam", "adamw"]
-    )
+    hparams_parser.add_argument("--weight-decay", type=float, default=DEFAULT_PRETRAIN_WEIGHT_DECAY)
+    hparams_parser.add_argument("--optimizer", type=str, default="adam", choices=["adam", "adamw"])
     hparams_parser.add_argument("--scheduler-patience", type=int, default=10)
     hparams_parser.add_argument("--batch-size", type=int, default=8)
     hparams_parser.add_argument("--multiplier", type=int, default=16)
@@ -74,9 +68,7 @@ if __name__ == "__main__":
     hparams_parser.add_argument("--test-batch-from-same-image", type=bool, default=True)
 
     # misc
-    hparams_parser.add_argument(
-        "--name", type=str, default="pretrain", help="experiment name"
-    )
+    hparams_parser.add_argument("--name", type=str, default="pretrain", help="experiment name")
     hparams_parser.add_argument(
         "--version",
         type=str,
@@ -122,7 +114,7 @@ if __name__ == "__main__":
 
     pretrain_gpu_stats_monitor = GPUStatsMonitor(temperature=True)
 
-    log_recoloring_to_tensorboard = LogRecoloringToTensorboard()
+    log_recoloring_to_tensorboard = LogPairRecoloringToTensorboard()
 
     logger = TensorBoardLogger(
         S3_LIGHTNING_LOGS_DIR,
@@ -147,6 +139,7 @@ if __name__ == "__main__":
             pretrain_gpu_stats_monitor,
         ],
         profiler="simple",
+        benchmark=True,
     )
 
     datamodule = PreTrainDataModule(

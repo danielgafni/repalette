@@ -8,7 +8,7 @@ from itertools import permutations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from repalette.constants import IMAGE_SIZE, RGB_DATABASE_PATH
+from repalette.constants import DEFAULT_IMAGE_SIZE, RGB_DATABASE_PATH
 from repalette.utils.transforms import (
     FullTransform,
     sort_palette as sort_palette_by_hue,
@@ -26,15 +26,16 @@ class PairRecolorDataset(Dataset):
         sort_palette=True,
         transform=None,
         normalize=True,
+        image_size=DEFAULT_IMAGE_SIZE,
     ):
         """
-        Dataset constructor.
         :param multiplier: an odd multiplier for color augmentation
         :param shuffle: if to shuffle images and color augmentation
         :param shuffle_palette: if to shuffle output palettes
         :param sort_palette: if to sort output palettes by hue
         :param transform: optional transform to be applied on a sample
         :param normalize: if to normalize LAB images to be in [-1, 1] range
+        :param image_size: image size to resize to (lol)
         """
         if sort_palette and shuffle_palette:
             raise ValueError("Don't sort and shuffle the palette at the same time!")
@@ -44,6 +45,7 @@ class PairRecolorDataset(Dataset):
         self.sort_palette = sort_palette
         self.normalize = normalize
         self.transform = transform
+        self.image_size = image_size
 
         hue_variants = np.linspace(-0.5, 0.5, self.multiplier)
 
@@ -54,7 +56,7 @@ class PairRecolorDataset(Dataset):
                 [
                     transforms.RandomHorizontalFlip(),
                     transforms.RandomVerticalFlip(),
-                    transforms.Resize(IMAGE_SIZE),
+                    transforms.Resize(image_size),
                 ]
             )
 
@@ -142,7 +144,7 @@ class PairRecolorDataset(Dataset):
             shuffle=shuffle,
             sort_palette=self.sort_palette,
             normalize=self.normalize,
-            transform=self.transform,
+            transform=transforms.Resize(self.image_size),
             shuffle_palette=self.shuffle_palette,
         )
 

@@ -23,7 +23,6 @@ class RecolorDataset(Dataset):
         normalize=True,
     ):
         """
-        Dataset constructor.
         :param multiplier: an odd multiplier for color augmentation
         :param shuffle: if to shuffle images and color augmentation
         :param shuffle_palette: if to shuffle output palettes
