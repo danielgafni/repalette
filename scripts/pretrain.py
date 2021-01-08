@@ -4,6 +4,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, GPUStats
 from dotenv import load_dotenv
 import os
 from uuid import uuid1
+import asyncio
+import nest_asyncio
 
 from repalette.constants import (
     DEFAULT_PRETRAIN_LR,
@@ -13,12 +15,14 @@ from repalette.constants import (
     S3_MODEL_CHECKPOINTS_RELATIVE_DIR,
     DEFAULT_PRETRAIN_WEIGHT_DECAY,
     MODEL_CHECKPOINTS_DIR,
+    DISCORD_TRAINING_CHANNEL_ID,
 )
 from pytorch_lightning.loggers import TensorBoardLogger
 from repalette.lightning.datamodules import PreTrainDataModule
-from repalette.lightning.callbacks import LogPairRecoloringToTensorboard
+from repalette.lightning.callbacks import LogPairRecoloringToTensorboard, NotifyTestEnd
 from repalette.lightning.systems import PreTrainSystem
 from repalette.utils.aws import upload_to_s3
+from repalette.utils.notify import notify_discord
 
 
 if __name__ == "__main__":
@@ -31,7 +35,7 @@ if __name__ == "__main__":
     # trainer
     hparams_parser.add_argument("--max-epochs", type=int, default=100)
     hparams_parser.add_argument("--gpus", type=int, default=-1)
-    hparams_parser.add_argument("--precision", type=int, default=16, choices=[16, 32])
+    hparams_parser.add_argument("--precision", type=int, default=32, choices=[16, 32])
     hparams_parser.add_argument("--accumulate-grad-batches", type=int, default=1)
     hparams_parser.add_argument("--gradient-clip-val", type=float, default=0.0)
     # hparams_parser.add_argument(
@@ -45,7 +49,7 @@ if __name__ == "__main__":
     # )
 
     # callbacks
-    hparams_parser.add_argument("--patience", type=int, default=20)
+    hparams_parser.add_argument("--patience", type=int, default=10)
     hparams_parser.add_argument("--save-top-k", type=int, default=1)
 
     # pretrain task
@@ -63,7 +67,7 @@ if __name__ == "__main__":
     hparams_parser.add_argument("--shuffle", type=bool, default=True)
     hparams_parser.add_argument("--size", type=float, default=1.0)
     hparams_parser.add_argument("--pin-memory", type=bool, default=True)
-    hparams_parser.add_argument("--train-batch-from-same-image", type=bool, default=True)
+    hparams_parser.add_argument("--train-batch-from-same-image", type=bool, default=False)
     hparams_parser.add_argument("--val-batch-from-same-image", type=bool, default=True)
     hparams_parser.add_argument("--test-batch-from-same-image", type=bool, default=True)
 
@@ -116,6 +120,8 @@ if __name__ == "__main__":
 
     log_recoloring_to_tensorboard = LogPairRecoloringToTensorboard()
 
+    notify_test_end = NotifyTestEnd()
+
     logger = TensorBoardLogger(
         S3_LIGHTNING_LOGS_DIR,
         name=hparams.name,
@@ -137,6 +143,7 @@ if __name__ == "__main__":
             pretrain_early_stopping,
             log_recoloring_to_tensorboard,
             pretrain_gpu_stats_monitor,
+            # notify_test_end,
         ],
         profiler="simple",
         benchmark=True,
@@ -176,3 +183,12 @@ if __name__ == "__main__":
         ".".join([hparams.version, best_model_path.split(".")[-1]]),
     )
     upload_to_s3(best_model_path, S3_best_model_path)
+
+    nest_asyncio.apply()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(
+        notify_discord(
+            channel_id=DISCORD_TRAINING_CHANNEL_ID,
+            message=f'Score: {test_result[0]["Test/loss_epoch"]}',
+        )
+    )

@@ -21,10 +21,7 @@ def upload_to_s3():
     tmp_file_name = os.path.join(BASE_DATA_DIR, "rgb_tmp")
     print(f"Creating temporary archive {tmp_file_name}.zip")
     shutil.make_archive(
-        tmp_file_name,
-        "zip",
-        root_dir=ROOT_DIR,
-        base_dir=os.path.relpath(RGB_IMAGES_DIR, ROOT_DIR),
+        tmp_file_name, "zip", root_dir=ROOT_DIR, base_dir=os.path.relpath(RGB_IMAGES_DIR, ROOT_DIR)
     )
 
     try:

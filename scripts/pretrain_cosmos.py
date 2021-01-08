@@ -12,10 +12,7 @@ This script can be modified to send different jobs to AWS Batch via Cosmos.
 """
 
 
-env_variables = [
-    "AWS_DEFAULT_REGION",
-    "S3_BUCKET_NAME",
-]
+env_variables = ["AWS_DEFAULT_REGION", "S3_BUCKET_NAME"]
 
 
 def pretrain(version, num_workers, batch_size, multiplier, size, max_epochs=None):
@@ -38,39 +35,15 @@ def pretrain(version, num_workers, batch_size, multiplier, size, max_epochs=None
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", type=str, default="pretrain", help="Cosmos workflow name")
+
+    parser.add_argument("--gpu-req", type=int, default=1, help="Number of GPUs")
     parser.add_argument(
-        "--gpu-req",
-        type=int,
-        default=1,
-        help="Number of GPUs",
+        "--max-attempts", type=int, default=20, help="Number of attempts to run the tasks"
     )
-    parser.add_argument(
-        "--max-attempts",
-        type=int,
-        default=20,
-        help="Number of attempts to run the tasks",
-    )
-    parser.add_argument(
-        "--max-epochs",
-        type=int,
-        default=1,
-        help="Number of epochs to train",
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=8,
-    )
-    parser.add_argument(
-        "--multiplier",
-        type=int,
-        default=16,
-    )
-    parser.add_argument(
-        "--size",
-        type=float,
-        default=1.0,
-    )
+    parser.add_argument("--max-epochs", type=int, default=1, help="Number of epochs to train")
+    parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument("--multiplier", type=int, default=16)
+    parser.add_argument("--size", type=float, default=1.0)
     parser.add_argument("--core-req", type=int, default=8)
     parser.add_argument("--mem-req", type=int, default=32000)
     args = parser.parse_args()

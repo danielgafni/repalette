@@ -1,12 +1,7 @@
 import torch
 import torch.nn as nn
 
-from repalette.models.nn import (
-    ConvBlock,
-    DeconvBlock,
-    ResnetLayer,
-    BasicBlock,
-)
+from repalette.models.nn import ConvBlock, DeconvBlock, ResnetLayer, BasicBlock
 
 
 class PaletteNet(nn.Module):
@@ -32,6 +27,9 @@ class FeatureExtractor(nn.Module):
         self.res1 = ResnetLayer(BasicBlock, 64, 128)
         self.res2 = ResnetLayer(BasicBlock, 128, 256)
         self.res3 = ResnetLayer(BasicBlock, 256, 512)
+
+        # set last layer bias to 0 as described in `PeletteNet` paper
+        torch.nn.init.constant_(self.res3.model[-1].residual[-1].conv.bias, 0)
 
     def forward(self, x):
         x = self.conv(x)
