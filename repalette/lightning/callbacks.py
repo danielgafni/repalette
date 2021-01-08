@@ -49,7 +49,11 @@ class LogRecoloringToTensorboard(Callback):
         batch_size = 0
 
         for _ in range(self.batches):
-            original_img, target_img, target_palette = self.get_data_from_iter_dataloader(iter_dataloader)
+            (
+                original_img,
+                target_img,
+                target_palette,
+            ) = self.get_data_from_iter_dataloader(iter_dataloader)
             original_img = original_img.to(pl_module.device)
             target_img = target_img.to(pl_module.device)
             target_palette = target_palette.to(pl_module.device)
@@ -59,9 +63,7 @@ class LogRecoloringToTensorboard(Callback):
                 recolored_img = pl_module.generator(original_img, _target_palette)
 
             original_luminance = original_img.clone()[:, 0:1, ...].to(pl_module.device)
-            recolored_img_with_luminance = torch.cat(
-                (original_luminance, recolored_img), dim=1
-            )
+            recolored_img_with_luminance = torch.cat((original_luminance, recolored_img), dim=1)
 
             original_img = pl_module.scaler.inverse_transform(original_img)
             target_img = pl_module.scaler.inverse_transform(target_img)
@@ -116,6 +118,7 @@ class LogPairRecoloringToTensorboard(LogRecoloringToTensorboard):
     """
     Log recolored images for PairRecolorDataset
     """
+
     def get_data_from_iter_dataloader(self, iter_dataloader):
         (original_img, original_palette), (target_img, target_palette) = next(iter_dataloader)
         return original_img, target_img, target_palette

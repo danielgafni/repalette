@@ -116,9 +116,7 @@ class PreTrainSystem(pl.LightningModule):
                 weight_decay=self.hparams.weight_decay,
             )
         else:
-            raise NotImplementedError(
-                f"Optimizer {self.hparams.optimizer} is not implemented"
-            )
+            raise NotImplementedError(f"Optimizer {self.hparams.optimizer} is not implemented")
 
         lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer=optimizer, mode="min", patience=self.hparams.scheduler_patience
@@ -132,9 +130,7 @@ class PreTrainSystem(pl.LightningModule):
 
     @property
     def example_input_array(self):
-        (source_img, _), (target_img, target_palette) = next(
-            iter(self.val_dataloader())
-        )
+        (source_img, _), (target_img, target_palette) = next(iter(self.val_dataloader()))
         return source_img[0:1, ...], nn.Flatten()(target_palette[0:1, ...])
 
 
@@ -214,9 +210,9 @@ class AdversarialSystem(pl.LightningModule):
 
         # train discriminator
         elif optimizer_idx == 1:
-            fake_prob_tt = 1. - self.discriminator(recolored_img, target_palette)
-            fake_prob_to = 1. - self.discriminator(recolored_img, original_palette)
-            fake_prob_ot = 1. - self.discriminator(original_img, target_palette)
+            fake_prob_tt = 1.0 - self.discriminator(recolored_img, target_palette)
+            fake_prob_to = 1.0 - self.discriminator(recolored_img, original_palette)
+            fake_prob_ot = 1.0 - self.discriminator(original_img, target_palette)
             real_prob_oo = self.discriminator(original_img, original_palette)
             discriminator_loss = -(
                 torch.mean(torch.log(fake_prob_tt))
@@ -262,9 +258,9 @@ class AdversarialSystem(pl.LightningModule):
         generator_loss = mse_loss * self.hparams.lambda_mse_loss + adv_loss
 
         # discriminator loss
-        fake_prob_tt = 1. - self.discriminator(recolored_img, target_palette)
-        fake_prob_to = 1. - self.discriminator(recolored_img, original_palette)
-        fake_prob_ot = 1. - self.discriminator(original_img, target_palette)
+        fake_prob_tt = 1.0 - self.discriminator(recolored_img, target_palette)
+        fake_prob_to = 1.0 - self.discriminator(recolored_img, original_palette)
+        fake_prob_ot = 1.0 - self.discriminator(original_img, target_palette)
         real_prob_oo = self.discriminator(original_img, original_palette)
         discriminator_loss = -(
             torch.mean(torch.log(fake_prob_tt))
@@ -308,15 +304,15 @@ class AdversarialSystem(pl.LightningModule):
         generator_loss = mse_loss * self.hparams.lambda_mse_loss + adv_loss
 
         # discriminator loss
-        fake_prob_tt = 1. - self.discriminator(recolored_img, target_palette)
-        fake_prob_to = 1. - self.discriminator(recolored_img, original_palette)
-        fake_prob_ot = 1. - self.discriminator(original_img, target_palette)
+        fake_prob_tt = 1.0 - self.discriminator(recolored_img, target_palette)
+        fake_prob_to = 1.0 - self.discriminator(recolored_img, original_palette)
+        fake_prob_ot = 1.0 - self.discriminator(original_img, target_palette)
         real_prob_oo = self.discriminator(original_img, original_palette)
         discriminator_loss = -(
-                torch.mean(torch.log(fake_prob_tt))
-                + torch.mean(torch.log(fake_prob_to))
-                + torch.mean(torch.log(fake_prob_ot))
-                + torch.mean(torch.log(real_prob_oo))
+            torch.mean(torch.log(fake_prob_tt))
+            + torch.mean(torch.log(fake_prob_to))
+            + torch.mean(torch.log(fake_prob_ot))
+            + torch.mean(torch.log(real_prob_oo))
         )
 
         self.log("Test/mse_loss_epoch", mse_loss, on_epoch=True)
@@ -363,8 +359,6 @@ class AdversarialSystem(pl.LightningModule):
                 weight_decay=self.hparams.weight_decay,
             )
         else:
-            raise NotImplementedError(
-                f"Optimizer {self.hparams.optimizer} is not implemented"
-            )
+            raise NotImplementedError(f"Optimizer {self.hparams.optimizer} is not implemented")
 
         return optimizer_G, optimizer_D

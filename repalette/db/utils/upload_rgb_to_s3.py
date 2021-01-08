@@ -28,12 +28,8 @@ def upload_to_s3():
     )
 
     try:
-        print(
-            f"Uploading {tmp_file_name}.zip to s3://{S3_BUCKET_NAME}/{S3_RGB_DATABASE_PATH}"
-        )
-        s3_client.upload_file(
-            f"{tmp_file_name}.zip", S3_BUCKET_NAME, S3_RGB_IMAGES_PATH
-        )
+        print(f"Uploading {tmp_file_name}.zip to s3://{S3_BUCKET_NAME}/{S3_RGB_DATABASE_PATH}")
+        s3_client.upload_file(f"{tmp_file_name}.zip", S3_BUCKET_NAME, S3_RGB_IMAGES_PATH)
         s3_client.upload_file(RGB_DATABASE_PATH, S3_BUCKET_NAME, S3_RGB_DATABASE_PATH)
     except ClientError as e:
         logging.error(e)

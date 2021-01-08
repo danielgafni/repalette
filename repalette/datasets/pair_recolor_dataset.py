@@ -87,9 +87,7 @@ class PairRecolorDataset(Dataset):
         """
         pair_index = index % self.n_pairs
         hue_shift_first, hue_shift_second = self.hue_pairs[pair_index]
-        i = (
-            index // self.n_pairs
-        )  # actual image index (from design-seeds-data directory)
+        i = index // self.n_pairs  # actual image index (from design-seeds-data directory)
 
         rgb_image = self.query[i]
 
@@ -101,9 +99,7 @@ class PairRecolorDataset(Dataset):
 
         palette = Image.fromarray(palette)
 
-        img_aug_first, img_aug_second = self.img_transform(
-            image, hue_shift_first, hue_shift_second
-        )
+        img_aug_first, img_aug_second = self.img_transform(image, hue_shift_first, hue_shift_second)
         palette_aug_first, palette_aug_second = self.palette_transform(
             palette, hue_shift_first, hue_shift_second
         )

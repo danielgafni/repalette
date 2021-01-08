@@ -57,12 +57,8 @@ class RecolorDataset(Dataset):
         :param index: index of item to get from the dataset
         :return: image of shape [3, self.resize] and palette of shape [3, 1, 6]
         """
-        hue_shift = (index % self.multiplier - (self.multiplier - 1) / 2) / (
-            self.multiplier - 1
-        )
-        i = (
-            index // self.multiplier
-        )  # actual image index (from design-seeds-data directory)
+        hue_shift = (index % self.multiplier - (self.multiplier - 1) / 2) / (self.multiplier - 1)
+        i = index // self.multiplier  # actual image index (from design-seeds-data directory)
 
         rgb_image = self.query[i]
 
