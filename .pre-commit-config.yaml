@@ -19,4 +19,4 @@ repos:
         name: black
         entry: black --line-length 100 .
         language: python
-        files: ^repalette/
+        files: ^repalette/*|scripts/*$

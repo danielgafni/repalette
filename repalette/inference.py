@@ -13,12 +13,13 @@ def recolor_image(image, palette, generator):
     normalizer = LABNormalizer()
     image_size = image.size[1], image.size[0]
 
-    image_transform = transforms.Compose([
-        transforms.Resize(image_size),
-    ])
+    image_transform = transforms.Compose(
+        [
+            transforms.Resize(image_size),
+        ]
+    )
 
-    palette_transform = transforms.Compose([
-    ])
+    palette_transform = transforms.Compose([])
 
     image_transformed = image_transform(image)
     palette_transformed = palette_transform(palette)
@@ -42,11 +43,11 @@ def recolor_image(image, palette, generator):
         ),
         dim=1,
     )
-    recolored_image_lab = normalizer.inverse_transform(
-        recolored_img_lab_normalized
-    )
+    recolored_image_lab = normalizer.inverse_transform(recolored_img_lab_normalized)
     recolored_image = lab2rgb(recolored_image_lab.squeeze(0).permute(1, 2, 0))
 
-    recolored_image = Image.fromarray((recolored_image * 255).astype("uint8").reshape(image_size[0], image_size[1], 3))
+    recolored_image = Image.fromarray(
+        (recolored_image * 255).astype("uint8").reshape(image_size[0], image_size[1], 3)
+    )
 
     return recolored_image

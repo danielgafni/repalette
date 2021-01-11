@@ -30,7 +30,7 @@ class PairRecolorDataset(Dataset):
         transform=None,
         normalize=True,
         image_size=DEFAULT_IMAGE_SIZE,
-        random_seed=None
+        random_seed=None,
     ):
         """
         :param multiplier: an odd multiplier for color augmentation

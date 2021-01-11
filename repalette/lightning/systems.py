@@ -57,6 +57,8 @@ class PreTrainSystem(pl.LightningModule):
         self.MSE = torch.nn.MSELoss()
         self.normalizer = LABNormalizer()
 
+        self.logger.log_hyperparams(self.hparams)
+
     def forward(self, img, palette):
         return self.generator(img, palette)
 
@@ -71,16 +73,9 @@ class PreTrainSystem(pl.LightningModule):
             recolored_img_ab,
             target_img[:, 1:, :, :],
         )
-        self.log("Train/loss_step", loss)
+        self.log("Train/loss", loss, on_epoch=True)
 
         return loss
-
-    def training_epoch_end(self, outputs):
-        # log training loss
-        self.log(
-            "Train/loss_epoch",
-            torch.stack([output["loss"] for output in outputs]).mean(),
-        )
 
     def validation_step(self, batch, batch_idx):
         (source_img, _), (
@@ -93,18 +88,9 @@ class PreTrainSystem(pl.LightningModule):
             recolored_img_ab,
             target_img[:, 1:, :, :],
         )
-        self.log("Val/loss_step", loss)
+        self.log("Val/loss", loss, on_epoch=True)
 
         return loss
-
-    def validation_epoch_end(self, outputs):
-        # log validation loss
-        # self.log("Val/loss_epoch", self.MSE)
-        self.log(
-            "Val/loss_epoch",
-            torch.stack(outputs).mean(),
-        )
-        self.logger.log_hyperparams(self.hparams)
 
     def test_step(self, batch, batch_idx):
         (source_img, _), (
@@ -117,7 +103,7 @@ class PreTrainSystem(pl.LightningModule):
             recolored_img_ab,
             target_img[:, 1:, :, :],
         )
-        self.log("Test/loss_step", loss)
+        self.log("Test/loss", loss, on_epoch=True)
 
         return loss
 
@@ -226,6 +212,8 @@ class AdversarialSystem(pl.LightningModule):
         self.MSE = torch.nn.MSELoss()
         self.normalizer = LABNormalizer()
 
+        self.logger.log_hyperparams(self.hparams)
+
     def forward(self, img, palette):
         return self.generator(img, palette)
 
@@ -275,9 +263,13 @@ class AdversarialSystem(pl.LightningModule):
         # train discriminator
         elif optimizer_idx == 1:
             # add noise
-            noise_amplitude = 0.1 / ((batch_idx + 1) ** (1/4))
-            recolored_img += torch.normal(mean=0, std=noise_amplitude, size=recolored_img.shape, device=recolored_img.device)
-            original_img += torch.normal(mean=0, std=noise_amplitude, size=original_img.shape, device=original_img.device)
+            noise_amplitude = 0.1 / ((batch_idx + 1) ** (1 / 4))
+            recolored_img += torch.normal(
+                mean=0, std=noise_amplitude, size=recolored_img.shape, device=recolored_img.device
+            )
+            original_img += torch.normal(
+                mean=0, std=noise_amplitude, size=original_img.shape, device=original_img.device
+            )
 
             fake_prob_tt = 1.0 - self.discriminator(
                 recolored_img.detach(),
@@ -305,17 +297,6 @@ class AdversarialSystem(pl.LightningModule):
             return discriminator_loss
         else:
             raise ValueError(f"Wrong optimizer index: {optimizer_idx}")
-
-    # def training_epoch_end(self, outputs):
-    #     # log training loss
-    #     self.log(
-    #         "Train/generator_loss_epoch",
-    #         torch.stack([output["generator_loss"] for output in outputs]).mean(),
-    #     )
-    #     self.log(
-    #         "Train/discriminator_loss_epoch",
-    #         torch.stack([output["discriminator_loss"] for output in outputs]).mean(),
-    #     )
 
     def validation_step(self, batch, batch_idx):
         (
@@ -363,26 +344,15 @@ class AdversarialSystem(pl.LightningModule):
             on_epoch=True,
         )
         self.log(
-            "Val/generator_loss_epoch",
+            "Val/generator_loss",
             generator_loss,
             on_epoch=True,
         )
         self.log(
-            "Val/discriminator_loss_epoch",
+            "Val/discriminator_loss",
             discriminator_loss,
             on_epoch=True,
         )
-
-    # def validation_epoch_end(self, outputs):
-    #     # log validation loss
-    #     self.log(
-    #         "Val/generator_loss_epoch",
-    #         torch.stack([output["generator_loss"] for output in outputs]).mean(),
-    #     )
-    #     self.log(
-    #         "Val/discriminator_loss_epoch",
-    #         torch.stack([output["Train/discriminator_loss"] for output in outputs]).mean(),
-    #     )
 
     def test_step(self, batch, batch_idx):
         (
@@ -425,31 +395,20 @@ class AdversarialSystem(pl.LightningModule):
             on_epoch=True,
         )
         self.log(
-            "Test/mse_loss_epoch",
+            "Test/mse_loss",
             mse_loss,
             on_epoch=True,
         )
         self.log(
-            "Test/generator_loss_epoch",
+            "Test/generator_loss",
             generator_loss,
             on_epoch=True,
         )
         self.log(
-            "Test/discriminator_loss_epoch",
+            "Test/discriminator_loss",
             discriminator_loss,
             on_epoch=True,
         )
-
-    # def test_epoch_end(self, outputs):
-    #     # log validation loss
-    #     self.log(
-    #         "Test/generator_loss_epoch",
-    #         torch.stack([output["generator_loss"] for output in outputs]).mean(),
-    #     )
-    #     self.log(
-    #         "Test/discriminator_loss_epoch",
-    #         torch.stack([output["Train/discriminator_loss"] for output in outputs]).mean(),
-    #     )
 
     def configure_optimizers(self):
         if self.hparams.optimizer == "adam":
@@ -493,18 +452,6 @@ class AdversarialSystem(pl.LightningModule):
             )
         else:
             raise NotImplementedError(f"Optimizer {self.hparams.optimizer} is not implemented")
-
-        # lr_scheduler_generator = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        #     optimizer=optimizer_generator,
-        #     mode="min",
-        #     patience=self.hparams.generator_scheduler_patience,
-        # )
-        #
-        # lr_scheduler_discriminator = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        #     optimizer=optimizer_discriminator,
-        #     mode="min",
-        #     patience=self.hparams.discriminator_scheduler_patience,
-        # )
 
         optimizers = [
             optimizer_generator,
