@@ -6,17 +6,19 @@ from pytorch_lightning.metrics.regression import (
 from torch import nn as nn
 
 from repalette.constants import (
-    DEFAULT_ADVERSARIAL_LR,
+    DEFAULT_GENERATOR_LR,
+    DEFAULT_DISCRIMINATOR_LR,
     DEFAULT_ADVERSARIAL_BETA_1,
     DEFAULT_ADVERSARIAL_BETA_2,
-    DEFAULT_ADVERSARIAL_WEIGHT_DECAY,
+    DEFAULT_GENERATOR_WEIGHT_DECAY,
+    DEFAULT_DISCRIMINATOR_WEIGHT_DECAY,
     DEFAULT_ADVERSARIAL_LAMBDA_MSE_LOSS,
 )
 from repalette.models import (
     PaletteNet,
     Discriminator,
 )
-from repalette.utils.transforms import Scaler
+from repalette.utils.transforms import LABNormalizer
 
 
 class PreTrainSystem(pl.LightningModule):
@@ -53,7 +55,7 @@ class PreTrainSystem(pl.LightningModule):
         self.generator = PaletteNet()
         # self.MSE = MeanSquaredError()
         self.MSE = torch.nn.MSELoss()
-        self.scaler = Scaler()
+        self.normalizer = LABNormalizer()
 
     def forward(self, img, palette):
         return self.generator(img, palette)
@@ -183,10 +185,12 @@ class AdversarialSystem(pl.LightningModule):
         generator=None,
         discriminator=None,
         lambda_mse_loss=DEFAULT_ADVERSARIAL_LAMBDA_MSE_LOSS,
-        learning_rate=DEFAULT_ADVERSARIAL_LR,
+        generator_learning_rate=DEFAULT_GENERATOR_LR,
+        discriminator_learning_rate=DEFAULT_DISCRIMINATOR_LR,
         beta_1=DEFAULT_ADVERSARIAL_BETA_1,
         beta_2=DEFAULT_ADVERSARIAL_BETA_2,
-        weight_decay=DEFAULT_ADVERSARIAL_WEIGHT_DECAY,
+        generator_weight_decay=DEFAULT_GENERATOR_WEIGHT_DECAY,
+        discriminator_weight_decay=DEFAULT_DISCRIMINATOR_WEIGHT_DECAY,
         optimizer="adam",
         batch_size=8,
         multiplier=16,
@@ -198,10 +202,12 @@ class AdversarialSystem(pl.LightningModule):
         # they are saved to `self.hparams`
         self.save_hyperparameters(
             "lambda_mse_loss",
-            "learning_rate",
+            "generator_learning_rate",
+            "discriminator_learning_rate",
             "beta_1",
             "beta_2",
-            "weight_decay",
+            "generator_weight_decay",
+            "discriminator_weight_decay",
             "optimizer",
             "batch_size",
             "multiplier",
@@ -218,7 +224,7 @@ class AdversarialSystem(pl.LightningModule):
         self.k = k
 
         self.MSE = torch.nn.MSELoss()
-        self.scaler = Scaler()
+        self.normalizer = LABNormalizer()
 
     def forward(self, img, palette):
         return self.generator(img, palette)
@@ -268,6 +274,11 @@ class AdversarialSystem(pl.LightningModule):
 
         # train discriminator
         elif optimizer_idx == 1:
+            # add noise
+            noise_amplitude = 0.1 / ((batch_idx + 1) ** (1/4))
+            recolored_img += torch.normal(mean=0, std=noise_amplitude, size=recolored_img.shape, device=recolored_img.device)
+            original_img += torch.normal(mean=0, std=noise_amplitude, size=original_img.shape, device=original_img.device)
+
             fake_prob_tt = 1.0 - self.discriminator(
                 recolored_img.detach(),
                 target_palette,
@@ -444,41 +455,41 @@ class AdversarialSystem(pl.LightningModule):
         if self.hparams.optimizer == "adam":
             optimizer_generator = torch.optim.Adam(
                 self.generator.recoloring_decoder.parameters(),
-                lr=self.hparams.learning_rate,
+                lr=self.hparams.generator_learning_rate,
                 betas=(
                     self.hparams.beta_1,
                     self.hparams.beta_2,
                 ),
-                weight_decay=self.hparams.weight_decay,
+                weight_decay=self.hparams.generator_weight_decay,
             )
             optimizer_discriminator = torch.optim.Adam(
                 self.discriminator.parameters(),
-                lr=self.hparams.learning_rate,
+                lr=self.hparams.discriminator_learning_rate,
                 betas=(
                     self.hparams.beta_1,
                     self.hparams.beta_2,
                 ),
-                weight_decay=self.hparams.weight_decay,
+                weight_decay=self.hparams.discriminator_weight_decay,
             )
 
         elif self.hparams.optimizer == "adamw":
             optimizer_generator = torch.optim.AdamW(
                 self.generator.recoloring_decoder.parameters(),
-                lr=self.hparams.learning_rate,
+                lr=self.hparams.generator_learning_rate,
                 betas=(
                     self.hparams.beta_1,
                     self.hparams.beta_2,
                 ),
-                weight_decay=self.hparams.weight_decay,
+                weight_decay=self.hparams.generator_weight_decay,
             )
             optimizer_discriminator = torch.optim.AdamW(
                 self.discriminator.parameters(),
-                lr=self.hparams.learning_rate * 2,
+                lr=self.hparams.discriminator_learning_rate,
                 betas=(
                     self.hparams.beta_1,
                     self.hparams.beta_2,
                 ),
-                weight_decay=self.hparams.weight_decay,
+                weight_decay=self.hparams.discriminator_weight_decay,
             )
         else:
             raise NotImplementedError(f"Optimizer {self.hparams.optimizer} is not implemented")

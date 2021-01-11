@@ -18,7 +18,7 @@ from repalette.constants import (
 )
 
 
-class Scaler:
+class LABNormalizer:
     def __init__(
         self,
         old_range: torch.Tensor = None,
@@ -41,7 +41,7 @@ class Scaler:
         self.old_range = self.old_range.to(device)
         self.new_range = self.new_range.to(device)
 
-    def transform(self, img: torch.Tensor):
+    def normalize(self, img: torch.Tensor):
         """
         Scales image into bounds, determined by `new_range` parameter.
 
@@ -80,7 +80,7 @@ class FullTransform:
 
     def __init__(self, transform=None, normalize=True):
         self.transform = transform
-        self.scaler = Scaler() if normalize else None
+        self.normalizer = LABNormalizer() if normalize else None
 
     def __call__(self, img, *hue_shifts):
         """
@@ -98,8 +98,8 @@ class FullTransform:
         for hue_shift in hue_shifts:
             aug_img = smart_hue_adjust(img, hue_shift)
             aug_img = TF.to_tensor(aug_img).to(torch.float)
-            if self.scaler:
-                aug_img = self.scaler.transform(aug_img)
+            if self.normalizer:
+                aug_img = self.normalizer.normalize(aug_img)
             augmented_imgs.append(aug_img)
         return augmented_imgs
 

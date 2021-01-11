@@ -38,6 +38,7 @@ class LogRecoloringToTensorboard(Callback):
 
     def on_validation_epoch_end(self, trainer, pl_module):
         val_dataloader = pl_module.val_dataloader()
+        # val_dataloader.shuffle(random_seed="lock")
 
         self._log_recoloring(
             pl_module,
@@ -49,6 +50,7 @@ class LogRecoloringToTensorboard(Callback):
 
     def on_test_epoch_end(self, trainer, pl_module):
         test_dataloader = pl_module.test_dataloader()
+        # test_dataloader.shuffle(random_seed="lock")
 
         self._log_recoloring(
             pl_module,
@@ -68,7 +70,7 @@ class LogRecoloringToTensorboard(Callback):
             prefix = "random_"
         else:
             prefix = "persistent_"
-        pl_module.scaler.to(pl_module.device)
+        pl_module.normalizer.to(pl_module.device)
 
         original_images = []
         target_images = []
@@ -105,10 +107,10 @@ class LogRecoloringToTensorboard(Callback):
                 dim=1,
             )
 
-            original_img = pl_module.scaler.inverse_transform(original_img)
-            target_img = pl_module.scaler.inverse_transform(target_img)
-            target_palette = pl_module.scaler.inverse_transform(target_palette)
-            recolored_img_with_luminance = pl_module.scaler.inverse_transform(
+            original_img = pl_module.normalizer.inverse_transform(original_img)
+            target_img = pl_module.normalizer.inverse_transform(target_img)
+            target_palette = pl_module.normalizer.inverse_transform(target_palette)
+            recolored_img_with_luminance = pl_module.normalizer.inverse_transform(
                 recolored_img_with_luminance
             )
 

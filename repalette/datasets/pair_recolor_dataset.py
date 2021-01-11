@@ -3,7 +3,7 @@ from PIL import Image
 import torch
 from torchvision import transforms
 import numpy as np
-import random
+from random import Random
 from itertools import permutations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -30,6 +30,7 @@ class PairRecolorDataset(Dataset):
         transform=None,
         normalize=True,
         image_size=DEFAULT_IMAGE_SIZE,
+        random_seed=None
     ):
         """
         :param multiplier: an odd multiplier for color augmentation
@@ -39,6 +40,7 @@ class PairRecolorDataset(Dataset):
         :param transform: optional transform to be applied on a sample
         :param normalize: if to normalize LAB images to be in [-1, 1] range
         :param image_size: image size to resize to (lol)
+        :param random_seed: random seed for shuffling and splitting
         """
         if sort_palette and shuffle_palette:
             raise ValueError("Don't sort and shuffle the palette at the same time!")
@@ -49,6 +51,8 @@ class PairRecolorDataset(Dataset):
         self.normalize = normalize
         self.transform = transform
         self.image_size = image_size
+        self.random_seed = random_seed
+        self.consistent_random_seed = Random().random()
 
         hue_variants = np.linspace(-0.5, 0.5, self.multiplier)
 
@@ -63,7 +67,7 @@ class PairRecolorDataset(Dataset):
                 ]
             )
 
-        self.img_transform = FullTransform(transform, normalize=normalize)
+        self.image_transform = FullTransform(transform, normalize=normalize)
         self.palette_transform = FullTransform(normalize=normalize)
 
         self.n_pairs = len(self.hue_pairs)
@@ -79,8 +83,11 @@ class PairRecolorDataset(Dataset):
             self.query = query
 
         self.correct_order_query = self.query
+        self.correct_order_hue_pairs = self.hue_pairs
 
         if shuffle:
+            random = self.get_randomizer(random_seed=random_seed)
+            random.shuffle(self.query)
             random.shuffle(self.hue_pairs)
 
     def __getitem__(self, index):
@@ -105,7 +112,7 @@ class PairRecolorDataset(Dataset):
 
         palette = Image.fromarray(palette)
 
-        (img_aug_first, img_aug_second,) = self.img_transform(
+        (img_aug_first, img_aug_second,) = self.image_transform(
             image,
             hue_shift_first,
             hue_shift_second,
@@ -131,10 +138,11 @@ class PairRecolorDataset(Dataset):
         """
         return len(self.query) * self.n_pairs
 
-    def split(self, test_size=0.2, shuffle=True):
+    def split(self, test_size=0.2, shuffle=True, random_seed=None):
         query = self.query
 
         if shuffle:
+            random = self.get_randomizer(random_seed=random_seed)
             random.shuffle(query)
 
         train_query = query[: int(len(query) * (1 - test_size))]
@@ -148,6 +156,7 @@ class PairRecolorDataset(Dataset):
             normalize=self.normalize,
             transform=self.transform,
             shuffle_palette=self.shuffle_palette,
+            random_seed=self.random_seed,
         )
         test = self.__class__(
             multiplier=self.multiplier,
@@ -157,19 +166,33 @@ class PairRecolorDataset(Dataset):
             normalize=self.normalize,
             transform=transforms.Resize(self.image_size),
             shuffle_palette=self.shuffle_palette,
+            random_seed=self.random_seed,
         )
 
         return train, test
 
-    def shuffle(self, to_shuffle=True):
+    def shuffle(self, to_shuffle=True, random_seed=None):
         """
         Shuffles data.
         :param to_shuffle: if to shuffle
+        :param random_seed: random seed for shuffling. Use "lock" to get consistent results.
         """
         if to_shuffle:
+            random = self.get_randomizer(random_seed=random_seed)
             random.shuffle(self.query)
             random.shuffle(self.hue_pairs)
         else:
             self.query = self.correct_order_query
+            self.hue_pairs = self.correct_order_hue_pairs
 
         return self
+
+    def get_randomizer(self, random_seed=None):
+        if random_seed is None:
+            random_seed = self.random_seed
+        elif random_seed == "lock":
+            random_seed = self.consistent_random_seed
+
+        random = Random(random_seed)
+
+        return random

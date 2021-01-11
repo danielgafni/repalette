@@ -14,6 +14,10 @@ class Discriminator(nn.Module):
             OrderedDict(
                 [
                     (
+                        "dropout",
+                        nn.Dropout2d(0.2),
+                    ),
+                    (
                         "conv1",
                         ConvBlock(
                             3 + 18,
@@ -49,11 +53,12 @@ class Discriminator(nn.Module):
                             stride=2,
                         ),
                     ),
+                    ("pool", nn.AdaptiveAvgPool2d(1)),
+                    ("flatten", nn.Flatten()),
                     (
                         "fc",
-                        nn.AdaptiveAvgPool2d(1),
+                        nn.Linear(512, 1),
                     ),
-                    ("flatten", nn.Flatten()),
                     ("activ", nn.Sigmoid()),
                 ]
             )
@@ -70,4 +75,5 @@ class Discriminator(nn.Module):
             device=device,
         )
         x = torch.cat([x, palette_dupl], dim=1)
-        return self.model(x)
+        x = self.model(x)
+        return x

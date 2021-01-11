@@ -775,7 +775,7 @@ format_nongpl = ["idna", "jsonpointer (>1.13)", "webcolors", "rfc3986-validator 
 
 [[package]]
 name = "jupyter-client"
-version = "6.1.8"
+version = "6.1.11"
 description = "Jupyter protocol implementation and client libraries"
 category = "dev"
 optional = false
@@ -790,7 +790,7 @@ traitlets = "*"
 
 [package.extras]
 doc = ["sphinx (>=1.3.6)", "sphinx-rtd-theme", "sphinxcontrib-github-alt"]
-test = ["ipykernel", "ipython", "mock", "pytest", "pytest-asyncio", "async-generator", "pytest-timeout"]
+test = ["jedi (<=0.17.2)", "ipykernel", "ipython", "mock", "pytest", "pytest-asyncio", "async-generator", "pytest-timeout"]
 
 [[package]]
 name = "jupyter-core"
@@ -1742,7 +1742,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "tifffile"
-version = "2020.12.8"
+version = "2021.1.8"
 description = "Read and write TIFF(r) files"
 category = "main"
 optional = false
@@ -1752,7 +1752,7 @@ python-versions = ">=3.7"
 numpy = ">=1.15.1"
 
 [package.extras]
-all = ["imagecodecs (>=2020.5.30)", "matplotlib (>=3.2)", "lxml"]
+all = ["imagecodecs (>=2021.1.8)", "matplotlib (>=3.2)", "lxml"]
 
 [[package]]
 name = "toml"
@@ -1925,7 +1925,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "569765f7d7265dce1e65107ef7979d729f92a1b2c59a354fee3b1b28cb616909"
+content-hash = "e54ea5815f2c612ff7fda8aa3cbbf941595032b764bb70c3cc4a6a12133a1df5"
 
 [metadata.files]
 absl-py = [
@@ -2303,8 +2303,8 @@ jsonschema = [
     {file = "jsonschema-3.2.0.tar.gz", hash = "sha256:c8a85b28d377cc7737e46e2d9f2b4f44ee3c0e1deac6bf46ddefc7187d30797a"},
 ]
 jupyter-client = [
-    {file = "jupyter_client-6.1.8-py3-none-any.whl", hash = "sha256:d51ce4eb0d3c86a1139db3ce8273a7d91ebc2eb13fea350759b6a4884f24dc05"},
-    {file = "jupyter_client-6.1.8.tar.gz", hash = "sha256:88e06ef76310f74b9720181579020f2adeb5ff2655013733288e70bd43966e89"},
+    {file = "jupyter_client-6.1.11-py3-none-any.whl", hash = "sha256:5eaaa41df449167ebba5e1cf6ca9b31f7fd4f71625069836e2e4fee07fe3cb13"},
+    {file = "jupyter_client-6.1.11.tar.gz", hash = "sha256:649ca3aca1e28f27d73ef15868a7c7f10d6e70f761514582accec3ca6bb13085"},
 ]
 jupyter-core = [
     {file = "jupyter_core-4.7.0-py3-none-any.whl", hash = "sha256:0a451c9b295e4db772bdd8d06f2f1eb31caeec0e81fbb77ba37d4a3024e3b315"},
@@ -3036,8 +3036,8 @@ threadpoolctl = [
     {file = "threadpoolctl-2.1.0.tar.gz", hash = "sha256:ddc57c96a38beb63db45d6c159b5ab07b6bced12c45a1f07b2b92f272aebfa6b"},
 ]
 tifffile = [
-    {file = "tifffile-2020.12.8-py3-none-any.whl", hash = "sha256:78e7fe7d27fdd3fbd67cc95aaa8265c43b942170bd2473b1d587dcc849822892"},
-    {file = "tifffile-2020.12.8.tar.gz", hash = "sha256:6c65c3997a21cad40349921e557a383fd5f0ebd728f5e91fa6c8f8f9e45c4bbd"},
+    {file = "tifffile-2021.1.8-py3-none-any.whl", hash = "sha256:78cd48459f952d8538eb0b45d3b61a3427533ce377b9e4df38e31ad28cec90f0"},
+    {file = "tifffile-2021.1.8.tar.gz", hash = "sha256:b26e0373eca968f672043814a880700677ca1f6d1ce8a4e4d22ec8aea2bc0fcb"},
 ]
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
