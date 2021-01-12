@@ -1,4 +1,3 @@
-import numpy as np
 from PIL import Image
 
 from repalette.datasets.pair_recolor_dataset import (
@@ -19,7 +18,9 @@ class TripletRecolorDataset(PairRecolorDataset):
             target_pair,
         ) = super().__getitem__(index)
 
-        random_idx = np.random.randint(len(self.query))
+        random = self.get_randomizer()
+
+        random_idx = random.randint(0, len(self.query) - 1)
         rgb_image = self.query[random_idx]
 
         original_image = Image.open(rgb_image.path)

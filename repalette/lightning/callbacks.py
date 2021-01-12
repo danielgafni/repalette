@@ -59,9 +59,14 @@ class LogRecoloringToTensorboard(Callback):
             False,
         )
 
+        self._log_final_recoloring(
+            pl_module,
+            test_dataloader,
+        )
+
     def _log_recoloring(
         self,
-        pl_module: PreTrainSystem,
+        pl_module,
         dataloader,
         stage,
         to_shuffle,
@@ -164,6 +169,10 @@ class LogRecoloringToTensorboard(Callback):
     def get_data_from_iter_dataloader(self, iter_dataloader):
         pass
 
+    @abc.abstractmethod
+    def _log_final_recoloring(self, pl_module, dataloader):
+        pass
+
 
 class LogPairRecoloringToTensorboard(LogRecoloringToTensorboard):
     """
@@ -193,7 +202,101 @@ class LogTripletRecoloringToTensorboard(LogRecoloringToTensorboard):
         return (
             source_img,
             target_img,
+            target_palette
+        )
+
+    @staticmethod
+    def get_final_data_from_iter_dataloader(iter_dataloader):
+        (
+            (source_img, source_palette),
+            (target_img, target_palette),
+            (original_img, original_palette),
+        ) = next(iter_dataloader)
+
+        return (
+            original_img,
             target_palette,
+        )
+
+    def _log_final_recoloring(self, pl_module, dataloader):
+        dataloader.shuffle(True)
+
+        pl_module.normalizer.to(pl_module.device)
+
+        original_images = []
+        recolored_images = []
+        target_palettes = []
+
+        iter_dataloader = iter(dataloader)
+
+        batch_size = 0
+
+        for _ in range(self.batches):
+            (
+                original_img,
+                target_palette,
+            ) = self.get_final_data_from_iter_dataloader(iter_dataloader)
+            original_img = original_img.to(pl_module.device)
+            target_palette = target_palette.to(pl_module.device)
+
+            with torch.no_grad():
+                _target_palette = nn.Flatten()(target_palette)
+                recolored_img = pl_module.generator(
+                    original_img,
+                    _target_palette,
+                )
+
+            original_luminance = original_img.clone()[:, 0:1, ...].to(pl_module.device)
+            recolored_img_with_luminance = torch.cat(
+                (
+                    original_luminance,
+                    recolored_img,
+                ),
+                dim=1,
+            )
+
+            original_img = pl_module.normalizer.inverse_transform(original_img)
+            target_palette = pl_module.normalizer.inverse_transform(target_palette)
+            recolored_img_with_luminance = pl_module.normalizer.inverse_transform(
+                recolored_img_with_luminance
+            )
+
+            original_images.append(original_img)
+            recolored_images.append(recolored_img_with_luminance)
+            target_palettes.append(target_palette)
+
+            batch_size = original_img.size(0)
+
+        original_images = torch.cat(original_images, dim=0)
+        recolored_images = torch.cat(recolored_images, dim=0)
+        target_palettes = torch.cat(target_palettes, dim=0)
+
+        original_grid = lab_batch_to_rgb_image_grid(original_images, nrow=batch_size)
+
+        target_palette_img = target_palettes.view(-1, 3, 6, 1)
+        target_palette_grid = lab_batch_to_rgb_image_grid(
+            target_palette_img,
+            nrow=batch_size,
+            pad_value=1.0,
+            padding=1,
+        )
+
+        recolored_grid = lab_batch_to_rgb_image_grid(recolored_images, nrow=batch_size)
+
+        pl_module.logger.experiment.add_image(
+            f"Final/original",
+            original_grid,
+            pl_module.current_epoch,
+        )
+        pl_module.logger.experiment.add_image(
+            f"Final/target_palette",
+            target_palette_grid,
+            pl_module.current_epoch,
+        )
+        pl_module.logger.experiment.add_image(
+            f"Final/recolored",
+            recolored_grid,
+            pl_module.current_epoch,
         )
 
 

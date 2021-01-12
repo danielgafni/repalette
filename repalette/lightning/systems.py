@@ -57,8 +57,6 @@ class PreTrainSystem(pl.LightningModule):
         self.MSE = torch.nn.MSELoss()
         self.normalizer = LABNormalizer()
 
-        self.logger.log_hyperparams(self.hparams)
-
     def forward(self, img, palette):
         return self.generator(img, palette)
 
@@ -181,6 +179,7 @@ class AdversarialSystem(pl.LightningModule):
         batch_size=8,
         multiplier=16,
         k=4,
+        p=0.1
     ):
         super().__init__()
 
@@ -198,12 +197,13 @@ class AdversarialSystem(pl.LightningModule):
             "batch_size",
             "multiplier",
             "k",
+            "p"
         )
 
         if generator is None:
             generator = PaletteNet()
         if discriminator is None:
-            discriminator = Discriminator()
+            discriminator = Discriminator(p=p)
 
         self.generator = generator
         self.discriminator = discriminator
@@ -211,8 +211,6 @@ class AdversarialSystem(pl.LightningModule):
 
         self.MSE = torch.nn.MSELoss()
         self.normalizer = LABNormalizer()
-
-        self.logger.log_hyperparams(self.hparams)
 
     def forward(self, img, palette):
         return self.generator(img, palette)

@@ -37,7 +37,7 @@ unset NODE_OPTIONS
 set NODE_OPTIONS=
 ```
 
-# Dataset
+# Usage
 ## Download data
 ### Option 1: scrap data from www.design-seeds.com
 ```bash
@@ -51,7 +51,10 @@ python repalette/db/utils/download_rgb_from_s3.py
 ## Update S3 dataset
 ```bash
 python repalette/db/utils/upload_rgb_to_s3.py
-
+```
+## Download the pre-trained model checkpoint:
+```bash
+python repalette/db/utils/download_pretrain_checkpoint_from_s3.py
 ```
 
 # Project structure
@@ -64,4 +67,4 @@ python repalette/db/utils/upload_rgb_to_s3.py
 * `data/lightning-logs` - `pytorch-lightning` `tensorboard` (or other logger) logs
 ## Code
 * `repalette` - main python package
-* `scripts` - training scripts
+* `scripts` - misc scripts

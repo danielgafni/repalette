@@ -7,15 +7,17 @@ from repalette.models.nn import ConvBlock
 
 
 class Discriminator(nn.Module):
-    def __init__(self):
+    def __init__(self, p=0.1):
         super().__init__()
+
+        self.p = p
 
         self.model = nn.Sequential(
             OrderedDict(
                 [
                     (
                         "dropout",
-                        nn.Dropout2d(0.2),
+                        nn.Dropout2d(self.p),
                     ),
                     (
                         "conv1",
