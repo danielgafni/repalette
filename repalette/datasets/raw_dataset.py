@@ -1,56 +1,35 @@
-from torch.utils.data import Dataset
 from PIL import Image
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import random
 
 from repalette.constants import RAW_DATABASE_PATH
 from repalette.db.raw import RawImage
 
+from repalette.datasets import AbstractQueryDataset
 
-class RawDataset(Dataset):
+
+class RawDataset(AbstractQueryDataset):
     """
     Dataset of images downloaded from https://www.design-seeds.com/blog/.
     `repalette/utils/download_raw.py` must be run before using this dataset
     """
 
-    def __init__(self, query=None):
+    def __init__(self, query=None, random_seed=None):
         if query is None:
             engine = create_engine(f"sqlite:///{RAW_DATABASE_PATH}")
             # create a configured "Session" class
             Session = sessionmaker(bind=engine)
             session = Session()
-            self.query = session.query(RawImage).all()
+            query = session.query(RawImage).all()
             session.close()
-        else:
-            self.query = query
 
-    def __getitem__(self, index):
+        super().__init__(query=query, random_seed=random_seed)
+
+    def _getitem(self, index):
         raw_image = self.query[index]
-
-        if not raw_image:
-            raise IndexError
-
         image = Image.open(raw_image.path).convert("RGB")
 
         return (
             image,
             raw_image.palette,
         ), raw_image
-
-    def __len__(self):
-        return len(self.query)
-
-    def split(self, test_size=0.2, shuffle=True):
-        query = self.query
-
-        if shuffle:
-            random.shuffle(query)
-
-        train_query = query[: int(len(query) * (1 - test_size))]
-        test_query = query[int(len(query) * (1 - test_size)) :]
-
-        train = RawDataset(query=train_query)
-        test = RawDataset(query=test_query)
-
-        return train, test

@@ -1,4 +1,4 @@
 from .systems import (
     PreTrainSystem,
-    AdversarialSystem,
+    AdversarialMSESystem,
 )

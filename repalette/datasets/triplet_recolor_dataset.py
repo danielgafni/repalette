@@ -1,14 +1,14 @@
 from PIL import Image
 
-from repalette.datasets.pair_recolor_dataset import (
-    PairRecolorDataset,
+from repalette.datasets.pretrain_dataset import (
+    PreTrainDataset,
 )
 from repalette.utils.transforms import (
     sort_palette as sort_palette_by_hue,
 )
 
 
-class TripletRecolorDataset(PairRecolorDataset):
+class TripletRecolorDataset(PreTrainDataset):
     def __getitem__(self, index):
         """
         @return: source_pair and target_pair - for generator; original_pair - for discriminator
