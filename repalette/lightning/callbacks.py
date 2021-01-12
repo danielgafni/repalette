@@ -199,11 +199,7 @@ class LogTripletRecoloringToTensorboard(LogRecoloringToTensorboard):
             (original_img, original_palette),
         ) = next(iter_dataloader)
 
-        return (
-            source_img,
-            target_img,
-            target_palette
-        )
+        return (source_img, target_img, target_palette)
 
     @staticmethod
     def get_final_data_from_iter_dataloader(iter_dataloader):
@@ -308,11 +304,11 @@ class Notify(Callback):
             raise NotImplementedError(f"notifier {notifier} is not implemented.")
 
     def on_train_end(self, trainer, pl_module):
-        message = f"✨✨✨ Training of {trainer.logger.name}/{trainer.logger.version} has finished ✨✨✨"
+        message = f"✨ Training of {trainer.logger.name}/{trainer.logger.version} has finished ✨"
         self.do_notify(message=message)
 
     def on_test_end(self, trainer, pl_module):
-        message = f"✨✨✨ Testing of {trainer.logger.name}/{trainer.logger.version} has finished ✨✨✨"
+        message = f"✨ Testing of {trainer.logger.name}/{trainer.logger.version} has finished ✨"
         self.do_notify(message=message)
 
     @staticmethod

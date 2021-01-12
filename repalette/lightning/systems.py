@@ -179,7 +179,7 @@ class AdversarialSystem(pl.LightningModule):
         batch_size=8,
         multiplier=16,
         k=4,
-        p=0.1
+        p=0.1,
     ):
         super().__init__()
 
@@ -197,7 +197,7 @@ class AdversarialSystem(pl.LightningModule):
             "batch_size",
             "multiplier",
             "k",
-            "p"
+            "p",
         )
 
         if generator is None:
