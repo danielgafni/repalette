@@ -194,7 +194,7 @@ class LogPairRecoloringToTensorboard(LogRecoloringToTensorboard):
         pass
 
 
-class LogTripletRecoloringToTensorboard(LogRecoloringToTensorboard):
+class LogAdversarialMSEToTensorboard(LogRecoloringToTensorboard):
     def get_data_from_iter_dataloader(self, iter_dataloader):
         (
             (source_img, source_palette),
