@@ -34,7 +34,7 @@ class AdversarialRecolorDataset(PreTrainDataset):
         (
             source_pair,
             target_pair,
-        ) = super().__getitem__(index)
+        ) = super()._getitem(index)
 
         randomizer = self.get_randomizer()
 

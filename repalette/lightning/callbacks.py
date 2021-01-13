@@ -190,6 +190,9 @@ class LogPairRecoloringToTensorboard(LogRecoloringToTensorboard):
             target_palette,
         )
 
+    def _log_final_recoloring(self, pl_module, dataloader):
+        pass
+
 
 class LogTripletRecoloringToTensorboard(LogRecoloringToTensorboard):
     def get_data_from_iter_dataloader(self, iter_dataloader):

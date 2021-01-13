@@ -158,7 +158,7 @@ class AdversarialRecolorDataModule(pl.LightningDataModule):
         self.transform = transform
 
     def setup(self, stage=None):
-        data = TripletRecolorDataset(
+        data = AdversarialRecolorDataset(
             multiplier=self.multiplier,
             shuffle=self.shuffle,
             transform=self.transform,

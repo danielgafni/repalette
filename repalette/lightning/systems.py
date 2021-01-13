@@ -280,44 +280,37 @@ class AdversarialMSESystem(pl.LightningModule):
             fake_prob_ot = 1.0 - self.discriminator(original_img, target_palette)
             real_prob_oo = self.discriminator(original_img, original_palette)
 
-            # discriminator_tt = -torch.mean(torch.log(fake_prob_tt))
-            # discriminator_to = -torch.mean(torch.log(fake_prob_to))
-            # discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
-            # discriminator_oo = -torch.mean(torch.log(real_prob_oo))
-            # discriminator_loss = (
-            #         discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
-            # )
-            # self.log(
-            #     "Train/discriminator_tt",
-            #     discriminator_tt,
-            #     on_epoch=True,
-            # )
-            # self.log(
-            #     "Train/discriminator_to",
-            #     discriminator_to,
-            #     on_epoch=True,
-            # )
-            # self.log(
-            #     "Train/discriminator_ot",
-            #     discriminator_ot,
-            #     on_epoch=True,
-            # )
-            # self.log(
-            #     "Train/discriminator_oo",
-            #     discriminator_oo,
-            #     on_epoch=True,
-            # )
-            # self.log(
-            #     "Train/discriminator_loss",
-            #     discriminator_loss,
-            #     on_epoch=True,
-            # )
-
-            discriminator_loss = -(
-                torch.mean(torch.log(fake_prob_tt))
-                + torch.mean(torch.log(fake_prob_to))
-                + torch.mean(torch.log(fake_prob_ot))
-                + torch.mean(torch.log(real_prob_oo))
+            discriminator_tt = -torch.mean(torch.log(fake_prob_tt))
+            discriminator_to = -torch.mean(torch.log(fake_prob_to))
+            discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
+            discriminator_oo = -torch.mean(torch.log(real_prob_oo))
+            discriminator_loss = (
+                    discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
+            )
+            self.log(
+                "Train/discriminator_tt",
+                discriminator_tt,
+                on_epoch=True,
+            )
+            self.log(
+                "Train/discriminator_to",
+                discriminator_to,
+                on_epoch=True,
+            )
+            self.log(
+                "Train/discriminator_ot",
+                discriminator_ot,
+                on_epoch=True,
+            )
+            self.log(
+                "Train/discriminator_oo",
+                discriminator_oo,
+                on_epoch=True,
+            )
+            self.log(
+                "Train/discriminator_loss",
+                discriminator_loss,
+                on_epoch=True,
             )
 
             return discriminator_loss
@@ -353,38 +346,32 @@ class AdversarialMSESystem(pl.LightningModule):
         fake_prob_ot = 1.0 - self.discriminator(original_img, target_palette)
         real_prob_oo = self.discriminator(original_img, original_palette)
 
-        # discriminator_tt = -torch.mean(torch.log(fake_prob_tt))
-        # discriminator_to = -torch.mean(torch.log(fake_prob_to))
-        # discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
-        # discriminator_oo = -torch.mean(torch.log(real_prob_oo))
-        # discriminator_loss = (
-        #         discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
-        # )
-        # self.log(
-        #     "Train/discriminator_tt",
-        #     discriminator_tt,
-        #     on_epoch=True,
-        # )
-        # self.log(
-        #     "Train/discriminator_to",
-        #     discriminator_to,
-        #     on_epoch=True,
-        # )
-        # self.log(
-        #     "Train/discriminator_ot",
-        #     discriminator_ot,
-        #     on_epoch=True,
-        # )
-        # self.log(
-        #     "Train/discriminator_oo",
-        #     discriminator_oo,
-        #     on_epoch=True,
-        # )
-        discriminator_loss = -(
-            torch.mean(torch.log(fake_prob_tt))
-            + torch.mean(torch.log(fake_prob_to))
-            + torch.mean(torch.log(fake_prob_ot))
-            + torch.mean(torch.log(real_prob_oo))
+        discriminator_tt = -torch.mean(torch.log(fake_prob_tt))
+        discriminator_to = -torch.mean(torch.log(fake_prob_to))
+        discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
+        discriminator_oo = -torch.mean(torch.log(real_prob_oo))
+        discriminator_loss = (
+                discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
+        )
+        self.log(
+            "Train/discriminator_tt",
+            discriminator_tt,
+            on_epoch=True,
+        )
+        self.log(
+            "Train/discriminator_to",
+            discriminator_to,
+            on_epoch=True,
+        )
+        self.log(
+            "Train/discriminator_ot",
+            discriminator_ot,
+            on_epoch=True,
+        )
+        self.log(
+            "Train/discriminator_oo",
+            discriminator_oo,
+            on_epoch=True,
         )
 
         self.log(
@@ -437,39 +424,32 @@ class AdversarialMSESystem(pl.LightningModule):
         fake_prob_ot = 1.0 - self.discriminator(original_img, target_palette)
         real_prob_oo = self.discriminator(original_img, original_palette)
 
-        # discriminator_tt = -torch.mean(torch.log(fake_prob_tt))
-        # discriminator_to = -torch.mean(torch.log(fake_prob_to))
-        # discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
-        # discriminator_oo = -torch.mean(torch.log(real_prob_oo))
-        # discriminator_loss = (
-        #         discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
-        # )
-        # self.log(
-        #     "Train/discriminator_tt",
-        #     discriminator_tt,
-        #     on_epoch=True,
-        # )
-        # self.log(
-        #     "Train/discriminator_to",
-        #     discriminator_to,
-        #     on_epoch=True,
-        # )
-        # self.log(
-        #     "Train/discriminator_ot",
-        #     discriminator_ot,
-        #     on_epoch=True,
-        # )
-        # self.log(
-        #     "Train/discriminator_oo",
-        #     discriminator_oo,
-        #     on_epoch=True,
-        # )
-
-        discriminator_loss = -(
-            torch.mean(torch.log(fake_prob_tt))
-            + torch.mean(torch.log(fake_prob_to))
-            + torch.mean(torch.log(fake_prob_ot))
-            + torch.mean(torch.log(real_prob_oo))
+        discriminator_tt = -torch.mean(torch.log(fake_prob_tt))
+        discriminator_to = -torch.mean(torch.log(fake_prob_to))
+        discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
+        discriminator_oo = -torch.mean(torch.log(real_prob_oo))
+        discriminator_loss = (
+                discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
+        )
+        self.log(
+            "Train/discriminator_tt",
+            discriminator_tt,
+            on_epoch=True,
+        )
+        self.log(
+            "Train/discriminator_to",
+            discriminator_to,
+            on_epoch=True,
+        )
+        self.log(
+            "Train/discriminator_ot",
+            discriminator_ot,
+            on_epoch=True,
+        )
+        self.log(
+            "Train/discriminator_oo",
+            discriminator_oo,
+            on_epoch=True,
         )
 
         self.log(
@@ -675,33 +655,33 @@ class AdversarialSystem(pl.LightningModule):
             fake_prob_ot = 1.0 - self.discriminator(source_image, target_palette)
             real_prob_oo = self.discriminator(source_image, source_palette)
 
-            # discriminator_tt = -torch.mean(torch.log(fake_prob_tt))
-            # discriminator_to = -torch.mean(torch.log(fake_prob_to))
-            # discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
-            # discriminator_oo = -torch.mean(torch.log(real_prob_oo))
-            # discriminator_loss = (
-            #     discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
-            # )
-            # self.log(
-            #     "Train/discriminator_tt",
-            #     discriminator_tt,
-            #     on_epoch=True,
-            # )
-            # self.log(
-            #     "Train/discriminator_to",
-            #     discriminator_to,
-            #     on_epoch=True,
-            # )
-            # self.log(
-            #     "Train/discriminator_ot",
-            #     discriminator_ot,
-            #     on_epoch=True,
-            # )
-            # self.log(
-            #     "Train/discriminator_oo",
-            #     discriminator_oo,
-            #     on_epoch=True,
-            # )
+            discriminator_tt = -torch.mean(torch.log(fake_prob_tt))
+            discriminator_to = -torch.mean(torch.log(fake_prob_to))
+            discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
+            discriminator_oo = -torch.mean(torch.log(real_prob_oo))
+            discriminator_loss = (
+                discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
+            )
+            self.log(
+                "Train/discriminator_tt",
+                discriminator_tt,
+                on_epoch=True,
+            )
+            self.log(
+                "Train/discriminator_to",
+                discriminator_to,
+                on_epoch=True,
+            )
+            self.log(
+                "Train/discriminator_ot",
+                discriminator_ot,
+                on_epoch=True,
+            )
+            self.log(
+                "Train/discriminator_oo",
+                discriminator_oo,
+                on_epoch=True,
+            )
 
             discriminator_loss = -(
                 torch.mean(torch.log(fake_prob_tt))
@@ -744,19 +724,40 @@ class AdversarialSystem(pl.LightningModule):
         )
         fake_prob_ot = 1.0 - self.discriminator(source_image, target_palette)
         real_prob_oo = self.discriminator(source_image, source_palette)
-        # discriminator_tt = -torch.mean(torch.log(fake_prob_tt))
-        # discriminator_to = -torch.mean(torch.log(fake_prob_to))
-        # discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
-        # discriminator_oo = -torch.mean(torch.log(real_prob_oo))
-        # discriminator_loss = (
-        #         discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
+        discriminator_tt = -torch.mean(torch.log(fake_prob_tt))
+        discriminator_to = -torch.mean(torch.log(fake_prob_to))
+        discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
+        discriminator_oo = -torch.mean(torch.log(real_prob_oo))
+        discriminator_loss = (
+                discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
+        )
+
+        # discriminator_loss = -(
+        #     torch.mean(torch.log(fake_prob_tt))
+        #     + torch.mean(torch.log(fake_prob_to))
+        #     + torch.mean(torch.log(fake_prob_ot))
+        #     + torch.mean(torch.log(real_prob_oo))
         # )
 
-        discriminator_loss = -(
-            torch.mean(torch.log(fake_prob_tt))
-            + torch.mean(torch.log(fake_prob_to))
-            + torch.mean(torch.log(fake_prob_ot))
-            + torch.mean(torch.log(real_prob_oo))
+        self.log(
+            "Train/discriminator_tt",
+            discriminator_tt,
+            on_epoch=True,
+        )
+        self.log(
+            "Train/discriminator_to",
+            discriminator_to,
+            on_epoch=True,
+        )
+        self.log(
+            "Train/discriminator_ot",
+            discriminator_ot,
+            on_epoch=True,
+        )
+        self.log(
+            "Train/discriminator_oo",
+            discriminator_oo,
+            on_epoch=True,
         )
 
         self.log(
@@ -799,19 +800,40 @@ class AdversarialSystem(pl.LightningModule):
         )
         fake_prob_ot = 1.0 - self.discriminator(source_image, target_palette)
         real_prob_oo = self.discriminator(source_image, source_palette)
-        # discriminator_tt = -torch.mean(torch.log(fake_prob_tt))
-        # discriminator_to = -torch.mean(torch.log(fake_prob_to))
-        # discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
-        # discriminator_oo = -torch.mean(torch.log(real_prob_oo))
-        # discriminator_loss = (
-        #         discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
+        discriminator_tt = -torch.mean(torch.log(fake_prob_tt))
+        discriminator_to = -torch.mean(torch.log(fake_prob_to))
+        discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
+        discriminator_oo = -torch.mean(torch.log(real_prob_oo))
+        discriminator_loss = (
+                discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
+        )
+
+        # discriminator_loss = -(
+        #     torch.mean(torch.log(fake_prob_tt))
+        #     + torch.mean(torch.log(fake_prob_to))
+        #     + torch.mean(torch.log(fake_prob_ot))
+        #     + torch.mean(torch.log(real_prob_oo))
         # )
 
-        discriminator_loss = -(
-            torch.mean(torch.log(fake_prob_tt))
-            + torch.mean(torch.log(fake_prob_to))
-            + torch.mean(torch.log(fake_prob_ot))
-            + torch.mean(torch.log(real_prob_oo))
+        self.log(
+            "Train/discriminator_tt",
+            discriminator_tt,
+            on_epoch=True,
+        )
+        self.log(
+            "Train/discriminator_to",
+            discriminator_to,
+            on_epoch=True,
+        )
+        self.log(
+            "Train/discriminator_ot",
+            discriminator_ot,
+            on_epoch=True,
+        )
+        self.log(
+            "Train/discriminator_oo",
+            discriminator_oo,
+            on_epoch=True,
         )
 
         self.log(
