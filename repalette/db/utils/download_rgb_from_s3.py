@@ -2,7 +2,6 @@ import boto3
 from botocore.exceptions import ClientError
 import logging
 import os
-import tempfile
 import zipfile
 
 from repalette.constants import (
@@ -26,9 +25,17 @@ def download_from_s3():
         print(
             f"Downloading from s3://{S3_BUCKET_NAME}/{S3_RGB_IMAGES_PATH} to temporary archive {tmp_file_name}"
         )
-        s3_client.download_file(S3_BUCKET_NAME, S3_RGB_DATABASE_PATH, RGB_DATABASE_PATH)
+        s3_client.download_file(
+            S3_BUCKET_NAME,
+            S3_RGB_DATABASE_PATH,
+            RGB_DATABASE_PATH,
+        )
 
-        s3_client.download_file(S3_BUCKET_NAME, S3_RGB_IMAGES_PATH, tmp_file_name)
+        s3_client.download_file(
+            S3_BUCKET_NAME,
+            S3_RGB_IMAGES_PATH,
+            tmp_file_name,
+        )
         print(f"Extracting archive to {BASE_DATA_DIR}")
         with zipfile.ZipFile(tmp_file_name, "r") as zip_ref:
             zip_ref.extractall(ROOT_DIR)

@@ -35,6 +35,7 @@ def pretrain(version, num_workers, batch_size, multiplier, size, max_epochs=None
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", type=str, default="pretrain", help="Cosmos workflow name")
+
     parser.add_argument("--gpu-req", type=int, default=1, help="Number of GPUs")
     parser.add_argument(
         "--max-attempts", type=int, default=20, help="Number of attempts to run the tasks"

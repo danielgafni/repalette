@@ -6,7 +6,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 
-from repalette.constants import RGB_IMAGES_DIR, DEFAULT_RGB_DATABASE
+from repalette.constants import (
+    RGB_IMAGES_DIR,
+    DEFAULT_RGB_DATABASE,
+)
 from repalette.db.rgb import RGBImage, RGBBase
 from repalette.datasets import RawDataset
 
@@ -95,10 +98,19 @@ if __name__ == "__main__":
     RGBBase.metadata.create_all(engine)
 
     dropped = 0
-    bar = tqdm(desc=f"Processing... Dropped: [{dropped}]", total=len(raw_dataset))
-    for (image, palette), raw_image in raw_dataset:
+    bar = tqdm(
+        desc=f"Processing... Dropped: [{dropped}]",
+        total=len(raw_dataset),
+    )
+    for (
+        image,
+        palette,
+    ), raw_image in raw_dataset:
         if raw_image.name not in BAD_NAMES:
-            np_image, np_palette = process_image_info(image, palette)
+            (
+                np_image,
+                np_palette,
+            ) = process_image_info(image, palette)
             if np_image is not None:
                 processed_image = Image.fromarray(np_image)
 

@@ -17,7 +17,7 @@ from repalette.constants import (
     RDS_OPTUNA_DATABASE,
 )
 from repalette.lightning.datamodules import PreTrainDataModule
-from repalette.lightning.callbacks import LogRecoloringToTensorboard
+from repalette.lightning.callbacks import LogPairRecoloringToTensorboard
 from repalette.lightning.systems import PreTrainSystem
 from repalette.utils.aws import upload_to_s3
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
         pretrain_gpu_stats_monitor = GPUStatsMonitor(temperature=True)
 
-        log_recoloring_to_tensorboard = LogRecoloringToTensorboard()
+        log_recoloring_to_tensorboard = LogPairRecoloringToTensorboard()
 
         optuna_pruning = PyTorchLightningPruningCallback(monitor="Val/loss_epoch", trial=trial)
 

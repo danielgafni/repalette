@@ -1,2 +1,2 @@
-from .transforms import Scaler
+from .transforms import LABNormalizer
 from .pied import pied

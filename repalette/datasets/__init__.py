@@ -1,7 +1,12 @@
-from .raw_dataset import RawDataset
-from .rgb_dataset import RGBDataset
+from repalette.datasets.abstract import AbstractQueryDataset, AbstractRecolorDataset
 
-# from .lab_dataset import LABDataset
-from .pair_recolor_dataset import PairRecolorDataset
-from .recolor_dataset import RecolorDataset
-from .triplet_recolor_dataset import TripletRecolorDataset
+from repalette.datasets.raw_dataset import RawDataset
+from repalette.datasets.rgb_dataset import RGBDataset
+
+from repalette.datasets.pretrain_dataset import (
+    PreTrainDataset,
+)
+from repalette.datasets.triplet_recolor_dataset import (
+    TripletRecolorDataset,
+)
+from repalette.datasets.adversarial_dataset import AdversarialDataset, AdversarialRecolorDataset
