@@ -279,7 +279,7 @@ class AdversarialMSESystem(pl.LightningModule):
             discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
             discriminator_oo = -torch.mean(torch.log(real_prob_oo))
             discriminator_loss = (
-                    discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
+                discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
             )
             self.log(
                 "Train/discriminator_tt",
@@ -345,7 +345,7 @@ class AdversarialMSESystem(pl.LightningModule):
         discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
         discriminator_oo = -torch.mean(torch.log(real_prob_oo))
         discriminator_loss = (
-                discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
+            discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
         )
         self.log(
             "Train/discriminator_tt",
@@ -423,7 +423,7 @@ class AdversarialMSESystem(pl.LightningModule):
         discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
         discriminator_oo = -torch.mean(torch.log(real_prob_oo))
         discriminator_loss = (
-                discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
+            discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
         )
         self.log(
             "Train/discriminator_tt",
