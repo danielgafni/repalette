@@ -6,9 +6,7 @@ from sqlalchemy import (
     DateTime,
     MetaData,
 )
-from sqlalchemy.ext.declarative import (
-    declarative_base,
-)
+from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 import numpy as np
 import os
 
@@ -16,7 +14,7 @@ from repalette.constants import RGB_IMAGES_DIR
 
 rgb_meta = MetaData()
 
-RGBBase = declarative_base()
+RGBBase: DeclarativeMeta = declarative_base()  # use DeclarativeMeta to calm down mypy
 
 
 class RGBImage(RGBBase):

@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
         test_result = trainer.test(pretrain_system, datamodule=datamodule)
 
-        pretrain_system.hparams.hp_metric = test_result[0]["Test/loss_epoch"]
+        pretrain_system.hparams.test_metric_name = test_result[0]["Test/loss_epoch"]
         logger.log_hyperparams(pretrain_system.hparams)
         logger.finalize(status="success")
 

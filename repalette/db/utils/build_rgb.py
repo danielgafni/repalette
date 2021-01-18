@@ -105,7 +105,7 @@ if __name__ == "__main__":
     for (
         image,
         palette,
-    ), raw_image in raw_dataset:
+    ), raw_image in raw_dataset:  # type: ignore
         if raw_image.name not in BAD_NAMES:
             (
                 np_image,

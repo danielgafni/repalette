@@ -1,10 +1,10 @@
 # Installation
 ```bash
 poetry install
-poetry run pre-commit install
+poetry run pre-commit install  # for development
 ```
 
-## Configure
+## Configuration
 ```bash
 cp ./.env.example ./.env
 ```
