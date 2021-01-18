@@ -38,7 +38,10 @@ if __name__ == "__main__":
 
     parser.add_argument("--gpu-req", type=int, default=1, help="Number of GPUs")
     parser.add_argument(
-        "--max-attempts", type=int, default=20, help="Number of attempts to run the tasks"
+        "--max-attempts",
+        type=int,
+        default=20,
+        help="Number of attempts to run the tasks",
     )
     parser.add_argument("--max-epochs", type=int, default=1, help="Number of epochs to train")
     parser.add_argument("--batch-size", type=int, default=8)

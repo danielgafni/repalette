@@ -1,8 +1,6 @@
 import torch
 import pytorch_lightning as pl
-from pytorch_lightning.metrics.regression import (
-    MeanSquaredError,
-)
+from argparse import ArgumentParser
 from torch import nn as nn
 
 from repalette.constants import (
@@ -13,6 +11,10 @@ from repalette.constants import (
     DEFAULT_GENERATOR_WEIGHT_DECAY,
     DEFAULT_DISCRIMINATOR_WEIGHT_DECAY,
     DEFAULT_ADVERSARIAL_LAMBDA_MSE_LOSS,
+    DEFAULT_PRETRAIN_LR,
+    DEFAULT_PRETRAIN_BETA_1,
+    DEFAULT_PRETRAIN_BETA_2,
+    DEFAULT_PRETRAIN_WEIGHT_DECAY,
 )
 from repalette.models import (
     PaletteNet,
@@ -28,14 +30,15 @@ class PreTrainSystem(pl.LightningModule):
 
     def __init__(
         self,
-        learning_rate,
-        beta_1,
-        beta_2,
-        weight_decay,
-        optimizer,
-        batch_size,
-        multiplier,
-        scheduler_patience,
+        learning_rate=DEFAULT_PRETRAIN_LR,
+        beta_1=DEFAULT_PRETRAIN_BETA_1,
+        beta_2=DEFAULT_PRETRAIN_BETA_2,
+        weight_decay=DEFAULT_PRETRAIN_WEIGHT_DECAY,
+        optimizer="adam",
+        batch_size=8,
+        multiplier=16,
+        scheduler_patience=10,
+        **kwargs,
     ):
         super().__init__()
 
@@ -48,7 +51,6 @@ class PreTrainSystem(pl.LightningModule):
             "weight_decay",
             "optimizer",
             "batch_size",
-            "multiplier",
             "scheduler_patience",
         )
 
@@ -56,6 +58,23 @@ class PreTrainSystem(pl.LightningModule):
         # self.MSE = MeanSquaredError()
         self.MSE = torch.nn.MSELoss()
         self.normalizer = LABNormalizer()
+
+    @staticmethod
+    def add_argparse_args(parent_parser):
+        hparams_parser = ArgumentParser(parents=[parent_parser], add_help=False)
+
+        hparams_parser.add_argument("--learning-rate", type=float, default=DEFAULT_PRETRAIN_LR)
+        hparams_parser.add_argument("--beta-1", type=float, default=DEFAULT_PRETRAIN_BETA_1)
+        hparams_parser.add_argument("--beta-2", type=float, default=DEFAULT_PRETRAIN_BETA_2)
+        hparams_parser.add_argument(
+            "--weight-decay", type=float, default=DEFAULT_PRETRAIN_WEIGHT_DECAY
+        )
+        hparams_parser.add_argument(
+            "--optimizer", type=str, default="adam", choices=["adam", "adamw"]
+        )
+        hparams_parser.add_argument("--scheduler-patience", type=int, default=10)
+
+        return hparams_parser
 
     def forward(self, img, palette):
         return self.generator(img, palette)
@@ -105,12 +124,6 @@ class PreTrainSystem(pl.LightningModule):
 
         return loss
 
-    def test_epoch_end(self, outputs):
-        # log test loss
-        loss_epoch = torch.stack(outputs).mean()
-        self.log("Test/loss_epoch", loss_epoch)
-        self.logger.log_hyperparams(self.hparams, loss_epoch)
-
     def configure_optimizers(self):
         # which is better? adam or adamw?
         if self.hparams.optimizer == "adam":
@@ -145,7 +158,7 @@ class PreTrainSystem(pl.LightningModule):
         return {
             "optimizer": optimizer,
             "lr_scheduler": lr_scheduler,
-            "monitor": "Val/loss_epoch",
+            "monitor": "Val/loss",
         }
 
     @property
@@ -182,7 +195,8 @@ class AdversarialMSESystem(pl.LightningModule):
         batch_size=8,
         multiplier=16,
         k=4,
-        p=0.1,
+        discriminator_dropout=0.2,
+        **kwargs,
     ):
         super().__init__()
 
@@ -198,15 +212,14 @@ class AdversarialMSESystem(pl.LightningModule):
             "discriminator_weight_decay",
             "optimizer",
             "batch_size",
-            "multiplier",
             "k",
-            "p",
+            "discriminator_dropout",
         )
 
         if generator is None:
             generator = PaletteNet()
         if discriminator is None:
-            discriminator = Discriminator(p=p)
+            discriminator = Discriminator(p=discriminator_dropout)
 
         self.generator = generator
         self.discriminator = discriminator
@@ -214,6 +227,35 @@ class AdversarialMSESystem(pl.LightningModule):
 
         self.MSE = torch.nn.MSELoss()
         self.normalizer = LABNormalizer()
+
+    @staticmethod
+    def add_argparse_args(parent_parser: ArgumentParser) -> ArgumentParser:
+        hparams_parser = ArgumentParser(parents=[parent_parser], add_help=False)
+
+        hparams_parser.add_argument(
+            "--generator-learning-rate", type=float, default=DEFAULT_GENERATOR_LR
+        )
+        hparams_parser.add_argument(
+            "--discriminator-learning-rate", type=float, default=DEFAULT_DISCRIMINATOR_LR
+        )
+        hparams_parser.add_argument(
+            "--generator-weight-decay", type=float, default=DEFAULT_GENERATOR_WEIGHT_DECAY
+        )
+        hparams_parser.add_argument(
+            "--discriminator-weight-decay", type=float, default=DEFAULT_DISCRIMINATOR_WEIGHT_DECAY
+        )
+        hparams_parser.add_argument(
+            "--lambda-mse-loss", type=float, default=DEFAULT_ADVERSARIAL_LAMBDA_MSE_LOSS
+        )
+        hparams_parser.add_argument(
+            "--optimizer", type=str, default="adam", choices=["adam", "adamw"]
+        )
+        hparams_parser.add_argument("--beta-1", type=float, default=DEFAULT_ADVERSARIAL_BETA_1)
+        hparams_parser.add_argument("--beta-2", type=float, default=DEFAULT_ADVERSARIAL_BETA_2)
+        hparams_parser.add_argument("--k", type=int, default=8)
+        hparams_parser.add_argument("--discriminator-dropout", type=float, default=0.2)
+
+        return hparams_parser
 
     def forward(self, img, palette):
         return self.generator(img, palette)
@@ -544,3 +586,12 @@ class AdversarialMSESystem(pl.LightningModule):
 
     # def on_fit_start(self):
     #     self.logger.log_hyperparams(self.hparams)
+
+    @property
+    def example_input_array(self):
+        (
+            (source_img, _),
+            (target_img, target_palette),
+            (original_img, original_palette),
+        ) = next(iter(self.val_dataloader()))
+        return source_img[0:1, ...], nn.Flatten()(target_palette[0:1, ...])

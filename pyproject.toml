@@ -34,6 +34,9 @@ pre-commit = "^2.9.3"
 jupyterlab = "^2.2.0"
 jupyter-core = "^4.7.0"
 jupyter-client = "^6.1.11"
+flake8 = "^3.8.4"
+autoflake = "^1.4"
+mypy = "^0.790"
 
 [build-system]
 requires = ["setuptools", "poetry-core>=1.0.0"]
@@ -55,7 +58,6 @@ exclude = '''
   | buck-out
   | build
   | dist
-  | PaletteNet-PyTorch
   | documents
   | notebooks
   )/

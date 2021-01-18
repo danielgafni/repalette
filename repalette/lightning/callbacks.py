@@ -2,17 +2,12 @@ from pytorch_lightning.callbacks import Callback
 import torch.nn as nn
 import torch
 import abc
-import asyncio
-import nest_asyncio
 
 from repalette.constants import (
     DISCORD_TRAINING_CHANNEL_ID,
 )
 from repalette.utils.visualization import (
     lab_batch_to_rgb_image_grid,
-)
-from repalette.lightning.systems import (
-    PreTrainSystem,
 )
 from repalette.utils.notify import notify_discord
 
@@ -283,24 +278,25 @@ class LogAdversarialMSEToTensorboard(LogRecoloringToTensorboard):
         recolored_grid = lab_batch_to_rgb_image_grid(recolored_images, nrow=batch_size)
 
         pl_module.logger.experiment.add_image(
-            f"Final/original",
+            "Final/original",
             original_grid,
             pl_module.current_epoch,
         )
         pl_module.logger.experiment.add_image(
-            f"Final/target_palette",
+            "Final/target_palette",
             target_palette_grid,
             pl_module.current_epoch,
         )
         pl_module.logger.experiment.add_image(
-            f"Final/recolored",
+            "Final/recolored",
             recolored_grid,
             pl_module.current_epoch,
         )
 
 
 class Notify(Callback):
-    def __init__(self, notifier="discord"):
+    def __init__(self, notifier="discord", test_metric_name=None):
+        self.test_metric_name = test_metric_name
         if notifier == "discord":
             self.do_notify = self._notify_discord
         else:
@@ -312,17 +308,24 @@ class Notify(Callback):
 
     def on_test_end(self, trainer, pl_module):
         message = f"✨ Testing of {trainer.logger.name}/{trainer.logger.version} has finished ✨"
+        if self.test_metric_name is not None:
+            message = f"{message[:-1]}with score\n{self.test_metric_name}: {trainer.callback_metrics[self.test_metric_name]} ✨"
         self.do_notify(message=message)
 
     @staticmethod
     def _notify_discord(message):
+        notify_discord(channel_id=DISCORD_TRAINING_CHANNEL_ID, message=message)
 
-        nest_asyncio.apply()
 
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(
-            notify_discord(
-                channel_id=DISCORD_TRAINING_CHANNEL_ID,
-                message=message,
+class LogHyperparamsToTensorboard(Callback):
+    def __init__(self, hp_metric):
+        self.hp_metric = hp_metric
+
+    def on_train_start(self, trainer, pl_module):
+        trainer.logger.log_hyperparams(pl_module.hparams)
+
+    def on_test_end(self, trainer, pl_module):
+        if self.hp_metric is not None:
+            trainer.logger.log_hyperparams(
+                pl_module.hparams, trainer.callback_metrics[self.hp_metric]
             )
-        )

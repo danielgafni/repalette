@@ -6,16 +6,14 @@ from sqlalchemy import (
     DateTime,
     MetaData,
 )
-from sqlalchemy.ext.declarative import (
-    declarative_base,
-)
+from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 import os
 
 from repalette.constants import RAW_DATA_DIR
 
 raw_meta = MetaData()
 
-RAWBase = declarative_base()
+RAWBase: DeclarativeMeta = declarative_base()  # use DeclarativeMeta to calm down mypy
 
 
 class RawImage(RAWBase):

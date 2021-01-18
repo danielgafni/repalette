@@ -4,6 +4,7 @@ data-raw/*
 *.csv
 notebooks/wandb/
 log/
+notebooks/images/
 
 # Created by .ignore support plugin (hsz.mobi)
 ### JupyterNotebooks template

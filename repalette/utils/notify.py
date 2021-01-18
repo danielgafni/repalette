@@ -1,8 +1,10 @@
 import discord
 from repalette.constants import DISCORD_BOT_TOKEN
+import nest_asyncio
+import asyncio
 
 
-async def notify_discord(channel_id, message):
+async def __notify_discord(channel_id, message):
     client = discord.Client()
 
     async def __send_message():
@@ -12,3 +14,15 @@ async def notify_discord(channel_id, message):
 
     client.loop.create_task(__send_message())
     await client.start(DISCORD_BOT_TOKEN)
+
+
+def notify_discord(channel_id, message):
+    nest_asyncio.apply()
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(
+        __notify_discord(
+            channel_id=channel_id,
+            message=message,
+        )
+    )

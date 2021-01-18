@@ -24,15 +24,17 @@ class LABNormalizer:
         old_range: torch.Tensor = None,
         new_range: torch.Tensor = None,
     ):
-        self.old_range = old_range
-        self.new_range = new_range
         if old_range is None:
             self.old_range = torch.as_tensor(
                 [L_RANGE, A_RANGE, B_RANGE],
                 dtype=torch.float,
             )
+        else:
+            self.old_range = old_range
         if new_range is None:
             self.new_range = torch.as_tensor([[-1, 1]] * 3, dtype=torch.float)
+        else:
+            self.new_range = new_range
 
     def to(
         self,
