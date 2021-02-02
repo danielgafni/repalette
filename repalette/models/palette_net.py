@@ -7,6 +7,7 @@ from repalette.models.nn import (
     ResnetLayer,
     BasicBlock,
 )
+import pytorch_lightning as pl
 
 
 class PaletteNet(nn.Module):
@@ -26,7 +27,8 @@ class PaletteNet(nn.Module):
         return recolored_img_ab
 
 
-class FeatureExtractor(nn.Module):
+# inherit from lightning to solve feature_exctractor.freeze() in adversarial training
+class FeatureExtractor(pl.LightningModule):
     def __init__(self):
         super().__init__()
 

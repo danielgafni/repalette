@@ -6,7 +6,7 @@ from repalette.utils.transforms import (
 )
 
 
-class AdversarialRecolorDataset(PreTrainDataset):
+class GANDataset(PreTrainDataset):
     def _getitem(self, index):
         """
         @return: source_pair and target_pair - for generator; original_pair - for discriminator

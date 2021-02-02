@@ -43,7 +43,7 @@ class LogRecoloringToTensorboard(Callback):
         )
         # self._log_recoloring(pl_module, val_dataloader, "Val", False)  # this doesn't work for some reason
 
-    def on_test_epoch_end(self, trainer, pl_module):
+    def on_train_end(self, trainer, pl_module):
         test_dataloader = pl_module.test_dataloader()
         # test_dataloader.shuffle(random_seed="lock")
 

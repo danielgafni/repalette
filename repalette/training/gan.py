@@ -8,13 +8,13 @@ from uuid import uuid1
 
 from repalette.constants import (
     S3_LIGHTNING_LOGS_DIR,
-    S3_MODEL_CHECKPOINTS_RELATIVE_DIR,
+    S3_MODEL_CHECKPOINTS_DIR,
     MODEL_CHECKPOINTS_DIR,
     LIGHTNING_LOGS_DIR,
     PRETRAINED_MODEL_CHECKPOINT_PATH,
 )
 from pytorch_lightning.loggers import TensorBoardLogger
-from repalette.lightning.datamodules import AdversarialRecolorDataModule
+from repalette.lightning.datamodules import GANDataModule
 from repalette.lightning.callbacks import (
     LogAdversarialMSEToTensorboard,
     Notify,
@@ -25,9 +25,7 @@ from repalette.lightning.systems import PreTrainSystem, AdversarialMSESystem
 
 def main(hparams):
     if hparams.checkpoints_location == "s3":
-        checkpoints_dir = os.path.join(
-            S3_MODEL_CHECKPOINTS_RELATIVE_DIR, hparams.name, hparams.version
-        )
+        checkpoints_dir = os.path.join(S3_MODEL_CHECKPOINTS_DIR, hparams.name, hparams.version)
     else:
         checkpoints_dir = os.path.join(MODEL_CHECKPOINTS_DIR, hparams.name, hparams.version)
 
@@ -40,7 +38,10 @@ def main(hparams):
     generator = PreTrainSystem.load_from_checkpoint(PRETRAINED_MODEL_CHECKPOINT_PATH).generator
 
     # main LightningModule
-    adversarial_system = AdversarialMSESystem(generator=generator, **vars(hparams))
+    if hparams.checkpoint_path is not None:
+        adversarial_system = AdversarialMSESystem.load_from_checkpoint(hparams.checkpoint_path)
+    else:
+        adversarial_system = AdversarialMSESystem(**vars(hparams), generator=generator)
 
     adversarial_checkpoints = ModelCheckpoint(
         dirpath=checkpoints_dir,
@@ -65,8 +66,10 @@ def main(hparams):
         default_hp_metric=False,
     )
 
+    # trainer
     trainer = Trainer.from_argparse_args(
         hparams,
+        resume_from_checkpoint=hparams.checkpoint_path,
         logger=logger,
         checkpoint_callback=adversarial_checkpoints,
         callbacks=[
@@ -80,7 +83,7 @@ def main(hparams):
         enable_pl_optimizer=True,
     )
 
-    datamodule = AdversarialRecolorDataModule(**vars(hparams))
+    datamodule = GANDataModule(**vars(hparams))
 
     trainer.fit(adversarial_system, datamodule=datamodule)
 
@@ -103,6 +106,7 @@ if __name__ == "__main__":
     hparams_parser.add_argument("--gradient-clip-val", type=float, default=0.0)
     hparams_parser.add_argument("--fast-dev-run", type=int, default=0)
     hparams_parser.add_argument("--track-grad-norm", type=int, default=-1)
+    hparams_parser.add_argument("--checkpoint-path", type=str, default=None)
 
     # callbacks
     hparams_parser.add_argument("--patience", type=int, default=10)
@@ -111,7 +115,7 @@ if __name__ == "__main__":
     hparams_parser = AdversarialMSESystem.add_argparse_args(hparams_parser)
 
     # datamodule
-    hparams_parser = AdversarialRecolorDataModule.add_argparse_args(hparams_parser)
+    hparams_parser = GANDataModule.add_argparse_args(hparams_parser)
 
     # misc
     hparams_parser.add_argument(
@@ -120,7 +124,7 @@ if __name__ == "__main__":
     hparams_parser.add_argument(
         "--logging-location", type=str, default="s3", choices=["s3", "local"]
     )
-    hparams_parser.add_argument("--name", type=str, default="adversarial", help="experiment name")
+    hparams_parser.add_argument("--name", type=str, default="gan", help="experiment name")
     hparams_parser.add_argument(
         "--version",
         type=str,

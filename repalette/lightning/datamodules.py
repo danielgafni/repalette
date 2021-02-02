@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from torchvision import transforms
 from repalette.datasets import (
     PreTrainDataset,
-    AdversarialRecolorDataset,
+    GANDataset,
 )
 from repalette.datasets.utils import (
     ShuffleDataLoader,
@@ -17,7 +17,7 @@ class PreTrainDataModule(pl.LightningDataModule):
         batch_size=8,
         multiplier=16,
         shuffle=True,
-        num_workers=8,
+        num_workers=15,
         transform=None,
         image_size=DEFAULT_IMAGE_SIZE,
         size=1,
@@ -128,9 +128,9 @@ class PreTrainDataModule(pl.LightningDataModule):
     #     # maybe we want this later
 
 
-class AdversarialRecolorDataModule(PreTrainDataModule):
+class GANDataModule(PreTrainDataModule):
     def setup(self, stage=None):
-        data = AdversarialRecolorDataset(
+        data = GANDataset(
             multiplier=self.multiplier,
             shuffle=self.shuffle,
             transform=self.transform,

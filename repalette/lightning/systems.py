@@ -182,7 +182,7 @@ class AdversarialMSESystem(pl.LightningModule):
 
     def __init__(
         self,
-        generator=None,
+        generator,
         discriminator=None,
         lambda_mse_loss=DEFAULT_ADVERSARIAL_LAMBDA_MSE_LOSS,
         generator_learning_rate=DEFAULT_GENERATOR_LR,
@@ -216,13 +216,10 @@ class AdversarialMSESystem(pl.LightningModule):
             "discriminator_dropout",
         )
 
-        if generator is None:
-            generator = PaletteNet()
-        if discriminator is None:
-            discriminator = Discriminator(p=discriminator_dropout)
-
+        generator.feature_extractor.freeze()  # freeze feature extractor weights
         self.generator = generator
-        self.discriminator = discriminator
+        self.discriminator = discriminator or Discriminator(p=discriminator_dropout)
+
         self.k = k
 
         self.MSE = torch.nn.MSELoss()
@@ -305,6 +302,14 @@ class AdversarialMSESystem(pl.LightningModule):
 
         # train discriminator
         elif optimizer_idx == 1:
+            # add noise
+            noise_amplitude = 0.1 / ((batch_idx + 1) ** (1 / 4))
+            recolored_img += torch.normal(
+                mean=0, std=noise_amplitude, size=recolored_img.shape, device=recolored_img.device
+            )
+            original_img += torch.normal(
+                mean=0, std=noise_amplitude, size=original_img.shape, device=original_img.device
+            )
             fake_prob_tt = 1.0 - self.discriminator(
                 recolored_img.detach(),
                 target_palette,
@@ -390,22 +395,22 @@ class AdversarialMSESystem(pl.LightningModule):
             discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
         )
         self.log(
-            "Train/discriminator_tt",
+            "Val/discriminator_tt",
             discriminator_tt,
             on_epoch=True,
         )
         self.log(
-            "Train/discriminator_to",
+            "Val/discriminator_to",
             discriminator_to,
             on_epoch=True,
         )
         self.log(
-            "Train/discriminator_ot",
+            "Val/discriminator_ot",
             discriminator_ot,
             on_epoch=True,
         )
         self.log(
-            "Train/discriminator_oo",
+            "Val/discriminator_oo",
             discriminator_oo,
             on_epoch=True,
         )
@@ -468,22 +473,22 @@ class AdversarialMSESystem(pl.LightningModule):
             discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
         )
         self.log(
-            "Train/discriminator_tt",
+            "Test/discriminator_tt",
             discriminator_tt,
             on_epoch=True,
         )
         self.log(
-            "Train/discriminator_to",
+            "Test/discriminator_to",
             discriminator_to,
             on_epoch=True,
         )
         self.log(
-            "Train/discriminator_ot",
+            "Test/discriminator_ot",
             discriminator_ot,
             on_epoch=True,
         )
         self.log(
-            "Train/discriminator_oo",
+            "Test/discriminator_oo",
             discriminator_oo,
             on_epoch=True,
         )
@@ -552,40 +557,20 @@ class AdversarialMSESystem(pl.LightningModule):
         else:
             raise NotImplementedError(f"Optimizer {self.hparams.optimizer} is not implemented")
 
-        optimizers = [
-            optimizer_generator,
-            optimizer_discriminator,
-        ]
         # schedulers = [
         #     {"scheduler": lr_scheduler_generator, "monitor": "Val/generator_loss_epoch", "interval": "epoch"},
         #     {"scheduler": lr_scheduler_discriminator, "monitor": "Val/discriminator_loss_epoch", "interval": "epoch"}
         # ]
+        # discriminator_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+        #     optimizer=optimizer_discriminator, T_0=40000, T_mult=0.8
+        # )
 
-        return optimizers
+        optimizers_config = (
+            {"optimizer": optimizer_generator, "frequency": 1},
+            {"optimizer": optimizer_discriminator, "frequency": self.k},
+        )
 
-    # Alternating schedule for optimizer steps (ie: GANs)
-    def optimizer_step(
-        self,
-        current_epoch,
-        batch_nb,
-        optimizer,
-        optimizer_idx,
-        closure,
-        on_tpu=False,
-        using_native_amp=False,
-        using_lbfgs=False,
-    ):
-        # update generator opt every step
-        if optimizer_idx == 0:
-            optimizer.step(closure=closure)
-
-        # update discriminator opt every k steps
-        if optimizer_idx == 1:
-            if batch_nb % self.k == 0:
-                optimizer.step(closure=closure)
-
-    # def on_fit_start(self):
-    #     self.logger.log_hyperparams(self.hparams)
+        return optimizers_config
 
     @property
     def example_input_array(self):
