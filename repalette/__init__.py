@@ -3,7 +3,7 @@ __all__ = [
     "PreTrainSystem",
     "AdversarialMSESystem",
     "PreTrainDataModule",
-    "AdversarialRecolorDataModule",
+    "GANDataModule",
 ]
 
 
@@ -13,5 +13,5 @@ from repalette.lightning.systems import (
 )
 from repalette.lightning.datamodules import (
     PreTrainDataModule,
-    AdversarialRecolorDataModule,
+    GANDataModule,
 )

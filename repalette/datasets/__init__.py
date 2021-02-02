@@ -4,7 +4,7 @@ __all__ = [
     "RawDataset",
     "RGBDataset",
     "PreTrainDataset",
-    "AdversarialRecolorDataset",
+    "GANDataset",
 ]
 
 from repalette.datasets.abstract import (
@@ -19,6 +19,6 @@ from repalette.datasets.pretrain_dataset import (
     PreTrainDataset,
 )
 
-from repalette.datasets.adversarial_dataset import (
-    AdversarialRecolorDataset,
+from repalette.datasets.gan_dataset import (
+    GANDataset,
 )

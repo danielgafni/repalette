@@ -30,7 +30,10 @@ def main(hparams):
         logging_dir = os.path.join(LIGHTNING_LOGS_DIR, hparams.name)
 
     # main LightningModule
-    pretrain_system = PreTrainSystem(**vars(hparams))
+    if hparams.checkpoint_path is not None:
+        pretrain_system = PreTrainSystem.load_from_checkpoint(hparams.adversarial_system)
+    else:
+        pretrain_system = PreTrainSystem(**vars(hparams))
 
     pretrain_checkpoints = ModelCheckpoint(
         dirpath=os.path.join(MODEL_CHECKPOINTS_DIR, hparams.version),
@@ -65,6 +68,7 @@ def main(hparams):
 
     trainer = Trainer.from_argparse_args(
         hparams,
+        resume_from_checkpoint=hparams.checkpoint_path,
         logger=logger,
         checkpoint_callback=pretrain_checkpoints,
         callbacks=[
@@ -111,6 +115,7 @@ if __name__ == "__main__":
     hparams_parser.add_argument("--gradient-clip-val", type=float, default=0.0)
     hparams_parser.add_argument("--fast-dev-run", type=int, default=0)
     hparams_parser.add_argument("--track-grad-norm", type=int, default=-1)
+    hparams_parser.add_argument("--checkpoint-path", type=str, default=None)
 
     # callbacks
     hparams_parser.add_argument("--patience", type=int, default=10)
