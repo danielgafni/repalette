@@ -1,9 +1,9 @@
-import boto3
-from botocore.exceptions import ClientError
 import logging
 
-from repalette.constants import S3_BUCKET_NAME
+import boto3
+from botocore.exceptions import ClientError
 
+from repalette.constants import S3_BUCKET_NAME
 
 INCREASE_DOCKER_SHARED_MEMORY = """
 SYSTEM_MEMORY_MB_75_PERCENT=$(free|head -2|tail -1|awk '{ print $2*.75M }')

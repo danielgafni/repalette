@@ -1,11 +1,11 @@
+import numpy as np
 from PIL import Image
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import numpy as np
 
 from repalette.constants import RGB_DATABASE_PATH
-from repalette.db.rgb import RGBImage
 from repalette.datasets import AbstractQueryDataset
+from repalette.db.rgb import RGBImage
 
 
 class RGBDataset(AbstractQueryDataset):

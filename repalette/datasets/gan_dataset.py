@@ -1,9 +1,7 @@
-from repalette.datasets import PreTrainDataset
 from PIL import Image
 
-from repalette.utils.transforms import (
-    sort_palette as sort_palette_by_hue,
-)
+from repalette.datasets import PreTrainDataset
+from repalette.utils.transforms import sort_palette as sort_palette_by_hue
 
 
 class GANDataset(PreTrainDataset):

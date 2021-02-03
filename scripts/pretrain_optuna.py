@@ -1,26 +1,26 @@
 import argparse
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, GPUStatsMonitor
-from dotenv import load_dotenv
 import os
 from uuid import uuid1
-from pytorch_lightning.loggers import TensorBoardLogger
+
 import optuna
+from dotenv import load_dotenv
 from optuna.integration.pytorch_lightning import PyTorchLightningPruningCallback
+from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks import EarlyStopping, GPUStatsMonitor, ModelCheckpoint
+from pytorch_lightning.loggers import TensorBoardLogger
 
 from repalette.constants import (
     DEFAULT_PRETRAIN_BETA_1,
     DEFAULT_PRETRAIN_BETA_2,
-    S3_LIGHTNING_LOGS_DIR,
-    S3_MODEL_CHECKPOINTS_RELATIVE_DIR,
     MODEL_CHECKPOINTS_DIR,
     RDS_OPTUNA_DATABASE,
+    S3_LIGHTNING_LOGS_DIR,
+    S3_MODEL_CHECKPOINTS_RELATIVE_DIR,
 )
-from repalette.lightning.datamodules import PreTrainDataModule
 from repalette.lightning.callbacks import LogPairRecoloringToTensorboard
+from repalette.lightning.datamodules import PreTrainDataModule
 from repalette.lightning.systems import PreTrainSystem
 from repalette.utils.aws import upload_to_s3
-
 
 if __name__ == "__main__":
     # load .env variables
@@ -66,9 +66,7 @@ if __name__ == "__main__":
         default=None,
         help="unique! run version - used to generate checkpoint S3 path",
     )
-    hparams_parser.add_argument(
-        "--logger", type=str, default="tensorboard", choices=["tensorboard"]
-    )
+    hparams_parser.add_argument("--logger", type=str, default="tensorboard", choices=["tensorboard"])
     hparams_parser.add_argument(
         "--n_trials",
         type=int,

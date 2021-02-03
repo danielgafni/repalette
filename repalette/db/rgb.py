@@ -1,14 +1,9 @@
 import datetime
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    DateTime,
-    MetaData,
-)
-from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
-import numpy as np
 import os
+
+import numpy as np
+from sqlalchemy import Column, DateTime, Integer, MetaData, String
+from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 
 from repalette.constants import RGB_IMAGES_DIR
 

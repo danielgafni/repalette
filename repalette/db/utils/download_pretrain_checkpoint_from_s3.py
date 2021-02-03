@@ -1,13 +1,14 @@
-import boto3
-from botocore.exceptions import ClientError
 import logging
 import os
 
+import boto3
+from botocore.exceptions import ClientError
+
 from repalette.constants import (
     BASE_DATA_DIR,
+    PRETRAINED_MODEL_CHECKPOINT_PATH,
     S3_BUCKET_NAME,
     S3_PRETRAINED_MODEL_CHECKPOINT_PATH,
-    PRETRAINED_MODEL_CHECKPOINT_PATH,
 )
 
 

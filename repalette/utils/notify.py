@@ -1,7 +1,9 @@
-import discord
-from repalette.constants import DISCORD_BOT_TOKEN
-import nest_asyncio
 import asyncio
+
+import discord
+import nest_asyncio
+
+from repalette.constants import DISCORD_BOT_TOKEN
 
 
 async def __notify_discord(channel_id, message):

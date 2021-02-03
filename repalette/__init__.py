@@ -7,11 +7,5 @@ __all__ = [
 ]
 
 
-from repalette.lightning.systems import (
-    PreTrainSystem,
-    AdversarialMSESystem,
-)
-from repalette.lightning.datamodules import (
-    PreTrainDataModule,
-    GANDataModule,
-)
+from repalette.lightning.datamodules import GANDataModule, PreTrainDataModule
+from repalette.lightning.systems import AdversarialMSESystem, PreTrainSystem

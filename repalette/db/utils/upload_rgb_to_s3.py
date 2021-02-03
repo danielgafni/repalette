@@ -1,17 +1,18 @@
 import logging
-import shutil
 import os
+import shutil
+
 import boto3
 from botocore.exceptions import ClientError
 
 from repalette.constants import (
-    S3_RGB_DATABASE_PATH,
-    S3_BUCKET_NAME,
-    S3_RGB_IMAGES_PATH,
     BASE_DATA_DIR,
-    RGB_IMAGES_DIR,
     RGB_DATABASE_PATH,
+    RGB_IMAGES_DIR,
     ROOT_DIR,
+    S3_BUCKET_NAME,
+    S3_RGB_DATABASE_PATH,
+    S3_RGB_IMAGES_PATH,
 )
 
 

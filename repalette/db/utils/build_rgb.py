@@ -1,18 +1,15 @@
-from PIL import Image, ImageColor
-from tqdm import tqdm
 import os
+
 import numpy as np
+from PIL import Image, ImageColor
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import sessionmaker
+from tqdm import tqdm
 
-from repalette.constants import (
-    RGB_IMAGES_DIR,
-    DEFAULT_RGB_DATABASE,
-)
-from repalette.db.rgb import RGBImage, RGBBase
+from repalette.constants import DEFAULT_RGB_DATABASE, RGB_IMAGES_DIR
 from repalette.datasets import RawDataset
-
+from repalette.db.rgb import RGBBase, RGBImage
 
 BAD_NAMES = [
     "ColorLove1a_150.png",
@@ -80,9 +77,7 @@ def process_image_info(image, palette):
     np_image = np.array(image)
     np_image = cut_numpy_image(np_image)
     if validate_image(np_image):
-        np_palette = np.array(
-            [ImageColor.getcolor(color, "RGB") for color in reversed(palette)]
-        ).reshape((1, 6, 3))
+        np_palette = np.array([ImageColor.getcolor(color, "RGB") for color in reversed(palette)]).reshape((1, 6, 3))
         return np_image, np_palette
     else:
         return None, None

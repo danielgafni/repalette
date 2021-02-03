@@ -1,13 +1,8 @@
 import datetime
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    DateTime,
-    MetaData,
-)
-from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 import os
+
+from sqlalchemy import Column, DateTime, Integer, MetaData, String
+from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 
 from repalette.constants import RAW_DATA_DIR
 

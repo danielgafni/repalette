@@ -1,21 +1,10 @@
 import numpy as np
 import torch
 from PIL import Image
-from skimage.color import (
-    rgb2lab,
-    lab2rgb,
-    rgb2hsv,
-    hsv2rgb,
-)
-from torchvision.transforms import (
-    functional as TF,
-)
+from skimage.color import hsv2rgb, lab2rgb, rgb2hsv, rgb2lab
+from torchvision.transforms import functional as TF
 
-from repalette.constants import (
-    L_RANGE,
-    A_RANGE,
-    B_RANGE,
-)
+from repalette.constants import A_RANGE, B_RANGE, L_RANGE
 
 
 class LABNormalizer:
@@ -106,7 +95,7 @@ class FullTransform:
         return augmented_imgs
 
 
-def smart_hue_adjust(img, hue_shift: float, lab=True) -> np.float32:
+def smart_hue_adjust(img, hue_shift: float, lab=True):
     """
     Shifts hue for an image, preserving its luminance
     :param img: Input image
@@ -133,26 +122,25 @@ def smart_hue_adjust(img, hue_shift: float, lab=True) -> np.float32:
             np.int64,
         ]:
             pil_img = Image.fromarray(img)
-            np_img = img.astype(np.float) / 255.0
+            np_img = img.astype("float") / 255.0
         else:
             raise ValueError(
-                "Numpy array dtype must be one of:\n"
-                "np.float16, np.float32, np.float64, np.int16, np.int32, np.int64"
+                "Numpy array dtype must be one of:\n" "np.float16, np.float32, np.float64, np.int16, np.int32, np.int64"
             )
     else:
         pil_img = img
-        np_img = np.array(img).astype(np.float) / 255.0
+        np_img = np.array(img).astype("float") / 255.0
 
     # get original luminance
     img_LAB = rgb2lab(np_img)
     luminance = img_LAB[:, :, 0]
 
     # shift hue
-    img_shifted = np.array(TF.adjust_hue(pil_img, hue_shift)).astype(np.float) / 255.0
+    img_shifted = np.array(TF.adjust_hue(pil_img, hue_shift)).astype("float") / 255.0
     img_shifted_LAB = rgb2lab(img_shifted)
     img_shifted_LAB[:, :, 0] = luminance  # restore original luminance
     if lab:
-        return img_shifted_LAB
+        return img_shifted_LAB.astype(int)
     img_augmented = (lab2rgb(img_shifted_LAB) * 255.0).astype(int)
 
     return img_augmented
