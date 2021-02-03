@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Repalette</title>
+</head>
+<body>
+    {% include 'header.html' %}
+    <br> Choose colors<br>
+
+    {% if request.method == "POST" %}
+        <form action="/" enctype="multipart/form-data" method="post">
+            {% for color in colors %}
+                <input name="color{{ loop.index0 +1 }}" type="color" value="{{ color }}" required>
+            {% endfor %}
+            <br><br> Choose image <br>
+            <input name="file" type="file" value="{{ chosen_image }}" required>
+            <br><br>
+            <input type="submit" value="Recolor">
+        </form>
+        <br>Result<br>
+        <img src={{ image_path }}>
+    {% else %}
+    <form action="/" enctype="multipart/form-data" method="post">
+        {% for i in range(6) %}
+            <input name="color{{ i+1 }}" type="color" required>
+        {% endfor %}
+        <br><br> Choose image <br>
+        <input name="file" type="file" required>
+        <br><br>
+        <input type="submit" value="Recolor">
+    </form>
+    {% endif %}
+</body>
+</html>

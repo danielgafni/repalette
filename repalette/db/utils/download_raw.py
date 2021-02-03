@@ -1,25 +1,19 @@
-import requests
 import argparse
-from bs4 import BeautifulSoup
-from tqdm import tqdm
 import io
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import IntegrityError
-
 from multiprocessing import Pool
+
+import requests
+from bs4 import BeautifulSoup
 from PIL import Image
+from sqlalchemy import create_engine
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import sessionmaker
+from tqdm import tqdm
 
-from repalette.constants import (
-    BASE_DATA_DIR,
-    RAW_DATA_DIR,
-    RGB_IMAGES_DIR,
-    DEFAULT_RAW_DATABASE,
-)
+from repalette.constants import BASE_DATA_DIR, DEFAULT_RAW_DATABASE, RAW_DATA_DIR, RGB_IMAGES_DIR
 from repalette.db import image_url_to_name
-from repalette.db.raw import RawImage, RAWBase
-
+from repalette.db.raw import RAWBase, RawImage
 
 DESIGN_SEEDS_PAGES_ROOT = r"https://www.design-seeds.com/blog/page/"
 
@@ -41,9 +35,7 @@ def get_image_urls_and_palettes():
             image_url = post.find_all(class_="attachment-full")[0]["src"]
             palette = [header.text for header in post.find_all("h5") if "#" in header.text]
 
-            if (
-                len(palette) != 6
-            ):  # this happens on "Anniversary posts" - they are duplicates anyway
+            if len(palette) != 6:  # this happens on "Anniversary posts" - they are duplicates anyway
                 skipped += 1
                 bar.desc = f"Parsing... skipped: [{skipped}]"
                 break

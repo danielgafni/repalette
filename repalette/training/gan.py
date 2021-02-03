@@ -1,26 +1,22 @@
 import argparse
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import GPUStatsMonitor, ModelCheckpoint
-from dotenv import load_dotenv
 import os
 from uuid import uuid1
 
+from dotenv import load_dotenv
+from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks import GPUStatsMonitor, ModelCheckpoint
+from pytorch_lightning.loggers import TensorBoardLogger
 
 from repalette.constants import (
+    LIGHTNING_LOGS_DIR,
+    MODEL_CHECKPOINTS_DIR,
+    PRETRAINED_MODEL_CHECKPOINT_PATH,
     S3_LIGHTNING_LOGS_DIR,
     S3_MODEL_CHECKPOINTS_DIR,
-    MODEL_CHECKPOINTS_DIR,
-    LIGHTNING_LOGS_DIR,
-    PRETRAINED_MODEL_CHECKPOINT_PATH,
 )
-from pytorch_lightning.loggers import TensorBoardLogger
+from repalette.lightning.callbacks import LogAdversarialMSEToTensorboard, LogHyperparamsToTensorboard, Notify
 from repalette.lightning.datamodules import GANDataModule
-from repalette.lightning.callbacks import (
-    LogAdversarialMSEToTensorboard,
-    Notify,
-    LogHyperparamsToTensorboard,
-)
-from repalette.lightning.systems import PreTrainSystem, AdversarialMSESystem
+from repalette.lightning.systems import AdversarialMSESystem, PreTrainSystem
 
 
 def main(hparams):
@@ -118,12 +114,8 @@ if __name__ == "__main__":
     hparams_parser = GANDataModule.add_argparse_args(hparams_parser)
 
     # misc
-    hparams_parser.add_argument(
-        "--checkpoints-location", type=str, default="s3", choices=["s3", "local"]
-    )
-    hparams_parser.add_argument(
-        "--logging-location", type=str, default="s3", choices=["s3", "local"]
-    )
+    hparams_parser.add_argument("--checkpoints-location", type=str, default="s3", choices=["s3", "local"])
+    hparams_parser.add_argument("--logging-location", type=str, default="s3", choices=["s3", "local"])
     hparams_parser.add_argument("--name", type=str, default="gan", help="experiment name")
     hparams_parser.add_argument(
         "--version",

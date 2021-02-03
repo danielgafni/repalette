@@ -1,6 +1,7 @@
-from torch.utils.data import Dataset
 import abc
 from random import Random
+
+from torch.utils.data import Dataset
 
 
 class AbstractDataset(abc.ABC, Dataset):
@@ -82,9 +83,7 @@ class AbstractQueryDataset(AbstractDataset):
         return len(self.query)
 
     def _split(self, test_size, shuffle, randomizer: Random):
-        train_query, test_query = self._query_split(
-            test_size=test_size, shuffle=shuffle, randomizer=randomizer
-        )
+        train_query, test_query = self._query_split(test_size=test_size, shuffle=shuffle, randomizer=randomizer)
 
         train = self.__class__(query=train_query, random_seed=self.random_seed, **self._kwargs)
         test = self.__class__(query=test_query, random_seed=self.random_seed, **self._kwargs)
@@ -139,9 +138,7 @@ class AbstractRecolorDataset(AbstractQueryDataset):
         raise NotImplementedError
 
     def _split(self, test_size, shuffle, randomizer: Random):
-        train_query, test_query = self._query_split(
-            test_size=test_size, shuffle=shuffle, randomizer=randomizer
-        )
+        train_query, test_query = self._query_split(test_size=test_size, shuffle=shuffle, randomizer=randomizer)
 
         train_kwargs = self._kwargs
         train_kwargs.update(self.train_kwargs)

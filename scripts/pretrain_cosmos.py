@@ -1,9 +1,10 @@
-from cosmos.api import Cosmos
 import argparse
-from dotenv import load_dotenv
 import os
-from uuid import uuid1
 import sys
+from uuid import uuid1
+
+from cosmos.api import Cosmos
+from dotenv import load_dotenv
 
 from repalette.constants import RDS_COSMOS_DATABASE, S3_BUCKET_PATH
 
@@ -55,9 +56,7 @@ if __name__ == "__main__":
 
     def set_env_variables():
 
-        return "\n".join(
-            [f'export {variable}="{os.getenv(variable)}"' for variable in env_variables]
-        )
+        return "\n".join([f'export {variable}="{os.getenv(variable)}"' for variable in env_variables])
 
     cosmos = Cosmos(
         RDS_COSMOS_DATABASE,

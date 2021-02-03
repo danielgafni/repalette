@@ -1,15 +1,12 @@
-from pytorch_lightning.callbacks import Callback
-import torch.nn as nn
-import torch
 import abc
 
-from repalette.constants import (
-    DISCORD_TRAINING_CHANNEL_ID,
-)
-from repalette.utils.visualization import (
-    lab_batch_to_rgb_image_grid,
-)
+import torch
+import torch.nn as nn
+from pytorch_lightning.callbacks import Callback
+
+from repalette.constants import DISCORD_TRAINING_CHANNEL_ID
 from repalette.utils.notify import notify_discord
+from repalette.utils.visualization import lab_batch_to_rgb_image_grid
 
 
 class LogRecoloringToTensorboard(Callback):
@@ -110,9 +107,7 @@ class LogRecoloringToTensorboard(Callback):
             original_img = pl_module.normalizer.inverse_transform(original_img)
             target_img = pl_module.normalizer.inverse_transform(target_img)
             target_palette = pl_module.normalizer.inverse_transform(target_palette)
-            recolored_img_with_luminance = pl_module.normalizer.inverse_transform(
-                recolored_img_with_luminance
-            )
+            recolored_img_with_luminance = pl_module.normalizer.inverse_transform(recolored_img_with_luminance)
 
             original_images.append(original_img)
             target_images.append(target_img)
@@ -251,9 +246,7 @@ class LogAdversarialMSEToTensorboard(LogRecoloringToTensorboard):
 
             original_img = pl_module.normalizer.inverse_transform(original_img)
             target_palette = pl_module.normalizer.inverse_transform(target_palette)
-            recolored_img_with_luminance = pl_module.normalizer.inverse_transform(
-                recolored_img_with_luminance
-            )
+            recolored_img_with_luminance = pl_module.normalizer.inverse_transform(recolored_img_with_luminance)
 
             original_images.append(original_img)
             recolored_images.append(recolored_img_with_luminance)
@@ -326,6 +319,4 @@ class LogHyperparamsToTensorboard(Callback):
 
     def on_test_end(self, trainer, pl_module):
         if self.hp_metric is not None:
-            trainer.logger.log_hyperparams(
-                pl_module.hparams, trainer.callback_metrics[self.hp_metric]
-            )
+            trainer.logger.log_hyperparams(pl_module.hparams, trainer.callback_metrics[self.hp_metric])

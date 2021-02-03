@@ -6,11 +6,16 @@ repos:
     -   id: trailing-whitespace
 -   repo: local
     hooks:
-    -   id: black
-        name: black
-        entry: black .
-        language: system
-        pass_filenames: false
+    - id: isort
+      name: isort
+      entry: isort . --settings-file pyproject.toml
+      language: system
+      pass_filenames: false
+    - id: black
+      name: black
+      entry: black .
+      language: system
+      pass_filenames: false
     - id: autoflake
       name: autoflake
       entry: autoflake

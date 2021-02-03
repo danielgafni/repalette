@@ -1,13 +1,8 @@
+import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 
-from repalette.models.nn import (
-    ConvBlock,
-    DeconvBlock,
-    ResnetLayer,
-    BasicBlock,
-)
-import pytorch_lightning as pl
+from repalette.models.nn import BasicBlock, ConvBlock, DeconvBlock, ResnetLayer
 
 
 class PaletteNet(nn.Module):

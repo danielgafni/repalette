@@ -3,9 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from repalette.constants import RAW_DATABASE_PATH
-from repalette.db.raw import RawImage
-
 from repalette.datasets import AbstractQueryDataset
+from repalette.db.raw import RawImage
 
 
 class RawDataset(AbstractQueryDataset):

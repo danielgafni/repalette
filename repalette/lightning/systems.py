@@ -1,25 +1,23 @@
-import torch
-import pytorch_lightning as pl
 from argparse import ArgumentParser
+
+import pytorch_lightning as pl
+import torch
 from torch import nn as nn
 
 from repalette.constants import (
-    DEFAULT_GENERATOR_LR,
-    DEFAULT_DISCRIMINATOR_LR,
     DEFAULT_ADVERSARIAL_BETA_1,
     DEFAULT_ADVERSARIAL_BETA_2,
-    DEFAULT_GENERATOR_WEIGHT_DECAY,
-    DEFAULT_DISCRIMINATOR_WEIGHT_DECAY,
     DEFAULT_ADVERSARIAL_LAMBDA_MSE_LOSS,
-    DEFAULT_PRETRAIN_LR,
+    DEFAULT_DISCRIMINATOR_LR,
+    DEFAULT_DISCRIMINATOR_WEIGHT_DECAY,
+    DEFAULT_GENERATOR_LR,
+    DEFAULT_GENERATOR_WEIGHT_DECAY,
     DEFAULT_PRETRAIN_BETA_1,
     DEFAULT_PRETRAIN_BETA_2,
+    DEFAULT_PRETRAIN_LR,
     DEFAULT_PRETRAIN_WEIGHT_DECAY,
 )
-from repalette.models import (
-    PaletteNet,
-    Discriminator,
-)
+from repalette.models import Discriminator, PaletteNet
 from repalette.utils.transforms import LABNormalizer
 
 
@@ -66,12 +64,8 @@ class PreTrainSystem(pl.LightningModule):
         hparams_parser.add_argument("--learning-rate", type=float, default=DEFAULT_PRETRAIN_LR)
         hparams_parser.add_argument("--beta-1", type=float, default=DEFAULT_PRETRAIN_BETA_1)
         hparams_parser.add_argument("--beta-2", type=float, default=DEFAULT_PRETRAIN_BETA_2)
-        hparams_parser.add_argument(
-            "--weight-decay", type=float, default=DEFAULT_PRETRAIN_WEIGHT_DECAY
-        )
-        hparams_parser.add_argument(
-            "--optimizer", type=str, default="adam", choices=["adam", "adamw"]
-        )
+        hparams_parser.add_argument("--weight-decay", type=float, default=DEFAULT_PRETRAIN_WEIGHT_DECAY)
+        hparams_parser.add_argument("--optimizer", type=str, default="adam", choices=["adam", "adamw"])
         hparams_parser.add_argument("--scheduler-patience", type=int, default=10)
 
         return hparams_parser
@@ -229,24 +223,14 @@ class AdversarialMSESystem(pl.LightningModule):
     def add_argparse_args(parent_parser: ArgumentParser) -> ArgumentParser:
         hparams_parser = ArgumentParser(parents=[parent_parser], add_help=False)
 
-        hparams_parser.add_argument(
-            "--generator-learning-rate", type=float, default=DEFAULT_GENERATOR_LR
-        )
-        hparams_parser.add_argument(
-            "--discriminator-learning-rate", type=float, default=DEFAULT_DISCRIMINATOR_LR
-        )
-        hparams_parser.add_argument(
-            "--generator-weight-decay", type=float, default=DEFAULT_GENERATOR_WEIGHT_DECAY
-        )
+        hparams_parser.add_argument("--generator-learning-rate", type=float, default=DEFAULT_GENERATOR_LR)
+        hparams_parser.add_argument("--discriminator-learning-rate", type=float, default=DEFAULT_DISCRIMINATOR_LR)
+        hparams_parser.add_argument("--generator-weight-decay", type=float, default=DEFAULT_GENERATOR_WEIGHT_DECAY)
         hparams_parser.add_argument(
             "--discriminator-weight-decay", type=float, default=DEFAULT_DISCRIMINATOR_WEIGHT_DECAY
         )
-        hparams_parser.add_argument(
-            "--lambda-mse-loss", type=float, default=DEFAULT_ADVERSARIAL_LAMBDA_MSE_LOSS
-        )
-        hparams_parser.add_argument(
-            "--optimizer", type=str, default="adam", choices=["adam", "adamw"]
-        )
+        hparams_parser.add_argument("--lambda-mse-loss", type=float, default=DEFAULT_ADVERSARIAL_LAMBDA_MSE_LOSS)
+        hparams_parser.add_argument("--optimizer", type=str, default="adam", choices=["adam", "adamw"])
         hparams_parser.add_argument("--beta-1", type=float, default=DEFAULT_ADVERSARIAL_BETA_1)
         hparams_parser.add_argument("--beta-2", type=float, default=DEFAULT_ADVERSARIAL_BETA_2)
         hparams_parser.add_argument("--k", type=int, default=8)
@@ -325,9 +309,7 @@ class AdversarialMSESystem(pl.LightningModule):
             discriminator_to = -torch.mean(torch.log(fake_prob_to))
             discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
             discriminator_oo = -torch.mean(torch.log(real_prob_oo))
-            discriminator_loss = (
-                discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
-            )
+            discriminator_loss = discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
             self.log(
                 "Train/discriminator_tt",
                 discriminator_tt,
@@ -391,9 +373,7 @@ class AdversarialMSESystem(pl.LightningModule):
         discriminator_to = -torch.mean(torch.log(fake_prob_to))
         discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
         discriminator_oo = -torch.mean(torch.log(real_prob_oo))
-        discriminator_loss = (
-            discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
-        )
+        discriminator_loss = discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
         self.log(
             "Val/discriminator_tt",
             discriminator_tt,
@@ -469,9 +449,7 @@ class AdversarialMSESystem(pl.LightningModule):
         discriminator_to = -torch.mean(torch.log(fake_prob_to))
         discriminator_ot = -torch.mean(torch.log(fake_prob_ot))
         discriminator_oo = -torch.mean(torch.log(real_prob_oo))
-        discriminator_loss = (
-            discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
-        )
+        discriminator_loss = discriminator_tt + discriminator_to + discriminator_ot + discriminator_oo
         self.log(
             "Test/discriminator_tt",
             discriminator_tt,

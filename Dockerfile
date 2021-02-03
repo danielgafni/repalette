@@ -15,11 +15,9 @@ ARG PIP_NO_CACHE_DIR=1
 
 RUN poetry install --no-dev  # this will install all production dependencies
 
-COPY ./repalette ./repalette
+COPY . .
 
 RUN poetry install --no-dev  # this will only install the actual `repalette` project copied above
-
-COPY repalette/training/pretrain.py ./scripts/pretrain.py
 
 ADD ./scripts/aws_docker_setup.sh ./scripts/aws_docker_setup.sh
 

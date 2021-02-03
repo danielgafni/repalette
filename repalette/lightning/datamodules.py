@@ -1,20 +1,17 @@
-import pytorch_lightning as pl
 from argparse import ArgumentParser
+
+import pytorch_lightning as pl
 from torchvision import transforms
-from repalette.datasets import (
-    PreTrainDataset,
-    GANDataset,
-)
-from repalette.datasets.utils import (
-    ShuffleDataLoader,
-)
-from repalette.constants import DEFAULT_IMAGE_SIZE
+
+from repalette.constants import DEFAULT_IMAGE_SIZE, DEFAULT_PRETRAIN_BATCH_SIZE
+from repalette.datasets import GANDataset, PreTrainDataset
+from repalette.datasets.utils import ShuffleDataLoader
 
 
 class PreTrainDataModule(pl.LightningDataModule):
     def __init__(
         self,
-        batch_size=8,
+        batch_size=DEFAULT_PRETRAIN_BATCH_SIZE,
         multiplier=16,
         shuffle=True,
         num_workers=15,
@@ -79,9 +76,7 @@ class PreTrainDataModule(pl.LightningDataModule):
             pin_memory=self.pin_memory,
         )
         # train dataloader should be shuffled!
-        train_dataloader.shuffle(
-            True
-        )  # this will make no difference if self.train_batch_from_same_image == True
+        train_dataloader.shuffle(True)  # this will make no difference if self.train_batch_from_same_image == True
         return train_dataloader
 
     def val_dataloader(self):

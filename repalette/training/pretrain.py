@@ -1,24 +1,20 @@
 import argparse
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, GPUStatsMonitor
-from dotenv import load_dotenv
 import os
 from uuid import uuid1
 
+from dotenv import load_dotenv
+from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks import EarlyStopping, GPUStatsMonitor, ModelCheckpoint
+from pytorch_lightning.loggers import TensorBoardLogger
 
 from repalette.constants import (
-    S3_LIGHTNING_LOGS_DIR,
-    S3_MODEL_CHECKPOINTS_RELATIVE_DIR,
     LIGHTNING_LOGS_DIR,
     MODEL_CHECKPOINTS_DIR,
+    S3_LIGHTNING_LOGS_DIR,
+    S3_MODEL_CHECKPOINTS_RELATIVE_DIR,
 )
-from pytorch_lightning.loggers import TensorBoardLogger
+from repalette.lightning.callbacks import LogHyperparamsToTensorboard, LogPairRecoloringToTensorboard, Notify
 from repalette.lightning.datamodules import PreTrainDataModule
-from repalette.lightning.callbacks import (
-    LogPairRecoloringToTensorboard,
-    Notify,
-    LogHyperparamsToTensorboard,
-)
 from repalette.lightning.systems import PreTrainSystem
 from repalette.utils.aws import upload_to_s3
 
@@ -128,9 +124,7 @@ if __name__ == "__main__":
     hparams_parser = PreTrainDataModule.add_argparse_args(hparams_parser)
 
     # misc
-    hparams_parser.add_argument(
-        "--logging-location", type=str, default="s3", choices=["s3", "local"]
-    )
+    hparams_parser.add_argument("--logging-location", type=str, default="s3", choices=["s3", "local"])
     hparams_parser.add_argument("--upload-model-to-s3", type=bool, default=True)
     hparams_parser.add_argument("--name", type=str, default="pretrain", help="experiment name")
     hparams_parser.add_argument(

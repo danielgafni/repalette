@@ -1,6 +1,6 @@
 import os
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -53,10 +53,11 @@ A_RANGE = (-86.185, 98.254)
 B_RANGE = (-107.863, 94.482)
 
 # pretraining hyperparameters
-DEFAULT_PRETRAIN_LR = 3e-5
+DEFAULT_PRETRAIN_LR = 2e-4
 DEFAULT_PRETRAIN_BETA_1 = 0.5
 DEFAULT_PRETRAIN_BETA_2 = 0.999
 DEFAULT_PRETRAIN_WEIGHT_DECAY = 1e-6
+DEFAULT_PRETRAIN_BATCH_SIZE = 16
 
 # adversarial hyperparameters
 DEFAULT_GENERATOR_LR = 2e-4

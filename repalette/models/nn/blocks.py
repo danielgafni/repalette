@@ -1,8 +1,6 @@
 import torch.nn as nn
 
-from repalette.models.nn.activations import (
-    activation_shortcuts,
-)
+from repalette.models.nn.activations import activation_shortcuts
 
 
 class ResnetLayer(nn.Module):

@@ -1,6 +1,5 @@
 import torch.nn as nn
 
-
 activation_shortcuts = nn.ModuleDict(
     {
         "relu": nn.ReLU(),
