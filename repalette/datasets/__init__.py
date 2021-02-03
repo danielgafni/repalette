@@ -8,7 +8,8 @@ __all__ = [
 ]
 
 from repalette.datasets.abstract import AbstractQueryDataset, AbstractRecolorDataset
-from repalette.datasets.gan_dataset import GANDataset  # noqa
-from repalette.datasets.pretrain_dataset import PreTrainDataset  # noqa
 from repalette.datasets.raw_dataset import RawDataset
 from repalette.datasets.rgb_dataset import RGBDataset
+
+from repalette.datasets.pretrain_dataset import PreTrainDataset  # isort:skip
+from repalette.datasets.gan_dataset import GANDataset  # isort:skip
