@@ -16,8 +16,8 @@ docker run -p 8000:8000 danielgafni/repalette:app
 
 # Screenshots
 
-![image](screemshots/flowers.jpg)
-![image](screemshots/flowers_recolored.png)
+![image](screenshots/flowers.jpg)
+![image](screenshots/flowers_recolored.png)
 
 # Development
 ## Installation
