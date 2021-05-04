@@ -28,6 +28,7 @@ RUN poetry install --no-dev
 COPY . ./
 RUN poetry install --no-dev
 
-ENV MAX_IMAGE_SIZE="2073600"
+ARG MAX_IMAGE_SIZE="2073600"
+ENV MAX_IMAGE_SIZE=${MAX_IMAGE_SIZE}
 
 CMD ["uvicorn", "app.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

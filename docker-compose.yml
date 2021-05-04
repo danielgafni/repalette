@@ -4,5 +4,7 @@ services:
     build:
       context: .
       dockerfile: app.Dockerfile
+      args:
+        MAX_IMAGE_SIZE: ${MAX_IMAGE_SIZE}
     ports:
       - "8000:8000"
