@@ -58,7 +58,7 @@ async def recolor(
 ):
     colors = [color1, color2, color3, color4, color5, color6]
     numpy_palette = html2numpy(colors)
-    image = Image.open(io.BytesIO((await file.read())))
+    image = Image.open(io.BytesIO((await file.read()))).convert("RGB")
 
     image = fit_image_to_max_size(image=image, max_image_size=setup_config["max_image_size"])
 
