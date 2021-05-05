@@ -62,7 +62,7 @@ set NODE_OPTIONS=
 ## Download data
 ### Option 1: scrap data from www.design-seeds.com
 ```bash
-python repalette/db/utils/download_raw.py --num_workers 8  # adjust num_workers
+python repalette/db/utils/download_raw.py --num-workers 8  # adjust num-workers
 python repalette/db/utils/build_rgb.py
 ```
 ### Option 2: download prepared data from S3
