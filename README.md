@@ -25,6 +25,7 @@ docker run -p 8000:8000 danielgafni/repalette:app
 poetry install
 poetry run pre-commit install  # for development
 ```
+To activate the virtual environment run `poetry shell`
 
 ### Configuration
 ```bash
@@ -61,8 +62,8 @@ set NODE_OPTIONS=
 ## Download data
 ### Option 1: scrap data from www.design-seeds.com
 ```bash
-python repalette/utils/download_raw.py --num_workers 8  # adjust num_workers
-python repalette/utils/build_rgb.py
+python repalette/db/utils/download_raw.py --num_workers 8  # adjust num_workers
+python repalette/db/utils/build_rgb.py
 ```
 ### Option 2: download prepared data from S3
 This data might be a little outdated comparing to the #1 option, but will be downloaded much faster.
@@ -76,6 +77,17 @@ python repalette/db/utils/upload_rgb_to_s3.py
 ## Download the pre-trained model checkpoint:
 ```bash
 python repalette/db/utils/download_pretrain_checkpoint_from_s3.py
+```
+
+## Training
+The model can be trained on the data downloaded from www.design-seeds.com. After running the training script the logs (losses, images, etc) will be available at localhost:6006.
+### Pre-training
+```bash
+python repalette/training/pretrain.py
+```
+### GAN training
+```bash
+python repalette/training/gan.py
 ```
 
 ## Project structure
